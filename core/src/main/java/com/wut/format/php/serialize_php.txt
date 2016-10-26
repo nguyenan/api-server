@@ -1,0 +1,44 @@
+// http://developer.yahoo.com/common/phpserial.html
+
+a:1:{
+    s:9:"ResultSet";
+    a:4:{
+        s:21:"totalResultsAvailable";
+        s:6:"266933";
+        s:20:"totalResultsReturned";
+        s:1:"1";
+        s:19:"firstResultPosition";
+        s:1:"1";
+        s:6:"Result";
+            a:10:{
+                s:5:"Title";
+                s:11:"madonna 118";
+                s:7:"Summary";
+                s:18:"Picture 118 of 184";
+                s:3:"Url";
+                s:74:"http://www.celebritypicturesarchive.com/pictures/m/madonna/madonna-118.jpg";
+                s:8:"ClickUrl";
+                s:74:"http://www.celebritypicturesarchive.com/pictures/m/madonna/madonna-118.jpg";
+                s:10:"RefererUrl";
+                s:79:"http://www.celebritypicturesarchive.com/pgs/m/Madonna/Madonna%20picture_118.htm";
+                s:8:"FileSize";
+                s:5:"40209";
+                s:10:"FileFormat";
+                s:4:"jpeg";
+                s:6:"Height";
+                s:3:"700";
+                s:5:"Width";
+                s:3:"473";
+                s:9:"Thumbnail";
+                    a:3:{
+                        s:3:"Url";
+                        s:41:"http://scd.mm-b1.yimg.com/image/500892420";
+                        s:6:"Height";
+                        s:3:"130";
+                        s:5:"Width";
+                        s:2:"87";
+                         }
+                }
+        }
+}
+

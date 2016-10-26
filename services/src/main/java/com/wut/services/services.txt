@@ -1,0 +1,15 @@
+Services
+--------
+
+load balancer
+cassanda
+scheduler (scheduled tasks)
+dequeuer
+derby (relational database)
+voldemort
+
+
+rest api
+static content hosting
+
+consistency checker (checks for differences between cassandra and simple db)

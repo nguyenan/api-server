@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="wut" default="compile" basedir=".">
+	<property name="build" value="build" />
+	<property name="src" value="src" />
+	<property name="dist" value="dist" />
+	<property name="conf" value="conf" />
+	<!-- TODO no longer needed -->
+	<property name="libs" value="WebContent/WEB-INF/lib" />
+
+	<target name="init">
+		<tstamp />
+		<mkdir dir="${build}" />
+		<mkdir dir="${build}/WEB-INF" />
+		<mkdir dir="${build}/WEB-INF/classes" />
+		<mkdir dir="${dist}" />
+	</target>
+
+	<target name="compile" depends="init">
+		<echo>Compiling...</echo>
+		<antcall target="compileWutServices" />
+	</target>
+
+	<target name="compileWutCore" depends="">
+		<antcall target="compileProject">
+			<param name="project" value="WutCore" />
+			<!-- no dependencies -->
+		</antcall>
+	</target>
+
+	<target name="compileWutModel" depends="compileWutCore">
+		<antcall target="compileProject">
+			<param name="project" value="WutModel" />
+			<!-- depends on WutCore -->
+		</antcall>
+	</target>
+
+	<target name="compileWutSupport" depends="compileWutCore,compileWutModel">
+		<antcall target="compileProject">
+			<param name="project" value="WutSupport" />
+			<!-- depends on WutCore, WutModel -->
+		</antcall>
+	</target>
+
+	<target name="compileWutFormats" depends="compileWutSupport,compileWutModel,compileWutCore">
+		<antcall target="compileProject">
+			<param name="project" value="WutFormats" />
+			<!-- depends on WutCore, WutModel, WutSupport -->
+		</antcall>
+	</target>
+
+	<target name="compileWutSources" depends="compileWutSupport,compileWutModel,compileWutCore">
+		<antcall target="compileProject">
+			<param name="project" value="WutSources" />
+			<!-- depends on WutCore, WutModel, WutSupport -->
+		</antcall>
+	</target>
+
+	<target name="compileWutProviders" depends="compileWutFormats,compileWutSources,compileWutSupport,compileWutModel,compileWutCore">
+		<antcall target="compileProject">
+			<param name="project" value="WutProviders" />
+			<!-- depends on WutCore, WutModel, WutSupport, WutFormats, WutSources -->
+		</antcall>
+	</target>
+
+	<target name="compileWutResources" depends="compileWutProviders,compileWutFormats,compileWutSources,compileWutSupport,compileWutModel,compileWutCore">
+		<antcall target="compileProject">
+			<param name="project" value="WutResources" />
+			<!-- depends on WutCore, WutModel, WutSupport, WutFormats, WutSources, WutProviders -->
+		</antcall>
+	</target>
+
+	<target name="compileWutPipeline" depends="compileWutResources,compileWutFormats,compileWutSources,compileWutSupport,compileWutModel,compileWutCore">
+		<antcall target="compileProject">
+			<param name="project" value="WutPipeline" />
+		</antcall>
+	</target>
+
+	<target name="compileWutProtocols" depends="compileWutPipeline,compileWutSupport,compileWutCore">
+		<antcall target="compileProject">
+			<param name="project" value="WutProtocols" />
+		</antcall>
+	</target>
+
+	<target name="compileWutServices" depends="compileWutProtocols,compileWutResources,compileWutSources,compileWutSupport,compileWutModel,compileWutCore">
+		<antcall target="compileProject">
+			<param name="project" value="WutServices" />
+		</antcall>
+	</target>
+
+	<target name="compileProject">
+		<echo message="Compiling Project ${project}" />
+		<javac srcdir="../${project}/${src}" destdir="${build}" verbose="true" debug="on" source="1.6" target="1.6" includeantruntime="false">
+			<classpath>
+				<fileset dir="../${project}/lib">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+
+		</javac>
+		<copy file="../WutSources/src/com/wut/datasources/aws/AwsCredentials.properties" todir="build/com/wut/datasources/aws"/>
+		<copy file="../WutSources/src/com/wut/datasources/aws/AwsCredentials.SimpleDB.properties" todir="build/com/wut/datasources/aws"/>
+	</target>
+
+	<target name="run" depends="compile">
+		<java classname="com.wut.WebUtilityToolkit" fork="yes">
+			<sysproperty key="http.port" value="${http.port}" />
+			<sysproperty key="https.port" value="${https.port}" />
+			<sysproperty key="keystore.name" value="${keystore.name}" />
+			<sysproperty key="keystore.password" value="${keystore.password}" />
+			<sysproperty key="keymanager.password" value="${keystore.password}" />
+			<sysproperty key="applications.dir" value="${applications.dir}" />
+			<sysproperty key="javax.net.ssl.trustStore" value="${keystore.name}" />
+			<sysproperty key="javax.net.ssl.trustStorePassword" value="${keystore.password}" />
+			<sysproperty key="log4j.configurationFile" value="/Users/russell/git/webutilitykit/WutBuild/conf/log4j.xml2" />
+			<sysproperty key="java.util.logging.config.file" value="/Users/russell/git/webutilitykit/WutBuild/conf/" />
+			<sysproperty key="git.path" value="${git.path}" />
+			<!--<sysproperty key="javaagent" value="newrelic.jar" />-->
+			<jvmarg value="-javaagent:newrelic.jar"/>
+			<classpath>
+				<fileset dir="..">
+					<include name="*/lib/*.jar" />
+				</fileset>
+				<pathelement location="." />
+				<pathelement location="${build}" />
+			</classpath>
+		</java>
+	</target>
+
+	<target name="run-local" depends="compile">
+		<echo>Running server locally...</echo>
+		<antcall target="run">
+			<param name="http.port" value="8888" />
+			<param name="https.port" value="8443" />
+			<param name="keystore.name" value="test.keystore" />
+			<param name="keystore.password" value="REPLACE_ME" />
+			<param name="applications.dir" value="/Users/russell/git/frontend2" />
+			<param name="git.path" value="/usr/local/git/bin/git" />
+		</antcall>
+	</target>
+
+	<target name="run-server" depends="compile">
+		<echo>Running server...</echo>
+		<antcall target="run">
+			<param name="http.port" value="8080" />
+			<param name="https.port" value="8443" />
+			<param name="keystore.name" value="api.webutilitykit.com.keystore" />
+			<param name="keystore.password" value="REPLACE_ME" />
+			<param name="applications.dir" value="../../applications" />
+			<param name="git.path" value="/usr/bin/git" />
+		</antcall>
+	</target>
+
+	<target name="jar" depends="compile">
+		<one-jar destfile="${dist}/wut.jar" manifest="${conf}/manifest.mf">
+			<main>
+				<!-- Construct main.jar from classes and source code -->
+				<fileset dir="${build}">
+					<include name="**/*.class" />
+				</fileset>
+			</main>
+			<lib>
+				<fileset dir="lib">
+					<include name="**/*.jar" />
+				</fileset>
+			</lib>
+		</one-jar>
+		<echo>Now you can run the WUT using "java -jar wut.jar"</echo>
+	</target>
+
+	<target name="clean" description="clean up">
+		<!-- Delete the ${build} and ${dist} directory trees -->
+		<delete dir="${build}" />
+		<delete dir="${dist}" />
+	</target>
+
+
+	<target name="war" depends="compile">
+		<war basedir="${build}" includes="**/*.class" destfile="${dist}/webapp.war" webxml="WEB-INF/web.xml" />
+		<copy file="${dist}/webapp.war" todir="${jboss.deploy}" />
+	</target>
+
+	<target name="upload">
+		<sshexec host="somehost" username="dude" password="yo" command="touch somefile" />
+		<scp todir="user:password@somehost:/home/chuck/">
+			<fileset dir="src_dir" />
+		</scp>
+		<mail from="test@test.com" tolist="list@tests.com" subject="${war-file-name} was uploaded to the server" message="The ${war-file-name} file was uploaded to ${ftp-server} in ${ftp-remotedir}" />
+	</target>
+
+</project>
+

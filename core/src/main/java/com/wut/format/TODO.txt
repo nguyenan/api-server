@@ -1,0 +1,7 @@
+Desired outcome for api calls:
+
+{ status:'OK', data:'<whatever would normally be returned>', cost:"100 10 123" }
+
+
+
+cost = cpu time (ms), bandwidth (kB), storage (kb) 

@@ -1,0 +1,107 @@
+### ENVIRONMENT SETUP SCRIPT ###
+
+### Run By Executing the command: ###
+### curl http://api.webutilitykit.com/server/install.sh | sed -e 's/PASSWORD/<real password>/g' | sh ###
+
+## Version of Ubuntu ##
+
+lsb_release -a
+
+# Should say:
+# No LSB modules are available.
+# Distributor ID:	Ubuntu
+# Description:	Ubuntu 12.04.2 LTS
+# Release:	12.04
+# Codename:	precise
+
+echo "ASSERT: Description:	Ubuntu 12.04.2 LTS"
+
+## MAKE USER ##
+
+#useradd russell
+#passwd russell
+#echo "russell ALL=(ALL) ALL" >> /etc/sudoers
+
+sudo adduser russell
+sudo usermod -aG sudo russell
+su russell
+cd
+
+## INSTALL add-apt-repository ##
+
+sudo apt-get --yes install python-software-properties
+
+## INSTALL JDK ##
+
+sudo add-apt-repository ppa:webupd8team/java
+sudo apt-get update
+sudo apt-get --yes install oracle-java7-installer
+java -version
+
+echo "ASSERT: Java(TM) SE Runtime Environment (build 1.7.0_21-b11)"
+echo "ASSERT: Java HotSpot(TM) 64-Bit Server VM (build 23.21-b01, mixed mode)"
+
+# Should say:
+# Java(TM) SE Runtime Environment (build 1.7.0_21-b11)
+# Java HotSpot(TM) 64-Bit Server VM (build 23.21-b01, mixed mode)
+
+# old install
+#sudo add-apt-repository ppa:sun-java-community-team/sun-java6
+#sudo apt-get update
+#sudo apt-get install sun-java6-jdk
+#sudo update-java-alternatives -s java-6-sun
+
+## INSTALL ANT ##
+
+sudo apt-get --yes install ant
+ant -version
+
+echo "ASSERT: Apache Ant(TM) version 1.8.2 compiled on December 3 2011"
+
+## INSTALL GIT ##
+
+sudo apt-get --yes install git-core
+git --version
+
+echo "ASSERT: git version 1.7.9.5"
+
+## MAKE WUT FOLDER ##
+
+mkdir wut
+cd wut
+
+## DOWNLOAD SERVER ##
+
+git clone https://rpalmite:PASSWORD@bitbucket.org/rpalmite/webutilitykit.git
+
+## DOWNLOAD CLIENT ##
+
+git clone https://rpalmite:PASSWORD@bitbucket.org/rpalmite/frontend.git applications
+
+## TODO DATA DIRECTORY ##
+
+# just to keep things off
+
+## SETUP GIT ##
+
+git config --global user.name "Russell"
+git config --global user.email russell.palmiter@gmail.com
+
+
+### NON CRITICAL ###
+
+## SETUP NEW RELIC SERVER MONITORING ##
+
+sudo wget -O /etc/apt/sources.list.d/newrelic.list http://download.newrelic.com/debian/newrelic.list
+sudo apt-key adv --keyserver hkp://subkeys.pgp.net --recv-keys 548C16BF
+sudo apt-get update
+sudo apt-get update
+sleep 10
+# yes, twice
+sudo apt-get install newrelic-sysmond
+sudo nrsysmond-config --set license_key=REPLACE_ME
+sudo /etc/init.d/newrelic-sysmond start
+
+
+
+

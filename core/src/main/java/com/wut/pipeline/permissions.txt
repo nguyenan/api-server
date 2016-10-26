@@ -1,0 +1,21 @@
+TODO
+----
+
+permissions need to consider that not everyone should be able to email anyone
+email needs to be granted to only certain users
+other users may only be able to email themselves
+
+we may need multiple users to be logged in at the same time
+
+some data will need table level permissions, some data will need row based permissions
+
+
+resources need to be able to check permissions themselves
+- have an easy way to assign permission for a user or set of users to use something all together
+- tokens that everyone can share -- no need to reimplement this
+
+have requests pass in two tokens: authentication and permissions
+user can have multiple permissions tokens -- need to know when to use the right one
+permissions to resources or entire tables may be downloaded/retreived during authentication
+row based permissions may require two calls, one to get the token and one to get the data
+

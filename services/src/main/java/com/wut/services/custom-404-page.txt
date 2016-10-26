@@ -1,0 +1,35 @@
+START HERE:
+
+http://docs.codehaus.org/display/JETTY/How+to+Create+Custom+Error+Pages
+
+
+
+ Custom error handle class.
+A context may be configured with a custom error handler class that extends ErrorHandler (for webapp contexts
+it must extend ErrorPageErrorHandler).
+
+The following methods may be implemented to control the appearance of the error pages:
+
+public void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) throws IOException
+void handleErrorPage(HttpServletRequest request, Writer writer, int code, String message) throws IOException
+void writeErrorPage(HttpServletRequest request, Writer writer, int code, String message, boolean showStacks) throws IOException
+void writeErrorPageHead(HttpServletRequest request, Writer writer, int code, String message) throws IOException
+void writeErrorPageBody(HttpServletRequest request, Writer writer, int code, String message, boolean showStacks) throws IOException
+void writeErrorPageMessage(HttpServletRequest request, Writer writer, int code, String message,String uri) throws IOException
+void writeErrorPageStacks(HttpServletRequest request, Writer writer) throws IOException
+The custom error handler may be set on the context via the API or via a context configuration file. For example a custom error handling class can be added to the javadoc context with:
+
+<?xml version="1.0"  encoding="ISO-8859-1"?>
+<!DOCTYPE Configure PUBLIC "-//Mort Bay Consulting//DTD Configure//EN" "http://jetty.mortbay.org/configure.dtd">
+ 
+<Configure class="org.mortbay.jetty.handler.ContextHandler">
+  <Call class="org.mortbay.log.Log" name="debug"><Arg>Configure javadoc.xml</Arg></Call>
+  <Set name="contextPath">/javadoc</Set>
+  <Set name="resourceBase"><SystemProperty name="jetty.home" default="."/>/javadoc/</Set>
+ 
+  <!-- Instantiate your own error handler -->
+  <Set name="errorHandler">
+    <New class="com.acme.handler.MyErrorHandler"/>
+  </Set>
+ 
+</Configure>

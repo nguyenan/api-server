@@ -1,0 +1,6 @@
+Report Types
+------------
+contact report
+finance report
+attendance report
+officer attendance report

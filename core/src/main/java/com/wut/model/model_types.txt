@@ -1,0 +1,23 @@
+Scalar Model Types
+------------------
+Link (http link)
+Boolean
+Date
+Integer
+Reference (foreign reference)
+Id (unique id)
+String
+Time
+DateTime (time since 1970) -- timestamp
+picture
+phone number
+attachment
+double
+short string
+long string
+binary
+city
+state
+address
+zip code
+
