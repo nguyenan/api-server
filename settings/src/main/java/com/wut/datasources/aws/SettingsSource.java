@@ -92,7 +92,7 @@ public class SettingsSource implements FileSource {
 	public boolean updateSettings(String customer, Properties settings) {
 		
 		
-		settings.store(out, comments);
+		//settings.store(out, comments);
 		
 		return false;
 		
