@@ -92,7 +92,21 @@ public class DefaultSettingProvider implements SettingProvider {
 		S3FileSource source = new S3FileSource();
 		DefaultSettingProvider provider = new DefaultSettingProvider(source);
 
-		provider.`
+		//provider.`
+	}
+
+
+	@Override
+	public ScalarData read(StringData setting) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	@Override
+	public BooleanData update(StringData setting) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 
