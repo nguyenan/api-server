@@ -1,0 +1,25 @@
+FROM ubuntu:14.04
+MAINTAINER An Nguyen(an.nguyenhoang@tend.ag)
+
+RUN apt-get update
+RUN apt-get -y install ca-certificates curl wget sudo apt-transport-https
+
+# install new relic server monitoring
+#RUN echo 'deb http://apt.newrelic.com/debian/ newrelic non-free' | sudo tee /etc/apt/sources.list.d/newrelic.list
+#RUN wget -O- https://download.newrelic.com/548C16BF.gpg | sudo apt-key add -
+#RUN apt-get update
+#RUN apt-get install newrelic-sysmond
+#RUN nrsysmond-config --set license_key=YOUR_LICENSE_KEY
+#RUN /etc/init.d/newrelic-sysmond start
+
+RUN printf "license_key: 3e51bf731f6308a58d3e0c5b414eb4cad2a3bf2b" | sudo tee -a /etc/newrelic-infra.yml
+RUN curl https://download.newrelic.com/infrastructure_agent/gpg/newrelic-infra.gpg | sudo apt-key add -
+RUN printf "deb http://download.newrelic.com/infrastructure_agent/linux/apt trusty main" | sudo tee -a /etc/apt/sources.list.d/newrelic-infra.list
+#RUN printf "deb [arch=amd64] https://download.newrelic.com/infrastructure_agent/linux/apt trusty main" | sudo tee -a /etc/apt/sources.list.d/newrelic-infra.list
+RUN sudo apt-get update 
+RUN sudo apt-get install newrelic-infra -y
+
+#ADD newrelic.env ./
+#RUN nrsysmond-config --set license_key=$(cat newrelic.env)
+
+#CMD ["initctl", "start", "newrelic-infra"]
