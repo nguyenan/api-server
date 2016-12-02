@@ -1,7 +1,7 @@
 #!/bin/bash
 usage ()
 {
-  echo 'Usage : Script <install|start|stop|restart|status> [ -f <license_file>]'
+  echo 'Usage : Script <install|start|stop|restart|status>'
   exit
 }
 
@@ -14,13 +14,12 @@ ACTION=$1
 VERSION=$(lsb_release -r -s)
  
 case $ACTION in
-        'install' )       
-		if [ -z $2 ] 
-		then
-			echo '<license_file> missed'
-			usage
+        'install' ) 
+		if [ ! -f newrelic-infra.yml ]; then
+			echo '"newrelic-infra.yml" required'
+			exit
 		fi
-		sudo bash -c "cat $2 > /etc/newrelic-infra.yml"
+		sudo bash -c "cat newrelic-infra.yml > /etc/newrelic-infra.yml"
 		curl https://download.newrelic.com/infrastructure_agent/gpg/newrelic-infra.gpg | sudo apt-key add -
 
 		case "$VERSION" in
@@ -41,13 +40,17 @@ case $ACTION in
         'start'|'stop'|'restart'|'status' )           
                case "$VERSION" in
 			'12.04'|'12.10'|'14.04'|'14.10')
+			echo "> sudo initctl $ACTION newrelic-infra"
 			sudo initctl $ACTION newrelic-infra
+			sudo initctl status newrelic-infra
 			;;
 			'16.04'|'16.10')
 			echo "> sudo systemctl $ACTION newrelic-infra"
 			sudo systemctl $ACTION newrelic-infra
+			sudo systemctl status newrelic-infra
 			;;
 		esac
+
 	;;
 	*)
 		usage
