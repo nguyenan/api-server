@@ -1,7 +1,7 @@
 package com.wut.provider.cdn;
 
 import com.wut.datasources.cloudflare.CFSource;
-import com.wut.model.scalar.BooleanData;
+import com.wut.model.map.MessageData;
 import com.wut.provider.Provider;
 
 public class CDNProvider implements Provider {
@@ -11,8 +11,7 @@ public class CDNProvider implements Provider {
 		this.cfSource = pcfSource;
 	}
 
-	public BooleanData purge(String customerDomain, String id) {
-		boolean ret = cfSource.purgeCache(customerDomain, id);
-		return BooleanData.create(ret);
+	public MessageData purge(String customerDomain, String id) {
+		return cfSource.purgeCache(customerDomain, id);
 	}
 }

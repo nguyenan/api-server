@@ -4,23 +4,25 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import com.wut.datasources.cloudflare.CFSource; 
+import com.wut.datasources.cloudflare.CFSource;
+import com.wut.model.map.MessageData;
 
 public class TestPurgeURL {
 
-	//@Test
+	@Test
 	public void testPurge() {
 		String id = "index.html";
 		CFSource cfRequest = new CFSource();
-		boolean purgeCache = cfRequest.purgeCache("mapii.com", id);
-		assertTrue("purgeCache", purgeCache); 
+		MessageData purgeCache = cfRequest.purgeCache("mapii.com", id);
+		
 	}
-	@Test
+
+	// @Test
 	public void testZoneID() {
-		String id = "index.html"; 
+		String id = "index.html";
 		CFSource cfRequest = new CFSource();
 		cfRequest.getZoneID("mapii.com");
-		//assertTrue("purgeCache", purgeCache); 
+		// assertTrue("purgeCache", purgeCache);
 	}
 
 }

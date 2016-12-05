@@ -47,8 +47,8 @@ public class CloudflareResource extends CrudResource {
 	public Data delete(WutRequest ri) {
 		String id = ri.getId();
 		String customerDomain = SettingsManager.getCustomerSettings(ri.getCustomer(), "domain");
-		BooleanData purgeSucceeded = provider.purge(customerDomain, id);
-		return purgeSucceeded;
+		MessageData result = provider.purge(customerDomain, id);
+		return result;
 	}
 
 }
