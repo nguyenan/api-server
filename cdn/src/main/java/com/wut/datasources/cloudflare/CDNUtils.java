@@ -4,15 +4,35 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpRequestBase;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 public class CDNUtils {
+
+	public static JsonObject setPurgeURL(String URL) {
+		JsonArray listPurge = new JsonArray();
+		listPurge.add(URL);
+		JsonObject postData = new JsonObject();
+		postData.add(CFConstants.PURGE_FILE, listPurge);
+		return postData;
+	}
+
+	public static JsonObject setPurgeURL(List<String> URLs) {
+		JsonArray listPurge = new JsonArray();
+		for (String url : URLs) {
+			listPurge.add(url);
+		}
+		JsonObject postData = new JsonObject();
+		postData.add(CFConstants.PURGE_FILE, listPurge);
+		return postData;
+	}
 
 	public static String buildPurgeURL(String domain, String path) {
 		return String.format("https://%s/%s", domain, path);
