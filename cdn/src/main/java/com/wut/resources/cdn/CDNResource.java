@@ -15,12 +15,12 @@ public class CDNResource extends CrudResource {
 	private static CDNProvider provider = new CDNProvider(new CFSource());
 
 	public CDNResource() {
-		super("file", null);
+		super("cdn", null);
 	}
 
 	@Override
 	public String getName() {
-		return "file";
+		return "cdn";
 	}
 
 	@Override
@@ -45,6 +45,7 @@ public class CDNResource extends CrudResource {
 		String id = ri.getId();
 		String customerDomain = SettingsManager.getCustomerSettings(ri.getCustomer(), "domain");
 		MessageData result = provider.purge(customerDomain, id);
+		//result = MessageData.FAILURE;
 		return result;
 	}
 
