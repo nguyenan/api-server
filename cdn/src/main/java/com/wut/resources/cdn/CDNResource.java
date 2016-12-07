@@ -6,6 +6,7 @@ import com.wut.model.map.MessageData;
 import com.wut.pipeline.WutRequest;
 import com.wut.provider.cdn.CDNProvider;
 import com.wut.resources.common.CrudResource;
+import com.wut.resources.common.MissingParameterException;
 import com.wut.resources.common.ResourceGroupAnnotation;
 import com.wut.support.settings.SettingsManager;
 
@@ -40,9 +41,9 @@ public class CDNResource extends CrudResource {
 	}
 
 	@Override
-	public Data delete(WutRequest ri) {
+	public Data delete(WutRequest ri) throws MissingParameterException {
 		// TODO give option force reload zoneId
-		String id = ri.getId();
+		String id = ri.getStringParameter("id");
 		String customerDomain = SettingsManager.getCustomerSettings(ri.getCustomer(), "domain");
 		MessageData result = provider.purge(customerDomain, id);
 		//result = MessageData.FAILURE;

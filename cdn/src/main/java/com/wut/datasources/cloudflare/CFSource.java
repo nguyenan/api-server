@@ -34,8 +34,6 @@ public class CFSource {
 	}
 
 	public MessageData purgeCache(String customerDomain, String id) throws UnsupportedOperationException {
-		if (id == null || id.isEmpty())
-			return MessageData.error("file empty");
 		String zoneId = getZoneID(customerDomain);
 		if (zoneId == null) {
 			return MessageData.error("get zoneId error");
@@ -59,6 +57,7 @@ public class CFSource {
 			return MessageData.success();
 		} catch (UnsupportedEncodingException | ClientProtocolException e) {
 			e.printStackTrace();
+			// TODO check if error message could reveal zoneId
 			return MessageData.error(e);
 		} catch (IOException e) {
 			e.printStackTrace();
