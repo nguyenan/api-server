@@ -2,23 +2,20 @@ package com.wut.datasources.cloudflare;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
+import com.wut.model.map.MessageData;
 import com.wut.support.settings.SettingsManager;
 
 public class CFSource {
@@ -26,125 +23,88 @@ public class CFSource {
 
 	private static final String CF_KEY = SettingsManager.getSystemSetting("cloudflare.api.secretkey");
 	private static final String CF_EMAIL = SettingsManager.getSystemSetting("cloudflare.api.email");
+	private static Map<String, String> zoneIdMap = new HashMap<>();
 
 	public CFSource() {
 		cloudflareAuth = new CFAuth(CF_KEY, CF_EMAIL);
 	}
 
-	public JsonObject setPurgeURL(String URL) {
-		JsonArray listPurge = new JsonArray();
-		listPurge.add(URL);
-		JsonObject postData = new JsonObject();
-		postData.add(CFConstants.PURGE_FILE, listPurge);
-		return postData;
+	public CFSource(String key, String email) {
+		cloudflareAuth = new CFAuth(key, email);
 	}
 
-	public JsonObject setPurgeURL(List<String> URLs) {
-		JsonArray listPurge = new JsonArray();
-		for (String url : URLs) {
-			listPurge.add(url);
-		}
-		JsonObject postData = new JsonObject();
-		postData.add(CFConstants.PURGE_FILE, listPurge);
-		return postData;
-	}
-
-	public boolean purgeCache(String customerDomain, String id) {
-		String fullURL = CDNUtils.buildPurgeURL(customerDomain, id);
+	public MessageData purgeCache(String customerDomain, String id) throws UnsupportedOperationException {
+		if (id == null || id.isEmpty())
+			return MessageData.error("file empty");
 		String zoneId = getZoneID(customerDomain);
-
-		JsonObject postData = setPurgeURL(fullURL);
-		String requestURL = CDNUtils.buildPurgeCacheEndpoint(zoneId);
+		if (zoneId == null) {
+			return MessageData.error("get zoneId error");
+		}
+		if (zoneId.isEmpty()) {
+			return MessageData.error("zoneId not found");
+		}
 
 		// Send request
-		HttpDeleteWithBody deleteReq = new HttpDeleteWithBody(requestURL);
-		deleteReq.setHeader("X-Auth-Email", cloudflareAuth.getEmail());
-		deleteReq.setHeader("X-Auth-Key", cloudflareAuth.getKey());
-		deleteReq.setHeader("Content-Type", "application/json");
+		HttpDeleteWithBody deleteReq = new HttpDeleteWithBody(CDNUtils.buildPurgeCacheEndpoint(zoneId));
+		CDNUtils.setCFHeader(deleteReq, cloudflareAuth);
+		JsonObject postData = CDNUtils.setPurgeURL(CDNUtils.buildPurgeURL(customerDomain, id));
 		deleteReq.setEntity(new StringEntity(postData.toString(), "UTF-8"));
-		HttpClient client = new DefaultHttpClient();
+		CloseableHttpClient client = HttpClients.createDefault();
 		try {
-			StringBuilder responseString = new StringBuilder();
-			HttpResponse response = client.execute(deleteReq);
-			BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
-			String line = "";
-			while ((line = rd.readLine()) != null) {
-				responseString.append(line);
+			CloseableHttpResponse response = client.execute(deleteReq);
+			JsonObject objResult = CDNUtils.parseCFResponse(response);
+			if (!objResult.has("success") || !objResult.get("success").getAsString().equals("true")) {
+				return MessageData.error(objResult.get("errors").toString());
 			}
-			JsonObject objResult = new JsonParser().parse(responseString.toString()).getAsJsonObject();
-			if (!objResult.has("success")) {
-				System.out.println("CF error");
-				return false;
-			}
-			String result = objResult.get("success").toString();
-			switch (result) {
-			case "true":
-				System.out.print(objResult.toString());
-				return true;
-			case "false":
-				System.out.print(objResult.toString());
-				break;
-			default:
-				System.out.print(objResult.toString());
-				break;
-			}
+			return MessageData.success();
 		} catch (UnsupportedEncodingException | ClientProtocolException e) {
 			e.printStackTrace();
-			System.out.print(e.getMessage());
+			return MessageData.error(e);
 		} catch (IOException e) {
 			e.printStackTrace();
-			System.out.print(e.getMessage());
-		} finally {
-			client.getConnectionManager().shutdown();
+			return MessageData.error(e);
 		}
-		return false;
 	}
 
-	public static String getZoneID(String customerDomain) {
+	public String getZoneID(String customerDomain) {
+		customerDomain = customerDomain.startsWith("www.") ? customerDomain.substring(4) : customerDomain;
+		if (zoneIdMap.containsKey(customerDomain))
+			return zoneIdMap.get(customerDomain);
+
 		// Send request
-		HttpGet deleteReq = new HttpGet(CDNUtils.buildGetZoneEndpoint(customerDomain));
-		deleteReq.setHeader("X-Auth-Email", cloudflareAuth.getEmail());
-		deleteReq.setHeader("X-Auth-Key", cloudflareAuth.getKey());
-		deleteReq.setHeader("Content-Type", "application/json");
-		HttpClient client = new DefaultHttpClient();
+		HttpGet getReq = new HttpGet(CDNUtils.buildGetZoneEndpoint(customerDomain));
+		CDNUtils.setCFHeader(getReq, cloudflareAuth);
+		CloseableHttpClient client = HttpClients.createDefault();
 		try {
-			StringBuilder responseString = new StringBuilder();
-			HttpResponse response = client.execute(deleteReq);
-			BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
-			String line = "";
-			while ((line = rd.readLine()) != null) {
-				responseString.append(line);
-			}
-			JsonObject objResult = new JsonParser().parse(responseString.toString()).getAsJsonObject();
-			if (!objResult.has("success")) {
-				System.out.println("CF error");
+			HttpResponse response = client.execute(getReq);
+			JsonObject objResult = CDNUtils.parseCFResponse(response);
+			if (!objResult.has("success") || !objResult.get("success").getAsString().equals("true")) {
+				System.out.println("getZoneID error" + objResult.get("errors").toString());
 				return null;
 			}
-			String isSuccess = objResult.get("success").toString();
-			if (isSuccess == "true") {
-				JsonArray resultArr = (JsonArray) objResult.get("result");
-				for (Object obj : resultArr) {
-					if (obj instanceof JsonObject) {						
-						if (customerDomain == ((JsonObject) obj).get("name").toString()) {
-							return ((JsonObject) obj).get("id").toString();
-						}
+			JsonArray resultArr = (JsonArray) objResult.get("result");
+			for (Object obj : resultArr) {
+				if (obj instanceof JsonObject) {
+					JsonObject item = (JsonObject) obj;
+					if (customerDomain.equals(item.get("name").getAsString())) {
+						zoneIdMap.put(customerDomain, item.get("id").getAsString());
+						return item.get("id").getAsString();
 					}
 				}
-				System.out.print("No data");
-				return null;
-			} else {
-				System.out.print("FAIL "+objResult.toString());
-				return null;
 			}
+			return "";
 		} catch (UnsupportedEncodingException | ClientProtocolException e) {
 			e.printStackTrace();
 			System.out.print(e.getMessage());
+			return null;
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.out.print(e.getMessage());
-		} finally {
-			client.getConnectionManager().shutdown();
+			return null;
 		}
-		return null;
+	}
+
+	public void resetZoneMap() {
+		zoneIdMap = new HashMap<>();
 	}
 }
