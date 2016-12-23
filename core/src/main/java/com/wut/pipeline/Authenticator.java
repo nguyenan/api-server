@@ -110,6 +110,26 @@ public class Authenticator extends AbstractProcessor {
 		return false;
 	}
 	
+	public User validateToken(String customer, String username, String token) { // TODO what about customer!!!!
+		if (customer == null || username == null || token == null) {
+			return null;
+		}
+		// TODO why can't this just come first again????? this seems fine to me
+		if ("public".equals(username) && customer != null)
+			return User.getPublicUser(customer);
+		
+		System.out.println("*** requesting token " + token);
+		User user = getUser(token);
+		System.out.println("*** got " + String.valueOf(user));
+		if (user == null) 
+			return null;
+		
+		if (!token.equals(user.getToken())) 
+			return null;	
+		
+		user.setPassword("");
+		return user;
+	}
 	
 	// TODO name setToken
 	public static void updateUser(User user) {
