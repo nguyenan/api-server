@@ -31,7 +31,7 @@ public class Authenticator extends AbstractProcessor {
 	@Override
 	public boolean process(WutRequest request, WutResponse response) {
 		// if authentication request, let it go through
-		if (request.isAuthenticationRequest()) {
+		if (request.isAuthenticationRequest() || request.isValidateTokenRequest()) {
 			return true; // continue
 		}
 		
@@ -110,15 +110,8 @@ public class Authenticator extends AbstractProcessor {
 		return false;
 	}
 	
-	public User validateToken(String customer, String username, String token) { // TODO what about customer!!!!
-		if (customer == null || username == null || token == null) {
-			return null;
-		}
-		// TODO why can't this just come first again????? this seems fine to me
-		if ("public".equals(username) && customer != null)
-			return User.getPublicUser(customer);
-		
-		System.out.println("*** requesting token " + token);
+	public User validateToken( String token) { // TODO what about customer!!!!			
+		System.out.println("*** validate token " + token);
 		User user = getUser(token);
 		System.out.println("*** got " + String.valueOf(user));
 		if (user == null) 
@@ -126,8 +119,6 @@ public class Authenticator extends AbstractProcessor {
 		
 		if (!token.equals(user.getToken())) 
 			return null;	
-		
-		user.setPassword("");
 		return user;
 	}
 	
