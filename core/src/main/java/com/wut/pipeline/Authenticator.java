@@ -78,7 +78,7 @@ public class Authenticator extends AbstractProcessor {
 	
 	// return true if valid token
 	// used by authenticator in processing pipeline
-	public boolean checkToken(String customer, String username, String token) { // TODO what about customer!!!!
+	private boolean checkToken(String customer, String username, String token) { // TODO what about customer!!!!
 		if (customer == null || username == null || token == null) {
 			return false;
 		} else {
