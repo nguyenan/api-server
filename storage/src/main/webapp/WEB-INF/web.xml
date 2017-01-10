@@ -14,14 +14,14 @@
     <url-pattern>/*</url-pattern>
   </filter-mapping>
   -->
-  <servlet>
+    <servlet>
     <servlet-name>row</servlet-name>
     <servlet-class>com.wut.resources.storage.row.RowResource</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>row</servlet-name>
     <url-pattern>/table/row</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping>  
   <servlet>
     <servlet-name>table</servlet-name>
     <servlet-class>com.wut.resources.storage.TableResource</servlet-class>
@@ -29,10 +29,18 @@
   <servlet-mapping>
     <servlet-name>table</servlet-name>
     <url-pattern>/table</url-pattern>
-  </servlet-mapping>
-  <servlet>
+  </servlet-mapping>  
+  <!-- <servlet>
     <servlet-name>setting</servlet-name>
     <servlet-class>com.wut.resources.settings.SettingsResource</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>setting</servlet-name>
+    <url-pattern>/setting</url-pattern>
+  </servlet-mapping> -->
+  <servlet>
+    <servlet-name>setting</servlet-name>
+    <servlet-class>com.wut.resources.settings.SettingResource</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>setting</servlet-name>
