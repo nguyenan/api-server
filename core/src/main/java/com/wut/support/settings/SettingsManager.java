@@ -208,15 +208,17 @@ public class SettingsManager {
 	public static Boolean updateCustomerSettings(String customer, String setting, String value) {
 		ClientSettings customerSettings = clientSettings.get(customer);
 		if (customerSettings == null) {
-			throw new SettingNotFoundException("no settings for customer " + customer + " were found");
+			initCustomerSettings(customer);
 		}
+		customerSettings = clientSettings.get(customer);
 		customerSettings.putSetting(setting, value);
 		ClientSettings.updateToConfig(customer, ClientSettings.toConfigString(customerSettings));
+		clientSettings = ClientSettings.loadFromConfig();
 		return true;
 	}
 	
 	public static Boolean initCustomerSettings(String customerDomain) {
-		boolean wasSucessful = ClientSettings.appendToConfig(customerDomain);
+		boolean wasSucessful = ClientSettings.addToConfig(customerDomain);
 		clientSettings = ClientSettings.loadFromConfig();
 		return wasSucessful;
 	}

@@ -2,19 +2,12 @@
 package com.wut.resources.settings;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
 import com.wut.model.Data;
-import com.wut.model.map.MappedData;
 import com.wut.model.map.MessageData;
 import com.wut.model.message.ErrorMessage;
-import com.wut.model.scalar.IdData;
 import com.wut.model.scalar.StringData;
 import com.wut.pipeline.WutRequest;
-import com.wut.provider.row.RowProvider;
-import com.wut.provider.table.TableResourceProvider;
 import com.wut.resources.common.CrudResource;
 import com.wut.resources.common.MissingParameterException;
 import com.wut.support.settings.SettingsManager;
