@@ -22,14 +22,14 @@ public class ValidateToken extends UserOperation {
 	@Override
 	public Data perform(WutRequest ri) throws Exception {
 		String token = ri.getStringParameter("token");
+		String customer = ri.getStringParameter("customer");
+		String username = ri.getStringParameter("username");
 		Authenticator authenticator = new Authenticator();
-		User userInfo = authenticator.validateToken(token);
-		if (userInfo == null) {
+		boolean isTokenValid = authenticator.validateToken(customer, username, token);
+		if (!isTokenValid) {
 			return ErrorData.INVALID_TOKEN;
 		} else {
-			MessageData success = MessageData.success();
-			success.put("message", userInfo.toJSONString().replaceAll("\\\"", "\\\\\""));
-			return success;
+			return MessageData.success();
 		}
 	}
 }
