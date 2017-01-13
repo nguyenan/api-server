@@ -35,7 +35,7 @@ if (args.server is not None and args.server != ""):
 
 # NOTE: core must come first
 
-projects = ["core","email","storage","file","analytics","image","misc","help","search","payment","code","services"]
+projects = ["core","email","storage","file","analytics","image","misc","help","search","payment","code","services","dns"]
 
 if (args.project is not None and args.project != ""):
 	projects = [args.project]
