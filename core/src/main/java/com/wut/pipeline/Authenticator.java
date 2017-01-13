@@ -110,16 +110,22 @@ public class Authenticator extends AbstractProcessor {
 		return false;
 	}
 	
-	public User validateToken( String token) { // TODO what about customer!!!!			
-		System.out.println("*** validate token " + token);
+	public boolean validateToken(String customer, String username, String token) { // TODO what about customer!!!!
+		if (customer == null || username == null || token == null) {
+			return false;
+		}		
+		System.out.println("*** requesting token " + token);
 		User user = getUser(token);
 		System.out.println("*** got " + String.valueOf(user));
 		if (user == null) 
-			return null;
+			return false;
 		
-		if (!token.equals(user.getToken())) 
-			return null;	
-		return user;
+		if (!customer.equals(user.getCustomer()) || !username.equals(user.getUsername()) || !token.equals(user.getToken())) {
+			return false;	
+		}
+		else {
+			return true;
+		}
 	}
 	
 	// TODO name setToken
