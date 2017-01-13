@@ -1,11 +1,6 @@
 package com.wut.support.settings;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-
-import com.wut.support.logging.WutLogger;
 
 public class SettingsManager {
 	//private static ApplicationSettings appSettings = new ApplicationSettings();
@@ -13,7 +8,8 @@ public class SettingsManager {
 	//private static Map<String, Settings> customersSettings = new HashMap<String, Settings>();
 	//private static List<String> customers = new ArrayList<String>();
 	//private static WutLogger logger = WutLogger.create(SettingsManager.class);
-	private static Map<String,ClientSettings> clientSettings = ClientSettings.getDefaults();
+	//private static Map<String,ClientSettings> clientSettings = ClientSettings.getDefaults();
+	private static Map<String,ClientSettings> clientSettings = ClientSettings.loadFromConfig();
 	
 	/*
 	static {
@@ -208,6 +204,26 @@ public class SettingsManager {
 		return settingValue;
 	}
 	
+
+	public static Boolean updateCustomerSettings(String customer, String setting, String value) {
+		ClientSettings customerSettings = clientSettings.get(customer);
+		if (customerSettings == null) {
+			// this version will auto initCustomerSettings if not exist
+			initCustomerSettings(customer);
+		}
+		customerSettings = clientSettings.get(customer);
+		customerSettings.putSetting(setting, value);
+		boolean wasSucessful = ClientSettings.updateToConfig(customer, ClientSettings.toConfigString(customerSettings));
+		clientSettings = ClientSettings.loadFromConfig();
+		return wasSucessful;
+	}
+	
+	public static Boolean initCustomerSettings(String customerDomain) {
+		boolean wasSucessful = ClientSettings.addToConfig(customerDomain);
+		clientSettings = ClientSettings.loadFromConfig();
+		return wasSucessful;
+	}
+		
 	//////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////
 	/////////////// JUNK METHODS ////////////////////////
