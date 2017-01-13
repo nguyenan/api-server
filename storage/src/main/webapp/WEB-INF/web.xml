@@ -30,7 +30,7 @@
     <servlet-name>table</servlet-name>
     <url-pattern>/table</url-pattern>
   </servlet-mapping>  
-  <!-- <servlet>
+  <!-- <servlet> // This endpoint not used on previous version
     <servlet-name>setting</servlet-name>
     <servlet-class>com.wut.resources.settings.SettingsResource</servlet-class>
   </servlet>

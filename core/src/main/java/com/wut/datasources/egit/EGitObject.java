@@ -1,21 +1,19 @@
 package com.wut.datasources.egit;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
-import java.util.Scanner;
-
 import org.eclipse.egit.github.core.Blob;
 import org.eclipse.egit.github.core.Commit;
 import org.eclipse.egit.github.core.CommitUser;
 import org.eclipse.egit.github.core.Reference;
 import org.eclipse.egit.github.core.Repository;
+import org.eclipse.egit.github.core.RepositoryBranch;
 import org.eclipse.egit.github.core.RepositoryCommit;
 import org.eclipse.egit.github.core.RepositoryContents;
 import org.eclipse.egit.github.core.Tree;
@@ -35,27 +33,22 @@ public class EGitObject {
 	static GitHubClient client;
 	static ContentsService contentService;
 	static RepositoryService service;
-	static String branch = "feature/TENDOFFICE-3089";
 	static {
 		client = new GitHubClient().setOAuth2Token(SettingsManager.getSystemSetting("github.token"));
 		contentService = new ContentsService(client);
 		service = new RepositoryService(client);
 	}
 
-	public static String pullFile(String file, String owner, String repositoryName, String tmpConfigFile)
+	public static String pull(String owner, String repositoryName,String branch, String file, String tmpConfigFile)
 			throws IOException {
-		byte[] fileContents = readFileContents(file, owner, repositoryName);
+		Repository repository = service.getRepository(owner, repositoryName);
+		List<RepositoryContents> contents = contentService.getContents(repository, file, branch);
+		byte[] fileContents = (Base64.decodeBase64(contents.get(0).getContent()));
 		return saveToFile(fileContents, tmpConfigFile);
 
 	}
 
-	public static byte[] readFileContents(String file, String owner, String repositoryName) throws IOException {
-		Repository repository = service.getRepository(owner, repositoryName);
-		List<RepositoryContents> contents = contentService.getContents(repository, file, branch);
-		return (Base64.decodeBase64(contents.get(0).getContent()));
-	}
-
-	public static String pushFile(String owner, String repositoryName, String path, String localFile, String commitMessage) {
+	public static boolean push(String owner, String repositoryName, String branch, String path, String localFile, String commitMessage) {
 		try {
 			// create needed services
 			RepositoryService repositoryService = new RepositoryService();
@@ -64,15 +57,25 @@ public class EGitObject {
 
 			// get some sha's from current state in git
 			Repository repository = repositoryService.getRepository(owner, repositoryName);
+			List<RepositoryBranch> branches = repositoryService.getBranches(repository);
 			String baseCommitSha = repositoryService.getBranches(repository).get(0).getCommit().getSha();
+			for (RepositoryBranch repositoryBranch : branches) {
+				if (repositoryBranch.getName().equals(branch)){
+					baseCommitSha = repositoryBranch.getCommit().getSha();
+					break;
+				}
+			} 
 			RepositoryCommit baseCommit = commitService.getCommit(repository, baseCommitSha);
 			String treeSha = baseCommit.getSha();
 
 			// create new blob with data
 			Blob blob = new Blob();
-			byte[] encoded = Files.readAllBytes(Paths.get(localFile));
-			String content = new String(encoded, "UTF-8");
-//			String content = new Scanner(new File(localFile)).useDelimiter("\\Z").next();
+			File file = new File(localFile);
+			FileInputStream fis = new FileInputStream(localFile);
+			byte[] data = new byte[(int) file.length()];
+			fis.read(data);
+			fis.close();
+			String content = new String(data, "UTF-8");
 			blob.setContent(content).setEncoding(Blob.ENCODING_UTF8);
 			String blob_sha = dataService.createBlob(repository, blob);
 			Tree baseTree = dataService.getTree(repository, treeSha);
@@ -96,8 +99,8 @@ public class EGitObject {
 			commit.setTree(newTree);
 
 			CommitUser author = new CommitUser();
-			author.setName("annguyen-qh");
-			author.setEmail("annguyen.qh@gmail.com");
+			author.setName(SettingsManager.getSystemSetting("github.username"));
+			author.setEmail(SettingsManager.getSystemSetting("github.email"));
 			Calendar now = Calendar.getInstance();
 			author.setDate(now.getTime());
 			commit.setAuthor(author);
@@ -119,36 +122,14 @@ public class EGitObject {
 			reference.setObject(commitResource);
 			dataService.editReference(repository, reference, true);
 
-			// success
+			return true;
 
 		} catch (Exception e) {
 			// error
 			e.printStackTrace();
-			return "error";
+			return false;
 		}
-		return "OK";
 	}
-	// public static BufferedReader readFileAsBf(String file, String owner,
-	// String repositoryName) throws IOException {
-	// Repository repository = service.getRepository(owner, repositoryName);
-	// List<RepositoryContents> contents =
-	// contentService.getContents(repository, file, branch);
-	// byte[] content = (Base64.decodeBase64(contents.get(0).getContent()));
-	// InputStream is = null;
-	// BufferedReader buf = null;
-	// try {
-	// is = new ByteArrayInputStream(content);
-	// buf = new BufferedReader(new InputStreamReader(is));
-	// } finally {
-	// try {
-	// if (is != null)
-	// is.close();
-	// } catch (Exception ex) {
-	//
-	// }
-	// }
-	// return buf;
-	// }
 
 	public static String saveToFile(byte[] content, String path) throws IOException {
 		FileOutputStream fos = null;

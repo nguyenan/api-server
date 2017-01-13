@@ -15,7 +15,6 @@ import com.wut.support.settings.SettingsManager;
 public class SettingResource extends CrudResource {
 
 	private static final long serialVersionUID = 1210271770140843757L;
-	public static final Long ONE_DAY_IN_MILLISECONDS = 24l * 60l * 60l * 1000l;
 
 	private static final List<String> POSSIBLE_READ_SETTINGS = Arrays.asList(new String[] {
 			// braintree
@@ -71,10 +70,13 @@ public class SettingResource extends CrudResource {
 	}
 	
 	@Override
-	public Data delete(WutRequest request) throws MissingParameterException {
-//		return null;
+	public Data create(WutRequest request) throws MissingParameterException {
 		String customerDomain = request.getCustomer();
 		Boolean wasSucessful = SettingsManager.initCustomerSettings(customerDomain);
 		return MessageData.successOrFailure(wasSucessful);
+	}
+	@Override
+	public Data delete(WutRequest request) throws MissingParameterException {
+		return null;		
 	} 
 }

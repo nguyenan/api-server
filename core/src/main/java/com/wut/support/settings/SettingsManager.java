@@ -208,13 +208,14 @@ public class SettingsManager {
 	public static Boolean updateCustomerSettings(String customer, String setting, String value) {
 		ClientSettings customerSettings = clientSettings.get(customer);
 		if (customerSettings == null) {
+			// this version will auto initCustomerSettings if not exist
 			initCustomerSettings(customer);
 		}
 		customerSettings = clientSettings.get(customer);
 		customerSettings.putSetting(setting, value);
-		ClientSettings.updateToConfig(customer, ClientSettings.toConfigString(customerSettings));
+		boolean wasSucessful = ClientSettings.updateToConfig(customer, ClientSettings.toConfigString(customerSettings));
 		clientSettings = ClientSettings.loadFromConfig();
-		return true;
+		return wasSucessful;
 	}
 	
 	public static Boolean initCustomerSettings(String customerDomain) {
