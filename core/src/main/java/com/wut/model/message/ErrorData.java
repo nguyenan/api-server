@@ -39,10 +39,11 @@ public class ErrorData extends MessageData {
 	public static final Data WTF = new ErrorData(5010, "WTF");
 	public static final Data WTF2 = new ErrorData(5011, "DOUBLE WTF!!!!");
 	public static final Data INVALID_LOGIN = new ErrorData(5012, "Invalid Login");
-	public static final Data INVALID_TOKEN = new ErrorData(5013, "Invalid Token");
+	public static final Data INVALID_TOKEN = new ErrorData(5013, "Invalid Token");	
 	public static final Data FORMAT_PARSE_ERROR = new ErrorData(5014, "error parsing formatted data");
 	public static final Data MISSING_OPERATION = new ErrorData(5015, "missing operation");
-	public static final Data NOT_INITIALIZED = new ErrorData(5040, "client templates not initialized");
+	public static final Data INVALID_DOMAIN = new ErrorData(5016, "domain not found");
+	public static final Data NOT_INITIALIZED = new ErrorData(5040, "client templates not initialized");	
 	public static final Data CATASTROPHIC = new ErrorData(5666, "catastrophic error occurred");
 
 }

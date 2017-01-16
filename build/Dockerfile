@@ -35,6 +35,7 @@ ADD webapps/help.war ${CATALINA_WEBAPPS}/
 ADD webapps/payment.war ${CATALINA_WEBAPPS}/
 ADD webapps/code.war ${CATALINA_WEBAPPS}/
 ADD webapps/services.war ${CATALINA_WEBAPPS}/
+ADD webapps/dns.war ${CATALINA_WEBAPPS}/
 
 # PHANTOMJS
 RUN mkdir /usr/local/phantomjs 
