@@ -9,12 +9,12 @@ import com.wut.resources.common.CrudResource;
 import com.wut.resources.common.ResourceGroupAnnotation;
 import com.wut.support.settings.SettingsManager;
 
-@ResourceGroupAnnotation(name = "zone", group = "dns", desc = "add dns record")
-public class DNSResource extends CrudResource {
+@ResourceGroupAnnotation(name = "zone", group = "dns", desc = "add zone")
+public class ZoneResource extends CrudResource {
 	private static final long serialVersionUID = 1210271770140843757L;
 	private static DNSProvider provider = new DNSProvider(new CFSource());
 
-	public DNSResource() {
+	public ZoneResource() {
 		super("zone", null);
 	}
 
