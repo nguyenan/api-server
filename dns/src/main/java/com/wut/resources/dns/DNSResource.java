@@ -11,7 +11,7 @@ import com.wut.support.settings.SettingsManager;
 
 @ResourceGroupAnnotation(name = "zone", group = "dns", desc = "add dns record")
 public class DNSResource extends CrudResource {
-	private static final long serialVersionUID = 3301682262046459168L;
+	private static final long serialVersionUID = 1210271770140843757L;
 	private static DNSProvider provider = new DNSProvider(new CFSource());
 
 	public DNSResource() {

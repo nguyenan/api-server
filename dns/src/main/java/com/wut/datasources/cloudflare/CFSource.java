@@ -14,9 +14,9 @@ import org.apache.http.impl.client.HttpClients;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import com.wut.model.Data;
+import com.wut.model.map.MappedData;
 import com.wut.model.map.MessageData;
 import com.wut.model.message.ErrorData;
-import com.wut.model.scalar.StringData;
 import com.wut.support.settings.SettingsManager;
 
 public class CFSource {
@@ -61,10 +61,10 @@ public class CFSource {
 				}
 			}
 			if (nsArray == null || nsArray.size() == 2) {
-				JsonObject ret = new JsonObject();
-				ret.addProperty("ns1", nsArray.get(0).getAsString());
-				ret.addProperty("ns2", nsArray.get(1).getAsString());
-				return new StringData(ret.toString());
+				MappedData ret = new MappedData();
+				ret.put("ns1", nsArray.get(0).getAsString());
+				ret.put("ns2", nsArray.get(1).getAsString());
+				return ret;
 			} else {
 				return MessageData.error(cfReturn.get("errors").toString());
 			}
