@@ -29,7 +29,7 @@ public class CDNUtils {
 	}
 
 	public static String listZoneEndpoint() {
-		return String.format("%s", API_ENDPOINT);
+		return String.format("%s?per_page=50", API_ENDPOINT);
 	}
 
 	public static String createZoneEndpoint() {

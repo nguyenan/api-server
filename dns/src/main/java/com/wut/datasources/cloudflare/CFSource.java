@@ -65,7 +65,7 @@ public class CFSource {
 					break;
 				}
 			}
-			if (nsArray == null || nsArray.size() == 2) {
+			if (nsArray != null && nsArray.size() == 2) {
 				MappedData ret = new MappedData();
 				ret.put("ns1", nsArray.get(0).getAsString());
 				ret.put("ns2", nsArray.get(1).getAsString());
