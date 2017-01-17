@@ -10,9 +10,9 @@ import com.wut.model.map.MappedData;
 import com.wut.model.map.MessageData;
 
 public class RecordOperationTest {
-	static String domainName = "mapiii.com";
+	static String domainName = "www.vnexpress.vn";
 
-	@Test
+//	@Test
 	public void createRecordTesting() {
 		long currentTimeMillis = System.currentTimeMillis();
 		String recordName = "admin" + currentTimeMillis;
@@ -29,6 +29,17 @@ public class RecordOperationTest {
 
 		MappedData data = (MappedData) recordDetails;
 		assertEquals("Wrong recordName", data.get("name").toString(), recordName + "." + domainName);
+	}
+	
+	@Test
+	public void addZoneTesting() {
+		long currentTimeMillis = System.currentTimeMillis();
+		String recordName = "admin" + currentTimeMillis;
+		CFSource cfSource = new CFSource();
+		
+		// Create new record
+		Data createRecord =  cfSource.createZone(domainName);
+		System.out.println(createRecord);
 	}
 	
 	// TODO *update* and *read* Record unit test
