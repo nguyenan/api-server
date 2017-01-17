@@ -9,10 +9,18 @@
 	</welcome-file-list>
 	<servlet>
 		<servlet-name>zone</servlet-name>
-		<servlet-class>com.wut.resources.dns.DNSResource</servlet-class>
+		<servlet-class>com.wut.resources.dns.ZoneResource</servlet-class>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>zone</servlet-name>
 		<url-pattern>/zone</url-pattern>
+	</servlet-mapping>
+	<servlet>
+		<servlet-name>record</servlet-name>
+		<servlet-class>com.wut.resources.dns.DNSRecordResource</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>record</servlet-name>
+		<url-pattern>/record</url-pattern>
 	</servlet-mapping>
 </web-app>

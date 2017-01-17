@@ -167,72 +167,72 @@ The DESCRIBE and SHOW commands only work in cqlsh and cassandra-cli.
 //		}
 //	}
 
-	public static void main(String[] args) throws IOException {
-		IdData customer = new IdData("test");
-		IdData application = new IdData("test");
-		
-		Random rand = new Random();
-		CassandraSource db = new CassandraSource();
-
-		// delete the test table
-		IdData table = new IdData("flat2");
-		db.deleteTable(table.toRawString()); // WTF RUSSELL
-		
-		// create a test table
-		db.createTable(table.toRawString());
-
-		// No rows yet
-		ListData d = db.getAllRows(customer, application, table);
-		System.out.println("T1=" + d);
-
-		// make a new row
-		MappedData newRow = new MappedData();
-		//newRow.put("customer", "www.example.com");
-		newRow.put("name", "HotProduct");
-		newRow.put("description", "Solid!");
-		newRow.put("brand", "Hipster Inc");
-		newRow.put("price", "100");
-		newRow.put("msrp", "500");
-		IdData rowId = db.insertRow(customer, application, table, newRow);
-
-		// one new row added
-		ListData d2 = db.getAllRows(customer, application, table);
-		System.out.println("T2=" + d2);
-
-		// update the msrp
-		String newMSRP = String.valueOf(rand.nextInt(1000));
-		newRow.put("msrp", newMSRP);
-		db.updateRow(customer, application, table, rowId, newRow);
-
-		// new msrp
-		ListData d3 = db.getAllRows(customer, application, table);
-		System.out.println("T3=" + d3);
-
-		// just the updated product
-		MappedData r1 = db.getRow(customer, application, table, rowId);
-		System.out.println("R1=" + r1);
-
-		// all products with a price of 100
-		MappedData filter = new MappedData();
-		filter.put("price", "100");
-		ListData d4 = db.getRowsWithFilter(customer, application, table, filter);
-		System.out.println("T4=" + d4);
-
-		// delete the added product
-		// db.deleteRow(table, rowId);
-
-		// back to an empy table
-		ListData d5 = db.getAllRows(customer, application, table);
-		System.out.println("T5=" + d5);
-
-		// ListData d6 = db.getRowsWithFilter(table, filter);
-		// System.out.println("T6=" + d5);
-
-		// clean up the test table
-		// db.deleteTable("test");
-
-		System.out.println("Done.");
-	}
+//	public static void main(String[] args) throws IOException {
+//		IdData customer = new IdData("test");
+//		IdData application = new IdData("test");
+//		
+//		Random rand = new Random();
+//		CassandraSource db = new CassandraSource();
+//
+//		// delete the test table
+//		IdData table = new IdData("flat2");
+//		db.deleteTable(table.toRawString()); // WTF RUSSELL
+//		
+//		// create a test table
+//		db.createTable(table.toRawString());
+//
+//		// No rows yet
+//		ListData d = db.getAllRows(customer, application, table);
+//		System.out.println("T1=" + d);
+//
+//		// make a new row
+//		MappedData newRow = new MappedData();
+//		//newRow.put("customer", "www.example.com");
+//		newRow.put("name", "HotProduct");
+//		newRow.put("description", "Solid!");
+//		newRow.put("brand", "Hipster Inc");
+//		newRow.put("price", "100");
+//		newRow.put("msrp", "500");
+//		IdData rowId = db.insertRow(customer, application, table, newRow);
+//
+//		// one new row added
+//		ListData d2 = db.getAllRows(customer, application, table);
+//		System.out.println("T2=" + d2);
+//
+//		// update the msrp
+//		String newMSRP = String.valueOf(rand.nextInt(1000));
+//		newRow.put("msrp", newMSRP);
+//		db.updateRow(customer, application, table, rowId, newRow);
+//
+//		// new msrp
+//		ListData d3 = db.getAllRows(customer, application, table);
+//		System.out.println("T3=" + d3);
+//
+//		// just the updated product
+//		MappedData r1 = db.getRow(customer, application, table, rowId);
+//		System.out.println("R1=" + r1);
+//
+//		// all products with a price of 100
+//		MappedData filter = new MappedData();
+//		filter.put("price", "100");
+//		ListData d4 = db.getRowsWithFilter(customer, application, table, filter);
+//		System.out.println("T4=" + d4);
+//
+//		// delete the added product
+//		// db.deleteRow(table, rowId);
+//
+//		// back to an empy table
+//		ListData d5 = db.getAllRows(customer, application, table);
+//		System.out.println("T5=" + d5);
+//
+//		// ListData d6 = db.getRowsWithFilter(table, filter);
+//		// System.out.println("T6=" + d5);
+//
+//		// clean up the test table
+//		// db.deleteTable("test");
+//
+//		System.out.println("Done.");
+//	}
 
 	// private static Map<String, AttributeValue> newItem(String name, int year,
 	// String rating, String... fans) {
