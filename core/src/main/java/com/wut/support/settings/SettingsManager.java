@@ -9,8 +9,7 @@ public class SettingsManager {
 	//private static List<String> customers = new ArrayList<String>();
 	//private static WutLogger logger = WutLogger.create(SettingsManager.class);
 	//private static Map<String,ClientSettings> clientSettings = ClientSettings.getDefaults();
-	private static Map<String,ClientSettings> clientSettings = ClientSettings.loadFromConfig();
-	
+	private static Map<String,ClientSettings> clientSettings = ClientSettings.loadFromConfig(true);	
 	/*
 	static {
 		setAllSettings("beta.secretsaviors.com", "stripe", "", "sk_live_UM2tc23B5s9TSWPeD3XJ55sS", "", "support@secretsaviors.com");
@@ -192,7 +191,8 @@ public class SettingsManager {
 	}
 	
 	// TODO rename getClientSetting()
-	public static String getCustomerSettings(String customer, String settingName) {
+	public static String getCustomerSettings(String customer, String settingName) {	
+		clientSettings = ClientSettings.loadFromConfig(false);
 		ClientSettings customerSettings = clientSettings.get(customer);
 		if (customerSettings == null) {
 			throw new SettingNotFoundException("no settings for customer " + customer + " were found");
@@ -214,14 +214,19 @@ public class SettingsManager {
 		customerSettings = clientSettings.get(customer);
 		customerSettings.putSetting(setting, value);
 		boolean wasSucessful = ClientSettings.updateToConfig(customer, ClientSettings.toConfigString(customerSettings));
-		clientSettings = ClientSettings.loadFromConfig();
+		
 		return wasSucessful;
 	}
 	
-	public static Boolean initCustomerSettings(String customerDomain) {
-		boolean wasSucessful = ClientSettings.addToConfig(customerDomain);
-		clientSettings = ClientSettings.loadFromConfig();
-		return wasSucessful;
+	public static Boolean initCustomerSettings(String customerDomain) { 
+		ClientSettings customerSettings = clientSettings.get(customerDomain);
+		if (customerSettings != null) {
+			return true;
+		} else {
+			boolean wasSucessful = ClientSettings.addToConfig(customerDomain);
+			clientSettings = ClientSettings.loadFromConfig(false);
+			return wasSucessful;
+		}			
 	}
 		
 	//////////////////////////////////////////////////////
