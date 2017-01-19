@@ -29,7 +29,6 @@ import com.wut.datasources.CrudSource;
 import com.wut.model.Data;
 //import com.wut.model.map.MappedData;
 import com.wut.model.map.MessageData;
-import com.wut.model.scalar.BooleanData;
 import com.wut.model.scalar.StringData;
 import com.wut.pipeline.UserStore;
 import com.wut.pipeline.WutRequest;
@@ -93,7 +92,7 @@ public class ResetUserOperation extends UserOperation {
 			StringData newToken = newToken(affectedCustomer, affectedUser, newPassword);
 			String link = SettingsManager.getCustomerSettings(requestingCustomer, "password-reset-link");
 			if (isGlobalReset != null && isGlobalReset.equals("true")){
-				link = "https://www.tend.ag/admin/account.html?";
+				link = "https://www.tend.ag/admin/account.html?customer=" + affectedCustomer + "&";
 			}
 			String newTokenEncoded = URLEncoder.encode(newToken.toRawString(), "UTF-8");
 			link += "username=" + affectedUser + "&token=" + newTokenEncoded + "&reset=true";
