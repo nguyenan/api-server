@@ -29,7 +29,6 @@ import com.wut.datasources.CrudSource;
 import com.wut.model.Data;
 //import com.wut.model.map.MappedData;
 import com.wut.model.map.MessageData;
-import com.wut.model.scalar.BooleanData;
 import com.wut.model.scalar.StringData;
 import com.wut.pipeline.UserStore;
 import com.wut.pipeline.WutRequest;
