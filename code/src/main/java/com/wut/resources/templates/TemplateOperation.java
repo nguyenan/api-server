@@ -85,7 +85,7 @@ public abstract class TemplateOperation extends AbstractOperation {
 	
 			if (clientCodeDirectoryFile.listFiles().length <= 0) {
 				// git clone https://rpalmite@bitbucket.org/jeremyroberts0/generated.git
-				String gitUrl = SettingsManager.getCustomerSettings(customer, "git.repository");
+				String gitUrl = SettingsManager.getCustomerSettings(customer, "git.repository", true);
 				String gitBranch = SettingsManager.getCustomerSettings(customer, "git.branch");
 				SystemHelper.runCommand(clientCodeDirectory, gitPath, new String[] { "clone", "-b", gitBranch, gitUrl, "."}, null);
 				return true;

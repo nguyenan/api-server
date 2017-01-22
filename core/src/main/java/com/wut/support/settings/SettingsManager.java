@@ -9,6 +9,7 @@ public class SettingsManager {
 	//private static List<String> customers = new ArrayList<String>();
 	//private static WutLogger logger = WutLogger.create(SettingsManager.class);
 	//private static Map<String,ClientSettings> clientSettings = ClientSettings.getDefaults();
+	private static long lastUpdated = System.currentTimeMillis();
 	private static Map<String,ClientSettings> clientSettings = ClientSettings.loadFromConfig(true);	
 	/*
 	static {
@@ -191,8 +192,18 @@ public class SettingsManager {
 	}
 	
 	// TODO rename getClientSetting()
-	public static String getCustomerSettings(String customer, String settingName) {	
-		clientSettings = ClientSettings.loadFromConfig(false);
+	public static String getCustomerSettings(String customer, String settingName, boolean forceReload) {
+		if (forceReload){
+			clientSettings = ClientSettings.loadFromConfig(true);
+		}
+		return getCustomerSettings(customer, settingName);
+	}
+	public static String getCustomerSettings(String customer, String settingName) {		
+		if ((System.currentTimeMillis() - lastUpdated) > (60*60*1000)){
+			System.out.println("forceReload");
+			lastUpdated = System.currentTimeMillis();
+			clientSettings = ClientSettings.loadFromConfig(false);
+		}
 		ClientSettings customerSettings = clientSettings.get(customer);
 		if (customerSettings == null) {
 			throw new SettingNotFoundException("no settings for customer " + customer + " were found");
@@ -206,6 +217,7 @@ public class SettingsManager {
 	
 
 	public static Boolean updateCustomerSettings(String customer, String setting, String value) {
+		clientSettings = ClientSettings.loadFromConfig(false);
 		ClientSettings customerSettings = clientSettings.get(customer);
 		if (customerSettings == null) {
 			// this version will auto initCustomerSettings if not exist
@@ -219,6 +231,7 @@ public class SettingsManager {
 	}
 	
 	public static Boolean initCustomerSettings(String customerDomain) { 
+		clientSettings = ClientSettings.loadFromConfig(false);
 		ClientSettings customerSettings = clientSettings.get(customerDomain);
 		if (customerSettings != null) {
 			return true;
