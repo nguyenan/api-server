@@ -20,6 +20,7 @@ import com.wut.model.Data;
 import com.wut.model.map.MappedData;
 import com.wut.model.map.MessageData;
 import com.wut.model.message.ErrorData;
+import com.wut.support.domain.DomainUtils;
 import com.wut.support.settings.SettingsManager;
 
 public class CFSource {
@@ -41,7 +42,7 @@ public class CFSource {
 		JsonArray nsArray = new JsonArray();
 		HttpPost postReq = new HttpPost(CDNUtils.createZoneEndpoint());
 		CDNUtils.setCFHeader(postReq, cloudflareAuth);
-		JsonObject postData = CDNUtils.setCreateZoneData(normalizeDomain(customerDomain));
+		JsonObject postData = CDNUtils.setCreateZoneData(DomainUtils.getTopLevelDomain(customerDomain));
 		postReq.setEntity(new StringEntity(postData.toString(), "UTF-8"));
 		CloseableHttpClient client = HttpClients.createDefault();
 		try {
@@ -60,7 +61,7 @@ public class CFSource {
 				case 1061: // domain already exists
 				case 90: // already exists but CF mark as temporarily banned
 							// (perhaps because we tried to add too many times)
-					nsArray = getZoneNameServer(normalizeDomain(customerDomain));
+					nsArray = getZoneNameServer(DomainUtils.getTopLevelDomain(customerDomain));
 				default:
 					break;
 				}
@@ -101,7 +102,7 @@ public class CFSource {
 			for (Object zone : cfResult) {
 				if (zone instanceof JsonObject) {
 					JsonObject item = (JsonObject) zone;
-					if (normalizeDomain(customerDomain).equals(item.get("name").getAsString())) {
+					if (DomainUtils.getTopLevelDomain(customerDomain).equals(item.get("name").getAsString())) {
 						return (JsonArray) item.get("name_servers");
 					}
 				}
@@ -136,7 +137,7 @@ public class CFSource {
 			for (Object zone : cfResult) {
 				if (zone instanceof JsonObject) {
 					JsonObject item = (JsonObject) zone;
-					if (normalizeDomain(customerDomain).equals(item.get("name").getAsString())) {
+					if (DomainUtils.getTopLevelDomain(customerDomain).equals(item.get("name").getAsString())) {
 						return item.get("id").getAsString();
 					}
 				}
@@ -285,9 +286,5 @@ public class CFSource {
 			e.printStackTrace();
 			return MessageData.error(e);
 		}
-	}
-
-	public String normalizeDomain(String domainName) {
-		return domainName.startsWith("www.") ? domainName.substring(4) : domainName;
 	}
 }
