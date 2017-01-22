@@ -26,7 +26,7 @@ public class DNSRecordResource extends CrudResource {
 
 	@Override
 	public Data create(WutRequest ri) throws MissingParameterException {
-		String customerDomain = SettingsManager.getCustomerSettings(ri.getCustomer(), "domain");
+		String customerDomain = ri.getCustomer();
 		String name = ri.getStringParameter("name");
 		String content = ri.getStringParameter("content");
 		return provider.createRecord(customerDomain, name, content);
@@ -34,14 +34,14 @@ public class DNSRecordResource extends CrudResource {
 
 	@Override
 	public Data read(WutRequest ri) throws MissingParameterException {
-		String customerDomain = SettingsManager.getCustomerSettings(ri.getCustomer(), "domain");
+		String customerDomain = ri.getCustomer();
 		String name = ri.getStringParameter("name");
 		return provider.getRecordDetails(customerDomain, name);
 	}
 
 	@Override
 	public Data update(WutRequest ri) throws MissingParameterException {
-		String customerDomain = SettingsManager.getCustomerSettings(ri.getCustomer(), "domain");
+		String customerDomain = ri.getCustomer();
 		String name = ri.getStringParameter("name");
 		String content = ri.getStringParameter("content");
 		return provider.updateRecord(customerDomain, name, content);

@@ -25,7 +25,7 @@ public class ZoneResource extends CrudResource {
 
 	@Override
 	public Data create(WutRequest ri) {
-		String customerDomain = SettingsManager.getCustomerSettings(ri.getCustomer(), "domain");
+		String customerDomain = ri.getCustomer();
 		return provider.createZone(customerDomain);
 	}
 
