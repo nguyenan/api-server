@@ -46,4 +46,10 @@ public class ErrorData extends MessageData {
 	public static final Data NOT_INITIALIZED = new ErrorData(5040, "client templates not initialized");	
 	public static final Data CATASTROPHIC = new ErrorData(5666, "catastrophic error occurred");
 
+	// DNS
+    public static final Data CF_ERROR = new ErrorData(6001, "Cloudflare internal error");
+    public static final Data DOMAIN_EXISTED = new ErrorData(6011, "domain already exists");
+    public static final Data DOMAIN_NOT_REGISTERED = new ErrorData(6012, "not a registered domain");
+    public static final Data RECORD_EXISTED = new ErrorData(6021, "record already exists");
+    public static final Data RECORD_INVALID = new ErrorData(6022, "invalid DNS record");
 }

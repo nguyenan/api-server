@@ -4,11 +4,16 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.entity.StringEntity;
+
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.wut.model.map.MessageData;
 
-public class CDNUtils {
+public class CFUtils {
 	public static String API_ENDPOINT = "https://api.cloudflare.com/client/v4/zones";
 
 	public static JsonObject setCreateZoneData(String domain) {
@@ -28,6 +33,31 @@ public class CDNUtils {
 		return postData;
 	}
 
+	public static JsonObject setPageRulesData(PageRule rule) {
+		JsonObject constraintObj = new JsonObject();
+		constraintObj.addProperty("operator", "matches");
+		constraintObj.addProperty("value", rule.getUrlPattern());
+
+		JsonObject targetObj = new JsonObject();
+		targetObj.add("constraint", constraintObj);
+		targetObj.addProperty("target", "url");
+
+		JsonArray targetsArr = new JsonArray();
+		targetsArr.add(targetObj);
+
+		// action
+		JsonArray actionsArr = new JsonArray();
+		for (Action item : rule.getActions()) {
+			actionsArr.add(item.toJsonObject());
+		}
+
+		JsonObject postData = new JsonObject();
+		postData.add("targets", targetsArr);
+		postData.add("actions", actionsArr);
+		postData.addProperty("status", "active");
+		return postData;
+	}
+
 	public static String listZoneEndpoint() {
 		return String.format("%s?per_page=50", API_ENDPOINT);
 	}
@@ -40,7 +70,7 @@ public class CDNUtils {
 		return String.format("%s/%s/dns_records?type=CNAME", API_ENDPOINT, zoneId);
 	}
 
-	public static String detailRecordEndpoint(String zoneId, String recordId, String name) {
+	public static String detailRecordEndpoint(String zoneId, String recordId) {
 		return String.format("%s/%s/dns_records/%s?type=CNAME", API_ENDPOINT, zoneId, recordId);
 	}
 
@@ -51,11 +81,23 @@ public class CDNUtils {
 	public static String updateRecordEndpoint(String zoneId, String recordId) {
 		return String.format("%s/%s/dns_records/%s", API_ENDPOINT, zoneId, recordId);
 	}
+	
+	public static String createPageRuleEndpoint(String zoneId) {
+		return String.format("%s/%s/pagerules", API_ENDPOINT, zoneId);
+	}
 
 	public static void setCFHeader(HttpRequestBase req, CFAuth cloudflareAuth) {
 		req.setHeader("X-Auth-Email", cloudflareAuth.getEmail());
 		req.setHeader("X-Auth-Key", cloudflareAuth.getKey());
 		req.setHeader("Content-Type", "application/json");
+	}
+
+	public static void setBody(HttpPost req, JsonObject postData) {
+		req.setEntity(new StringEntity(postData.toString(), "UTF-8"));
+	}
+	
+	public static void setBody(HttpPutWithBody req, JsonObject postData) {
+		req.setEntity(new StringEntity(postData.toString(), "UTF-8"));
 	}
 
 	public static JsonObject parseCFResponse(HttpResponse response) {
@@ -74,5 +116,9 @@ public class CDNUtils {
 		}
 		JsonObject objResult = new JsonParser().parse(responseString.toString()).getAsJsonObject();
 		return objResult;
+	}
+
+	public static MessageData returnCFMessage(JsonObject cfErrordetail) {
+		return MessageData.error(cfErrordetail.toString().replaceAll("\"", "\\\\\""));
 	}
 }
