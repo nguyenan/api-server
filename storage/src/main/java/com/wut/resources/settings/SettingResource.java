@@ -72,7 +72,7 @@ public class SettingResource extends CrudResource {
 	@Override
 	public Data create(WutRequest request) throws MissingParameterException {
 		String customerDomain = request.getCustomer();
-		Boolean wasSucessful = SettingsManager.initCustomerSettings(customerDomain);
+		Boolean wasSucessful = SettingsManager.createCustomerSettings(customerDomain);
 		return MessageData.successOrFailure(wasSucessful);
 	}
 	@Override
