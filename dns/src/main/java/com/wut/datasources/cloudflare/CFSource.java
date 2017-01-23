@@ -244,7 +244,8 @@ public class CFSource {
 		int errorCode = cfError.get("code").getAsInt();
 		switch (errorCode) {
 		case 81053: // record already exists
-			return ErrorData.RECORD_EXISTED;
+			// return ErrorData.RECORD_EXISTED;
+			return updateRecord(customerDomain, recordName, content);
 		case 1004:
 			return ErrorData.RECORD_INVALID;
 		default:
