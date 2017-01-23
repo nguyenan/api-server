@@ -234,7 +234,7 @@ public class CFSource {
 		}
 
 		if (cfResponse.isSuccess()) {
-			if (recordName.equals("www")) {
+			if (recordName.equals("www") || recordName.equals("www." + customerDomain)) {
 				List<PageRule> defaultPagerules = defaultPagerules(customerDomain);
 				for (PageRule rule : defaultPagerules) {
 					createPagerule(customerDomain, rule);
@@ -277,7 +277,7 @@ public class CFSource {
 		}
 
 		if (cfResponse.isSuccess()) {
-			if (recordName.equals("www")) {
+			if (recordName.equals("www") || recordName.equals("www." + customerDomain)) {
 				List<PageRule> defaultPagerules = defaultPagerules(customerDomain);
 				for (PageRule rule : defaultPagerules) {
 					createPagerule(customerDomain, rule);
