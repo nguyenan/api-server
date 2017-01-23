@@ -194,13 +194,14 @@ public class SettingsManager {
 	// TODO rename getClientSetting()
 	public static String getCustomerSettings(String customer, String settingName, boolean forceReload) {
 		if (forceReload){
+			System.out.println("forceRefresh Settings");
 			clientSettings = ClientSettings.loadFromConfig(true);
 		}
 		return getCustomerSettings(customer, settingName);
 	}
 	public static String getCustomerSettings(String customer, String settingName) {		
 		if ((System.currentTimeMillis() - lastUpdated) > (60*60*1000)){
-			System.out.println("forceReload");
+			System.out.println("refresh Settings");
 			lastUpdated = System.currentTimeMillis();
 			clientSettings = ClientSettings.loadFromConfig(false);
 		}
@@ -216,12 +217,12 @@ public class SettingsManager {
 	}
 	
 
-	public static Boolean updateCustomerSettings(String customer, String setting, String value) {
+	public static synchronized Boolean updateCustomerSettings(String customer, String setting, String value) {
 		clientSettings = ClientSettings.loadFromConfig(false);
 		ClientSettings customerSettings = clientSettings.get(customer);
 		if (customerSettings == null) {
 			// this version will auto initCustomerSettings if not exist
-			initCustomerSettings(customer);
+			createCustomerSettings(customer);
 		}
 		customerSettings = clientSettings.get(customer);
 		customerSettings.putSetting(setting, value);
@@ -230,7 +231,7 @@ public class SettingsManager {
 		return wasSucessful;
 	}
 	
-	public static Boolean initCustomerSettings(String customerDomain) { 
+	public static synchronized Boolean createCustomerSettings(String customerDomain) { 
 		clientSettings = ClientSettings.loadFromConfig(false);
 		ClientSettings customerSettings = clientSettings.get(customerDomain);
 		if (customerSettings != null) {
