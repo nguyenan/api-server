@@ -91,7 +91,13 @@ public class ResetUserOperation extends UserOperation {
 		} else if (requestingCustomer.equals(affectedCustomer)) {
 			String newPassword = new BigInteger(130, random).toString(32);
 			StringData newToken = newToken(affectedCustomer, affectedUser, newPassword);
-			String link = SettingsManager.getCustomerSettings(requestingCustomer, "password-reset-link", isForceRefresh.equals("true"));
+			String link = "";
+			if (isForceRefresh != null && isForceRefresh.equals("true")){
+				link = SettingsManager.getCustomerSettings(requestingCustomer, "password-reset-link", true);
+			}
+			else {
+				link = SettingsManager.getCustomerSettings(requestingCustomer, "password-reset-link");	
+			}
 			if (isGlobalReset != null && isGlobalReset.equals("true")){
 				link = "https://www.tend.ag/admin/account.html?customer=" + affectedCustomer + "&";
 			}
