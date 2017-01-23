@@ -78,7 +78,7 @@ public class ResetUserOperation extends UserOperation {
 		boolean providedPassword = toPasswordData != null;
 		
 		String isGlobalReset =  ri.getOptionalParameterAsString("globalReset");
-		String isForceRefresh =  ri.getOptionalParameterAsString("forceRefresh");
+		String isForceRefresh =  ri.getOptionalParameterAsString("refreshSettings");
 		if ((isSuperAdmin || isDomainAdmin || isForSameUser) && providedPassword) {
 			String newPassword = toPasswordData.toRawString();
 			String subject = "Password Reset";
