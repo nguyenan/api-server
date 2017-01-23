@@ -40,6 +40,12 @@ public abstract class TemplateOperation extends AbstractOperation {
 		return clientCodeDirectory;
 	}
 	
+	protected String getClientCodeDirectory(WutRequest request, boolean forceReload) {
+		String customer = request.getCustomer();
+		String clientCodeDirectory = SettingsManager.getCustomerSettings(customer, "client.code.dir", forceReload);
+		return clientCodeDirectory;
+	}
+	
 	// TODO rename pull out common code with getOutputDirectory()
 	private String getInputDirectory(WutRequest request) throws MissingParameterException {
 //		String customer = request.getCustomer();
@@ -78,7 +84,7 @@ public abstract class TemplateOperation extends AbstractOperation {
 	protected boolean gitClone(WutRequest request) {
 		try {
 			String customer = request.getCustomer();
-			String clientCodeDirectory = getClientCodeDirectory(request);
+			String clientCodeDirectory = getClientCodeDirectory(request, true);
 			File clientCodeDirectoryFile = new File(clientCodeDirectory);
 			
 			String gitPath = getGitPath();

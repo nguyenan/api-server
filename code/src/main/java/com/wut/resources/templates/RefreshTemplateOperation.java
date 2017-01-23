@@ -5,7 +5,6 @@ import java.io.File;
 import com.wut.model.Data;
 import com.wut.model.map.MessageData;
 import com.wut.pipeline.WutRequest;
-import com.wut.resources.common.WutOperation;
 import com.wut.support.SystemHelper;
 import com.wut.support.settings.SettingsManager;
 
@@ -21,7 +20,7 @@ public class RefreshTemplateOperation extends TemplateOperation {
 		//String application = request.getApplication();
 		String customer = request.getCustomer();
 		
-		String clientCodeDirectory = SettingsManager.getCustomerSettings(customer, "client.code.dir");
+		String clientCodeDirectory = SettingsManager.getCustomerSettings(customer, "client.code.dir", true);
 		
 		System.out.println("refreshing directory " + clientCodeDirectory);
 		File clientCodeDirectoryFile = new File(clientCodeDirectory);
