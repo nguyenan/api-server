@@ -9,6 +9,9 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
+import java.io.BufferedReader;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -75,9 +78,9 @@ public class CFSource {
 			}
 		}
 		if (nsArray != null && nsArray.size() == 2) {
-			MappedData ret = new MappedData();			
+			MappedData ret = new MappedData();
 			ret.put("ns1", nsArray.get(0).getAsString());
-			ret.put("ns2", nsArray.get(1).getAsString());			
+			ret.put("ns2", nsArray.get(1).getAsString());
 			return ret;
 		} else {
 			JsonObject cfError = cfResponse.getError();
@@ -274,6 +277,12 @@ public class CFSource {
 		}
 
 		if (cfResponse.isSuccess()) {
+			if (recordName.equals("www")) {
+				List<PageRule> defaultPagerules = defaultPagerules(customerDomain);
+				for (PageRule rule : defaultPagerules) {
+					createPagerule(customerDomain, rule);
+				}
+			}
 			return MessageData.success();
 		} else {
 			JsonObject cfError = cfResponse.getError();
@@ -323,10 +332,10 @@ public class CFSource {
 		String fwURLPattern = String.format("https://%s/*", normalizeDomain(customerDomain));
 
 		pagerules.add(new PageRule(fwURLPattern, new Action[] { fwAction }));
-		
+
 		// The "Always Use HTTPS" option will only appear if your zone has an active SSL certificate associated with it on Cloudflare
-//		Action httpsAction = new Action("always_use_https", new StringData("on"));
-//		String httpsURLPattern = String.format("https://www.%s/*", normalizeDomain(customerDomain));
+		// Action httpsAction = new Action("always_use_https", new StringData("on"));
+		// String httpsURLPattern = String.format("https://www.%s/*", normalizeDomain(customerDomain));
 		MappedData httpsData = new MappedData();
 		httpsData.put("url", String.format("https://www.%s/$1", normalizeDomain(customerDomain)));
 		httpsData.put("status_code", new IntegerData(301));
@@ -340,4 +349,5 @@ public class CFSource {
 	public String normalizeDomain(String domainName) {
 		return domainName.startsWith("www.") ? domainName.substring(4) : domainName;
 	}
+
 }
