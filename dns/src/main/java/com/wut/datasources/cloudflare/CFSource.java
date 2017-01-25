@@ -14,8 +14,10 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import com.wut.model.Data;
@@ -33,6 +35,7 @@ public class CFSource {
 
 	private static final String CF_KEY = SettingsManager.getSystemSetting("cloudflare.api.secretkey");
 	private static final String CF_EMAIL = SettingsManager.getSystemSetting("cloudflare.api.email");
+	private Map<String, String> zoneIds = new HashMap<String, String>();
 
 	public CFSource() {
 		cloudflareAuth = new CFAuth(CF_KEY, CF_EMAIL);
@@ -63,6 +66,8 @@ public class CFSource {
 		if (cfResponse.isSuccess()) {
 			JsonObject cfResult = (JsonObject) cfResponse.getCFReturn().get("result");
 			nsArray = (JsonArray) cfResult.get("name_servers");
+			zoneIds.put(DomainUtils.getTopLevelDomain(customerDomain), cfResult.get("id").getAsString());
+			updateSSL(customerDomain, "flexible");
 		} else {
 			JsonObject cfError = cfResponse.getError();
 			int errorCode = cfError.get("code").getAsInt();
@@ -82,6 +87,30 @@ public class CFSource {
 			ret.put("ns1", nsArray.get(0).getAsString());
 			ret.put("ns2", nsArray.get(1).getAsString());
 			return ret;
+		} else {
+			JsonObject cfError = cfResponse.getError();
+			return CFUtils.returnCFMessage(cfError);
+		}
+	}
+
+	public Data deleteZone(String customerDomain) {
+		String zoneId = getZoneId(customerDomain);
+
+		HttpDeleteWithBody deleteReq = new HttpDeleteWithBody(CFUtils.deleteZoneEndpoint(zoneId));
+		CFUtils.setCFHeader(deleteReq, cloudflareAuth);
+
+		CFResponse cfResponse;
+		try {
+			CloseableHttpClient client = HttpClients.createDefault();
+			CloseableHttpResponse response = client.execute(deleteReq);
+			cfResponse = new CFResponse(response);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return MessageData.error(e);
+		}
+
+		if (cfResponse.isSuccess()) {
+			return MessageData.success();
 		} else {
 			JsonObject cfError = cfResponse.getError();
 			return CFUtils.returnCFMessage(cfError);
@@ -120,6 +149,10 @@ public class CFSource {
 	}
 
 	public String getZoneId(String customerDomain) {
+		if (zoneIds.containsKey(DomainUtils.getTopLevelDomain(customerDomain))) {
+			System.out.println("existed");
+			return zoneIds.get(DomainUtils.getTopLevelDomain(customerDomain));
+		}
 		HttpGet getReq = new HttpGet(CFUtils.listZoneEndpoint());
 		CFUtils.setCFHeader(getReq, cloudflareAuth);
 
@@ -139,6 +172,7 @@ public class CFSource {
 				if (zone instanceof JsonObject) {
 					JsonObject item = (JsonObject) zone;
 					if (DomainUtils.getTopLevelDomain(customerDomain).equals(item.get("name").getAsString())) {
+						zoneIds.put(DomainUtils.getTopLevelDomain(customerDomain), item.get("id").getAsString());
 						return item.get("id").getAsString();
 					}
 				}
@@ -234,10 +268,10 @@ public class CFSource {
 		}
 
 		if (cfResponse.isSuccess()) {
-			if (recordName.equals("www") || recordName.equals("www." + customerDomain)) {
+			if (recordName.equals("www") || recordName.equals("www." + normalizeDomain(customerDomain))) {
 				List<PageRule> defaultPagerules = defaultPagerules(customerDomain);
 				for (PageRule rule : defaultPagerules) {
-					createPagerule(customerDomain, rule);
+					createPagerule(customerDomain, zoneId, rule);
 				}
 			}
 			return MessageData.success();
@@ -277,10 +311,10 @@ public class CFSource {
 		}
 
 		if (cfResponse.isSuccess()) {
-			if (recordName.equals("www") || recordName.equals("www." + customerDomain)) {
+			if (recordName.equals("www") || recordName.equals("www." + normalizeDomain(customerDomain))) {
 				List<PageRule> defaultPagerules = defaultPagerules(customerDomain);
 				for (PageRule rule : defaultPagerules) {
-					createPagerule(customerDomain, rule);
+					createPagerule(customerDomain, zoneId, rule);
 				}
 			}
 			return MessageData.success();
@@ -290,36 +324,71 @@ public class CFSource {
 		}
 	}
 
-	public String createPagerule(String customerDomain, PageRule rule) {
-		String zoneId = getZoneId(customerDomain);
-		HttpPost postReq = new HttpPost(CFUtils.createPageRuleEndpoint(zoneId));
-		CFUtils.setCFHeader(postReq, cloudflareAuth);
-
-		JsonObject postData = CFUtils.setPageRulesData(rule);
-		System.out.println(postData.toString());
-		CFUtils.setBody(postReq, postData);
-
-		CFResponse cfResponse;
+	public Data updateSSL(String customerDomain, String sslValue) {
 		try {
-			CloseableHttpClient client = HttpClients.createDefault();
-			CloseableHttpResponse response = client.execute(postReq);
-			cfResponse = new CFResponse(response);
-		} catch (IOException e) {
-			e.printStackTrace();
+			String zoneId = getZoneId(customerDomain);
+
+			HttpPatchWithBody patchReq = new HttpPatchWithBody(CFUtils.updateSSL(zoneId));
+			CFUtils.setCFHeader(patchReq, cloudflareAuth);
+
+			JsonObject postData = CFUtils.setSSLData(sslValue);
+			CFUtils.setBody(patchReq, postData);
+
+			CFResponse cfResponse;
+			try {
+				CloseableHttpClient client = HttpClients.createDefault();
+				CloseableHttpResponse response = client.execute(patchReq);
+				cfResponse = new CFResponse(response);
+			} catch (IOException e) {
+				e.printStackTrace();
+				return MessageData.error(e);
+			}
+
+			if (cfResponse.isSuccess()) {
+				return MessageData.success();
+			} else {
+				JsonObject cfError = cfResponse.getError();
+				return CFUtils.returnCFMessage(cfError);
+			}
+		} catch (Exception e) {
 			return null;
 		}
+	}
 
-		if (cfResponse.isSuccess()) {
-			JsonObject cfResult = (JsonObject) cfResponse.getCFReturn().get("result");
-			return cfResult.get("id").toString();
-		} else {
+	public String createPagerule(String customerDomain, String zoneId, PageRule rule) {
+		try {
+			HttpPost postReq = new HttpPost(CFUtils.createPageRuleEndpoint(zoneId));
+			CFUtils.setCFHeader(postReq, cloudflareAuth);
+
+			JsonObject postData = CFUtils.setPageRulesData(rule);
+			System.out.println(postData.toString());
+			CFUtils.setBody(postReq, postData);
+
+			CFResponse cfResponse;
+			try {
+				CloseableHttpClient client = HttpClients.createDefault();
+				CloseableHttpResponse response = client.execute(postReq);
+				cfResponse = new CFResponse(response);
+			} catch (IOException e) {
+				e.printStackTrace();
+				return null;
+			}
+
+			if (cfResponse.isSuccess()) {
+				JsonObject cfResult = (JsonObject) cfResponse.getCFReturn().get("result");
+				return cfResult.get("id").toString();
+			} else {
+				return null;
+			}
+		} catch (Exception e) {
 			return null;
 		}
 	}
 
 	private List<PageRule> defaultPagerules(String customerDomain) {
 		List<PageRule> pagerules = new ArrayList<PageRule>();
-		Action cacheAction1 = new Action("browser_cache_ttl", new IntegerData(86400));// 1 day
+		Action cacheAction1 = new Action("browser_cache_ttl", new IntegerData(86400));// 1
+																						// day
 		Action cacheAction2 = new Action("cache_level", new StringData("cache_everything"));
 		String cacheURLPattern = String.format("https://www.%s/*", normalizeDomain(customerDomain));
 
@@ -333,9 +402,12 @@ public class CFSource {
 
 		pagerules.add(new PageRule(fwURLPattern, new Action[] { fwAction }));
 
-		// The "Always Use HTTPS" option will only appear if your zone has an active SSL certificate associated with it on Cloudflare
-		// Action httpsAction = new Action("always_use_https", new StringData("on"));
-		// String httpsURLPattern = String.format("https://www.%s/*", normalizeDomain(customerDomain));
+		// The "Always Use HTTPS" option will only appear if your zone has an
+		// active SSL certificate associated with it on Cloudflare
+		// Action httpsAction = new Action("always_use_https", new
+		// StringData("on"));
+		// String httpsURLPattern = String.format("https://www.%s/*",
+		// normalizeDomain(customerDomain));
 		MappedData httpsData = new MappedData();
 		httpsData.put("url", String.format("https://www.%s/$1", normalizeDomain(customerDomain)));
 		httpsData.put("status_code", new IntegerData(301));

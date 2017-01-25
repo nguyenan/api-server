@@ -7,7 +7,6 @@ import com.wut.pipeline.WutRequest;
 import com.wut.provider.dns.DNSProvider;
 import com.wut.resources.common.CrudResource;
 import com.wut.resources.common.ResourceGroupAnnotation;
-import com.wut.support.settings.SettingsManager;
 
 @ResourceGroupAnnotation(name = "zone", group = "dns", desc = "add zone")
 public class ZoneResource extends CrudResource {
@@ -42,7 +41,8 @@ public class ZoneResource extends CrudResource {
 
 	@Override
 	public Data delete(WutRequest ri) {
-		return MessageData.NOT_IMPLEMENTED;
+		String customerDomain = ri.getCustomer();
+		return provider.deleteZone(customerDomain);
 	}
 
 }
