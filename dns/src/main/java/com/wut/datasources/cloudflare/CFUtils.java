@@ -33,6 +33,12 @@ public class CFUtils {
 		return postData;
 	}
 
+	public static JsonObject setSSLData(String value) {
+		JsonObject postData = new JsonObject();
+		postData.addProperty("value", value);
+		return postData;
+	}
+	
 	public static JsonObject setPageRulesData(PageRule rule) {
 		JsonObject constraintObj = new JsonObject();
 		constraintObj.addProperty("operator", "matches");
@@ -59,13 +65,16 @@ public class CFUtils {
 	}
 
 	public static String listZoneEndpoint() {
-		return String.format("%s?per_page=50", API_ENDPOINT);
+		return String.format("%s?per_page=200", API_ENDPOINT);
 	}
 
 	public static String createZoneEndpoint() {
 		return String.format("%s", API_ENDPOINT);
 	}
 
+	public static String deleteZoneEndpoint(String zoneId) {
+		return String.format("%s/%s", API_ENDPOINT, zoneId);
+	}
 	public static String listRecordEndpoint(String zoneId) {
 		return String.format("%s/%s/dns_records?type=CNAME", API_ENDPOINT, zoneId);
 	}
@@ -82,6 +91,10 @@ public class CFUtils {
 		return String.format("%s/%s/dns_records/%s", API_ENDPOINT, zoneId, recordId);
 	}
 	
+	public static String updateSSL(String zoneId) {
+		return String.format("%s/%s/settings/ssl", API_ENDPOINT, zoneId);
+	}
+	
 	public static String createPageRuleEndpoint(String zoneId) {
 		return String.format("%s/%s/pagerules", API_ENDPOINT, zoneId);
 	}
@@ -96,6 +109,9 @@ public class CFUtils {
 		req.setEntity(new StringEntity(postData.toString(), "UTF-8"));
 	}
 	
+	public static void setBody(HttpPatchWithBody req, JsonObject postData) {
+		req.setEntity(new StringEntity(postData.toString(), "UTF-8"));
+	} 
 	public static void setBody(HttpPutWithBody req, JsonObject postData) {
 		req.setEntity(new StringEntity(postData.toString(), "UTF-8"));
 	}
