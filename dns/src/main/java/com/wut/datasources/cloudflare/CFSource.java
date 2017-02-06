@@ -387,8 +387,7 @@ public class CFSource {
 
 	private List<PageRule> defaultPagerules(String customerDomain) {
 		List<PageRule> pagerules = new ArrayList<PageRule>();
-		Action cacheAction1 = new Action("browser_cache_ttl", new IntegerData(86400));// 1
-																						// day
+		Action cacheAction1 = new Action("browser_cache_ttl", new IntegerData(60 * 60 * 4));// 4 hours
 		Action cacheAction2 = new Action("cache_level", new StringData("cache_everything"));
 		String cacheURLPattern = String.format("https://www.%s/*", normalizeDomain(customerDomain));
 
@@ -398,7 +397,7 @@ public class CFSource {
 		fwData.put("url", String.format("https://www.%s/$1", normalizeDomain(customerDomain)));
 		fwData.put("status_code", new IntegerData(301));
 		Action fwAction = new Action("forwarding_url", fwData);
-		String fwURLPattern = String.format("https://%s/*", normalizeDomain(customerDomain));
+		String fwURLPattern = String.format("http://%s/*", normalizeDomain(customerDomain));
 
 		pagerules.add(new PageRule(fwURLPattern, new Action[] { fwAction }));
 
