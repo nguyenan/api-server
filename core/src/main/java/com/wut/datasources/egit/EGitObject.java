@@ -50,15 +50,14 @@ public class EGitObject {
 
 	public static boolean push(String owner, String repositoryName, String branch, String path, String localFile, String commitMessage) {
 		try {
-			// create needed services
-			RepositoryService repositoryService = new RepositoryService();
+			// create needed services 
 			CommitService commitService = new CommitService(client);
 			DataService dataService = new DataService(client);
 
 			// get some sha's from current state in git
-			Repository repository = repositoryService.getRepository(owner, repositoryName);
-			List<RepositoryBranch> branches = repositoryService.getBranches(repository);
-			String baseCommitSha = repositoryService.getBranches(repository).get(0).getCommit().getSha();
+			Repository repository = service.getRepository(owner, repositoryName);
+			List<RepositoryBranch> branches = service.getBranches(repository);
+			String baseCommitSha = service.getBranches(repository).get(0).getCommit().getSha();
 			for (RepositoryBranch repositoryBranch : branches) {
 				if (repositoryBranch.getName().equals(branch)){
 					baseCommitSha = repositoryBranch.getCommit().getSha();
