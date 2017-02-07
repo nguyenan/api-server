@@ -1,6 +1,5 @@
 package com.wut.datasources.email.javaemailer;
 
-import java.io.UnsupportedEncodingException;
 import java.security.Security;
 import java.util.Properties;
 
@@ -23,7 +22,6 @@ import com.wut.pipeline.WutRequest;
 import com.wut.support.ErrorHandler;
 import com.wut.support.settings.SystemSettings;
 
-/*
 // TODO no longer used. now we use sendgrid emailer
 public class JavaEmailer implements Emailer {
 
@@ -59,7 +57,7 @@ public class JavaEmailer implements Emailer {
 
 		try {
 			MimeMessage message = new MimeMessage(session);
-			message.setSender(new InternetAddress(sender, from));
+			message.setSender(new InternetAddress(sender));
 			message.setSubject(subject);
 			
 			if (htmlContent) {
@@ -105,10 +103,6 @@ public class JavaEmailer implements Emailer {
 			final String msg = "Unable to send email";
 			ErrorHandler.userError(null, msg, e);
 			return new ErrorData(msg);
-		} catch (UnsupportedEncodingException e) {
-			final String msg = "Error when encoding sender";
-			ErrorHandler.userError(null, msg, e);
-			return new ErrorData(msg);
 		}
 
 		return MessageData.SUCCESS;
@@ -146,6 +140,3 @@ public class JavaEmailer implements Emailer {
 	}
 
 }
-
-
-*/
