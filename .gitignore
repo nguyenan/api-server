@@ -1,0 +1,6 @@
+analytics/target/classes/client_secrets.json
+analytics/target/classes/retail-kit.p12
+analytics/src/main/resources/client_secrets.json
+analytics/src/main/resources/retail-kit.p12
+core/src/main/java/com/wut/support/settings/ClientSettings.java
+core/src/main/java/com/wut/support/settings/SystemSettings.java

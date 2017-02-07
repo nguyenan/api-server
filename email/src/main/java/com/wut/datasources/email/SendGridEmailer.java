@@ -2,6 +2,7 @@ package com.wut.datasources.email;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
 import javax.mail.Authenticator;
@@ -18,6 +19,8 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
+import com.wut.model.message.ErrorData;
+import com.wut.support.ErrorHandler;
 import com.wut.support.Language;
 import com.wut.support.settings.SettingsManager;
 
@@ -27,11 +30,6 @@ import org.apache.commons.lang3.StringEscapeUtils;
 // TODO no longer just SendGridEmailers
 // TODO make create() function and use instead of contructor
 public class SendGridEmailer implements Emailer {
-
-//	private static final String SMTP_HOST_NAME = "smtp.sendgrid.net";
-//	private static final String SMTP_AUTH_USER = "retailkit";
-//	private static final String SMTP_AUTH_PWD = "r3t41lr0ck5";
-//	private static final int SMTP_PORT = 2525; // GOOGLE WANTS US TO USE 2525
 
 	public static void main(String[] args) throws Exception {
 		new SendGridEmailer().send("secretsaviors.com", "ruck@ss.com", "rpalmite@gmail.com", "this is a test",
@@ -48,8 +46,6 @@ public class SendGridEmailer implements Emailer {
 		}
 		
 		public PasswordAuthentication getPasswordAuthentication() {
-			//String username = SMTP_AUTH_USER;
-			//String password = SMTP_AUTH_PWD;
 			return new PasswordAuthentication(this.username, this.password);
 		}
 	}
@@ -137,7 +133,7 @@ public class SendGridEmailer implements Emailer {
 
 			message.setContent(multipart);
 			if (Language.isNotBlank(fromEmail)) {
-				message.setFrom(new InternetAddress(fromEmail));
+				message.setFrom(new InternetAddress(fromEmail, from));
 			} else {
 				message.setFrom(new InternetAddress("system@retailkit.com"));
 			}
@@ -168,6 +164,10 @@ public class SendGridEmailer implements Emailer {
 		} catch (NoSuchProviderException e) {
 			throw new MailException(e);
 		} catch (MessagingException e) {
+			throw new MailException(e);
+		} catch (UnsupportedEncodingException e) {
+			final String msg = "Error when encoding sender";
+			ErrorHandler.userError(null, msg, e);
 			throw new MailException(e);
 		}
 
