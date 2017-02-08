@@ -2,6 +2,7 @@ package com.wut.datasources.email;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
 import javax.mail.Authenticator;
@@ -18,6 +19,7 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
+import com.wut.support.ErrorHandler;
 import com.wut.support.Language;
 import com.wut.support.settings.SettingsManager;
 
@@ -179,8 +181,12 @@ public class SendGridEmailer implements Emailer {
 			throw new MailException(e);
 		} catch (MessagingException e) {
 			throw new MailException(e);
-		}
-
+		}catch (UnsupportedEncodingException e) {
+		 	final String msg = "Error when encoding sender";
+ 			ErrorHandler.userError(null, msg, e);
+			throw new MailException(e);
+  		}
+		
 	}
 
 }
