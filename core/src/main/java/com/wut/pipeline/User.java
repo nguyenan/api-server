@@ -2,6 +2,7 @@ package com.wut.pipeline;
 
 import java.util.Map;
 
+import com.wut.model.map.MappedData;
 import com.wut.support.settings.SystemSettings;
 
 public class User {
@@ -86,5 +87,14 @@ public class User {
 	public String toString() {
 		return "User [customer=" + customer + ", id=" + id + ", token=" + token
 				+ ", username=" + username + "]";
+	}
+	
+	public String toJSONString() {
+		MappedData data = new MappedData();
+		data.put("customer", customer);
+		data.put("id", id);
+		data.put("token", token);
+		data.put("username", username);
+		return data.toString();
 	}
 }

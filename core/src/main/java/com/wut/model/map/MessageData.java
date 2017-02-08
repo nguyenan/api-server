@@ -33,7 +33,7 @@ public class MessageData extends MappedData {
 	// TODO deprecate in future
 	//@Deprecated
 	public MessageData(String msg) {
-		this(1, "defualt-message", msg);
+		this(1, "default-message", msg);
 	}
 	
 	public MessageData(String msg, Data data) {

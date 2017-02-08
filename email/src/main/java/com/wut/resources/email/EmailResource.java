@@ -2,7 +2,7 @@ package com.wut.resources.email;
 
 import com.wut.datasources.email.MailException;
 import com.wut.datasources.email.SendGridEmailer;
-//import com.wut.datasources.email.javaemailer.JavaEmailer;
+import com.wut.datasources.email.javaemailer.JavaEmailer;
 import com.wut.model.Data;
 import com.wut.model.map.MessageData;
 import com.wut.pipeline.WutRequest;
@@ -62,8 +62,8 @@ public class EmailResource extends CrudResource {
 	}
 	
 	public static void main(String[] args) throws MissingParameterException {
-		//JavaEmailer emailer = JavaEmailer.create();
-		//emailer.send(null, "from@gmail.com", "to@gmail.com", "testing", "this is a test");
+		JavaEmailer emailer = JavaEmailer.create();
+		emailer.send(null, "from@gmail.com", "to@gmail.com", "testing", "this is a test");
 	}
 
 }

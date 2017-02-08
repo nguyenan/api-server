@@ -28,6 +28,11 @@
 			<version>10.10.2.0</version>
 		</dependency>
 		
+		<dependency>
+			<groupId>org.eclipse.mylyn.github</groupId>
+			<artifactId>org.eclipse.egit.github.core</artifactId>
+			<version>2.1.5</version>
+		</dependency>
 		
 		<!-- Cassandra -->
 		<dependency>

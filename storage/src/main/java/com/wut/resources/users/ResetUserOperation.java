@@ -77,6 +77,8 @@ public class ResetUserOperation extends UserOperation {
 		boolean isForSameUser = affectedCustomer.equals(requestingCustomer) && affectedUser.equals(requestingUser);
 		boolean providedPassword = toPasswordData != null;
 		
+		String isGlobalReset =  ri.getOptionalParameterAsString("globalReset");
+		String isForceRefresh =  ri.getOptionalParameterAsString("refreshSettings");
 		if ((isSuperAdmin || isDomainAdmin || isForSameUser) && providedPassword) {
 			String newPassword = toPasswordData.toRawString();
 			String subject = "Password Reset";
@@ -89,7 +91,16 @@ public class ResetUserOperation extends UserOperation {
 		} else if (requestingCustomer.equals(affectedCustomer)) {
 			String newPassword = new BigInteger(130, random).toString(32);
 			StringData newToken = newToken(affectedCustomer, affectedUser, newPassword);
-			String link = SettingsManager.getCustomerSettings(requestingCustomer, "password-reset-link");
+			String link = "";
+			if (isForceRefresh != null && isForceRefresh.equals("true")){
+				link = SettingsManager.getCustomerSettings(requestingCustomer, "password-reset-link", true);
+			}
+			else {
+				link = SettingsManager.getCustomerSettings(requestingCustomer, "password-reset-link");	
+			}
+			if (isGlobalReset != null && isGlobalReset.equals("true")){
+				link = "https://www.tend.ag/admin/account.html?customer=" + affectedCustomer + "&";
+			}
 			String newTokenEncoded = URLEncoder.encode(newToken.toRawString(), "UTF-8");
 			link += "username=" + affectedUser + "&token=" + newTokenEncoded + "&reset=true";
 			String subject = "Password Reset Request";

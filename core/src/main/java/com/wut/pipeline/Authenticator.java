@@ -31,7 +31,7 @@ public class Authenticator extends AbstractProcessor {
 	@Override
 	public boolean process(WutRequest request, WutResponse response) {
 		// if authentication request, let it go through
-		if (request.isAuthenticationRequest()) {
+		if (request.isAuthenticationRequest() || request.isValidateTokenRequest()) {
 			return true; // continue
 		}
 		
@@ -110,6 +110,23 @@ public class Authenticator extends AbstractProcessor {
 		return false;
 	}
 	
+	public boolean validateToken(String customer, String username, String token) { // TODO what about customer!!!!
+		if (customer == null || username == null || token == null) {
+			return false;
+		}		
+		System.out.println("*** requesting token " + token);
+		User user = getUser(token);
+		System.out.println("*** got " + String.valueOf(user));
+		if (user == null) 
+			return false;
+		
+		if (!customer.equals(user.getCustomer()) || !username.equals(user.getUsername()) || !token.equals(user.getToken())) {
+			return false;	
+		}
+		else {
+			return true;
+		}
+	}
 	
 	// TODO name setToken
 	public static void updateUser(User user) {
