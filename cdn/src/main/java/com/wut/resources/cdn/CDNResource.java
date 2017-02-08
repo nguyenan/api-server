@@ -16,12 +16,12 @@ public class CDNResource extends CrudResource {
 	private static CDNProvider provider = new CDNProvider(new CFSource());
 
 	public CDNResource() {
-		super("cdn", null);
+		super("file", null);
 	}
 
 	@Override
 	public String getName() {
-		return "cdn";
+		return "file";
 	}
 
 	@Override

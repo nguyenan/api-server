@@ -5,11 +5,11 @@
     <welcome-file>index.html</welcome-file>
   </welcome-file-list>
   <servlet>
-    <servlet-name>cdn</servlet-name>
+    <servlet-name>file</servlet-name>
     <servlet-class>com.wut.resources.cdn.CDNResource</servlet-class>
   </servlet>
   <servlet-mapping>
-    <servlet-name>cdn</servlet-name>
-    <url-pattern>/cdn</url-pattern>
+    <servlet-name>file</servlet-name>
+    <url-pattern>/file</url-pattern>
   </servlet-mapping>
 </web-app>

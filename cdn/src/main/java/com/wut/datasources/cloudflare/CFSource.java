@@ -2,20 +2,17 @@ package com.wut.datasources.cloudflare;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
+
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
-
 import com.wut.model.map.MessageData;
+import com.wut.support.domain.DomainUtils;
 import com.wut.support.settings.SettingsManager;
 
 public class CFSource {
@@ -23,7 +20,7 @@ public class CFSource {
 
 	private static final String CF_KEY = SettingsManager.getSystemSetting("cloudflare.api.secretkey");
 	private static final String CF_EMAIL = SettingsManager.getSystemSetting("cloudflare.api.email");
-	private static Map<String, String> zoneIdMap = new HashMap<>();
+	private Map<String, String> zoneIds = new HashMap<String, String>();
 
 	public CFSource() {
 		cloudflareAuth = new CFAuth(CF_KEY, CF_EMAIL);
@@ -33,77 +30,73 @@ public class CFSource {
 		cloudflareAuth = new CFAuth(key, email);
 	}
 
-	public MessageData purgeCache(String customerDomain, String id) throws UnsupportedOperationException {
-		String zoneId = getZoneID(customerDomain);
-		if (zoneId == null) {
-			return MessageData.error("get zoneId error");
+	public String getZoneId(String customerDomain) {
+		if (zoneIds.containsKey(DomainUtils.getTopLevelDomain(customerDomain))) {
+			System.out.println("existed");
+			return zoneIds.get(DomainUtils.getTopLevelDomain(customerDomain));
 		}
-		if (zoneId.isEmpty()) {
-			return MessageData.error("zoneId not found");
-		}
+		HttpGet getReq = new HttpGet(CFUtils.listZoneEndpoint());
+		CFUtils.setCFHeader(getReq, cloudflareAuth);
 
-		// Send request
-		HttpDeleteWithBody deleteReq = new HttpDeleteWithBody(CDNUtils.buildPurgeCacheEndpoint(zoneId));
-		CDNUtils.setCFHeader(deleteReq, cloudflareAuth);
-		JsonObject postData = CDNUtils.setPurgeURL(CDNUtils.buildPurgeURL(customerDomain, id));
-		deleteReq.setEntity(new StringEntity(postData.toString(), "UTF-8"));
-		CloseableHttpClient client = HttpClients.createDefault();
+		CFResponse cfResponse;
 		try {
-			CloseableHttpResponse response = client.execute(deleteReq);
-			JsonObject objResult = CDNUtils.parseCFResponse(response);
-			if (!objResult.has("success") || !objResult.get("success").getAsString().equals("true")) {
-				return MessageData.error(objResult.get("errors").toString());
-			}
-			return MessageData.success();
-		} catch (UnsupportedEncodingException | ClientProtocolException e) {
-			e.printStackTrace();
-			// TODO check if error message could reveal zoneId
-			return MessageData.error(e);
+			CloseableHttpClient client = HttpClients.createDefault();
+			CloseableHttpResponse response = client.execute(getReq);
+			cfResponse = new CFResponse(response);
 		} catch (IOException e) {
 			e.printStackTrace();
-			return MessageData.error(e);
+			return null;
 		}
-	}
 
-	public String getZoneID(String customerDomain) {
-		customerDomain = customerDomain.startsWith("www.") ? customerDomain.substring(4) : customerDomain;
-		if (zoneIdMap.containsKey(customerDomain))
-			return zoneIdMap.get(customerDomain);
-
-		// Send request
-		HttpGet getReq = new HttpGet(CDNUtils.buildGetZoneEndpoint(customerDomain));
-		CDNUtils.setCFHeader(getReq, cloudflareAuth);
-		CloseableHttpClient client = HttpClients.createDefault();
-		try {
-			HttpResponse response = client.execute(getReq);
-			JsonObject objResult = CDNUtils.parseCFResponse(response);
-			if (!objResult.has("success") || !objResult.get("success").getAsString().equals("true")) {
-				System.out.println("getZoneID error" + objResult.get("errors").toString());
-				return null;
-			}
-			JsonArray resultArr = (JsonArray) objResult.get("result");
-			for (Object obj : resultArr) {
-				if (obj instanceof JsonObject) {
-					JsonObject item = (JsonObject) obj;
-					if (customerDomain.equals(item.get("name").getAsString())) {
-						zoneIdMap.put(customerDomain, item.get("id").getAsString());
+		if (cfResponse.isSuccess()) {
+			JsonArray cfResult = (JsonArray) cfResponse.getCFReturn().get("result");
+			for (Object zone : cfResult) {
+				if (zone instanceof JsonObject) {
+					JsonObject item = (JsonObject) zone;
+					if (DomainUtils.getTopLevelDomain(customerDomain).equals(item.get("name").getAsString())) {
+						zoneIds.put(DomainUtils.getTopLevelDomain(customerDomain), item.get("id").getAsString());
 						return item.get("id").getAsString();
 					}
 				}
 			}
-			return "";
-		} catch (UnsupportedEncodingException | ClientProtocolException e) {
-			e.printStackTrace();
-			System.out.print(e.getMessage());
 			return null;
-		} catch (IOException e) {
-			e.printStackTrace();
-			System.out.print(e.getMessage());
+		} else {
+			System.out.println(cfResponse.getError().toString());
 			return null;
 		}
 	}
 
-	public void resetZoneMap() {
-		zoneIdMap = new HashMap<>();
+	public MessageData purgeCache(String customerDomain, String id) throws UnsupportedOperationException {
+		try {
+			String zoneId = getZoneId(customerDomain);
+			// Send request
+			HttpDeleteWithBody deleteReq = new HttpDeleteWithBody(CFUtils.purgeCacheEndpoint(zoneId));
+			CFUtils.setCFHeader(deleteReq, cloudflareAuth);
+			JsonObject postData = CFUtils.setPurgeCacheData(CFUtils.buildPurgeURL(customerDomain, id));
+			CFUtils.setBody(deleteReq, postData);
+			CFResponse cfResponse;
+			try {
+				CloseableHttpClient client = HttpClients.createDefault();
+				CloseableHttpResponse response = client.execute(deleteReq);
+				cfResponse = new CFResponse(response);
+			} catch (IOException e) {
+				e.printStackTrace();
+				return MessageData.error(e);
+			}
+
+			if (cfResponse.isSuccess()) {
+				return MessageData.success();
+			} else {
+				JsonObject cfError = cfResponse.getError();
+				return CFUtils.returnCFMessage(cfError);
+			}
+		} catch (Exception e) {
+			return null;
+		}
 	}
+
+	public String normalizeDomain(String domainName) {
+		return domainName.startsWith("www.") ? domainName.substring(4) : domainName;
+	}
+
 }
