@@ -44,10 +44,11 @@ public class EmailResource extends CrudResource {
 		String customer = ri.getCustomer();
 
 		String from = ri.getOptionalParameterAsString("from");
+		String fromName = ri.getOptionalParameterAsString("fromName");
 		
 		SendGridEmailer emailer = new SendGridEmailer();
 		try {
-			emailer.send(customer, from, recipients, cc, bcc, subject, body);
+			emailer.send(customer, from, fromName, recipients, cc, bcc, subject, body);
 		} catch (MailException e) {
 			return MessageData.EMAIL_SEND_PROBLEM.context(e.getMessage());
 		}

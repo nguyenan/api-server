@@ -53,9 +53,16 @@ public class SendGridEmailer implements Emailer {
 	public void send(String customerId, String from, String to, String subject, String body)
 			throws MailException {
 		send(customerId, from, to, null, null, subject, body);
+	}	
+
+
+	@Override
+	public void send(String customerId, String from, String to, String cc, String bcc, String subject, String body)
+			throws MailException {
+		send(customerId, from, null, to, cc, bcc, subject, body);
 	}
 	
-	public void send(String customerId, String from, String to, String cc, String bcc, String subject,
+	public void send(String customerId, String from, String fromName, String to, String cc, String bcc, String subject,
 			String body) throws MailException {
 		try {
 			Properties props = new Properties();
@@ -133,7 +140,10 @@ public class SendGridEmailer implements Emailer {
 
 			message.setContent(multipart);
 			if (Language.isNotBlank(fromEmail)) {
-				message.setFrom(new InternetAddress(fromEmail, from));
+				if (fromName != null)
+					message.setFrom(new InternetAddress(fromEmail, fromName));
+				else 
+					message.setFrom(new InternetAddress(fromEmail));
 			} else {
 				message.setFrom(new InternetAddress("system@retailkit.com"));
 			}

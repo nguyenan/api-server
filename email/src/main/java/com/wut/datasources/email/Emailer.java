@@ -5,4 +5,5 @@ package com.wut.datasources.email;
 public interface Emailer {
 	public void send(String customerId, String from, String to, String subject, String body) throws MailException;
 	public void send(String customerId, String from, String to, String cc, String bcc, String subject, String body) throws MailException;
+	public void send(String customerId, String from, String fromName, String to, String cc, String bcc, String subject, String body) throws MailException;
 }
