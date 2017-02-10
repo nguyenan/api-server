@@ -30,11 +30,6 @@ import org.apache.commons.lang3.StringEscapeUtils;
 // TODO make create() function and use instead of contructor
 public class SendGridEmailer implements Emailer {
 
-	public static void main(String[] args) throws Exception {
-		new SendGridEmailer().send("secretsaviors.com", "ruck@ss.com", "rpalmite@gmail.com", "this is a test",
-				"testing 1 2 3 6");
-	}
-
 	private class SMTPAuthenticator extends javax.mail.Authenticator {
 		private String username;
 		private String password;
