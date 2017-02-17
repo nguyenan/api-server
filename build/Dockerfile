@@ -57,4 +57,4 @@ EXPOSE 8443
 
 
 
-CMD java -jar newrelic/newrelic.jar install && catalina.sh
+CMD java -jar newrelic/newrelic.jar install && catalina.sh run
