@@ -47,8 +47,16 @@ RUN rm -rf ${CATALINA_HOME}/conf/server.xml
 ADD server.xml ${CATALINA_HOME}/conf/server.xml
 ADD tend.ag.keystore ${CATALINA_HOME}/tend.ag.keystore
 
+# NEW RELIC
+
+ADD newrelic.zip ./
+RUN unzip newrelic.zip
+ADD newrelic.yml newrelic/
+RUN java -jar newrelic/newrelic.jar install
+
 EXPOSE 8080
 EXPOSE 8443
+
 CMD ["catalina.sh", "run"]
 
 
