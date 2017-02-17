@@ -14,6 +14,9 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.exceptions.InvalidQueryException;
+import com.datastax.driver.core.exceptions.NoHostAvailableException;
+import com.datastax.driver.core.policies.ConstantReconnectionPolicy;
+import com.datastax.driver.core.policies.Policies;
 import com.datastax.driver.core.querybuilder.BuiltStatement;
 import com.datastax.driver.core.querybuilder.Delete;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
@@ -38,18 +41,27 @@ public class CassandraSource extends MultiSource {
 	private static List<String> SPECIAL_COLUMNS =  Arrays.asList("id"); //Arrays.asList("updated", "created", "updator", "creator", "id");
  
 	public CassandraSource() {
-		cluster = Cluster.builder().addContactPoint("db3.tend.co").build();
-		
+		cluster = Cluster.builder().addContactPoint("db3.tend.co")
+				.withReconnectionPolicy(new ConstantReconnectionPolicy(5000L))
+				.withRetryPolicy(Policies.defaultRetryPolicy())
+				.build();
+		doConnectionStuff();
+	}
+	
+	public void doConnectionStuff() {		
 		try {
 			session = cluster.connect(KEYSPACE);
 		} catch (InvalidQueryException e) {
 			// create keyspace here
 			
 			// CREATE KEYSPACE webutilitykit WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 3 };
-			
+			try {
+                Thread.sleep(100);
+            } catch (InterruptedException e1) {
+            	System.out.println("sleep exception" + e1);
+            }
 			session = cluster.connect(KEYSPACE);
 		}
-
 	}
 
 	public List<String> getTables() {
@@ -374,7 +386,7 @@ The DESCRIBE and SHOW commands only work in cqlsh and cassandra-cli.
 		ResultSet results = executeStatement(update);
 		
 		// TODO fix this
-		return BooleanData.TRUE;
+		return BooleanData.create(results != null);
 		
 	}
 		
@@ -387,7 +399,7 @@ The DESCRIBE and SHOW commands only work in cqlsh and cassandra-cli.
 		ResultSet results = executeStatement(delete);
 		
 		// TODO fix this
-		return BooleanData.TRUE;
+		return BooleanData.create(results != null);
 	}
 
 	// ///////////// HELPER METHODS ///////////////
@@ -427,13 +439,29 @@ The DESCRIBE and SHOW commands only work in cqlsh and cassandra-cli.
 	}
 
 	private ResultSet executeStatement(Statement statement) {
-		ResultSet results = session.execute(statement);
-		return results;
+		int retries = 0;
+        while (retries < 3) {
+            try {
+                ResultSet results = session.execute(statement);
+                return results;
+            } catch (NoHostAvailableException e) {
+                System.out.println("NoHostAvailableException Could not connect to DB");
+                e.printStackTrace();
+                doConnectionStuff();
+                ++retries;
+            } catch (Exception e) {
+            	e.printStackTrace();
+            }
+        } 
+        return null; 
 	}
 
 	private ListData convertResult(ResultSet results) {
 		ListData resultData = new ListData();
-
+		if (results == null) {
+			System.out.println("ResultSet null");
+			return resultData;
+		}
 		for (Row row : results) {
 			Map<String,String> data = row.getMap("data", String.class, String.class);
 
@@ -454,5 +482,4 @@ The DESCRIBE and SHOW commands only work in cqlsh and cassandra-cli.
 
 		return resultData;
 	}
-
 }
