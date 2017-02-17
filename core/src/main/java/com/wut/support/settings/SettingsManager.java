@@ -1,11 +1,6 @@
 package com.wut.support.settings;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-
-import com.wut.support.logging.WutLogger;
 
 public class SettingsManager {
 	//private static ApplicationSettings appSettings = new ApplicationSettings();
@@ -13,8 +8,9 @@ public class SettingsManager {
 	//private static Map<String, Settings> customersSettings = new HashMap<String, Settings>();
 	//private static List<String> customers = new ArrayList<String>();
 	//private static WutLogger logger = WutLogger.create(SettingsManager.class);
-	private static Map<String,ClientSettings> clientSettings = ClientSettings.getDefaults();
-	
+	//private static Map<String,ClientSettings> clientSettings = ClientSettings.getDefaults();
+	private static long lastUpdated = System.currentTimeMillis();
+	private static Map<String,ClientSettings> clientSettings = ClientSettings.loadFromConfig(true);	
 	/*
 	static {
 		setAllSettings("beta.secretsaviors.com", "stripe", "", "sk_live_UM2tc23B5s9TSWPeD3XJ55sS", "", "support@secretsaviors.com");
@@ -196,7 +192,19 @@ public class SettingsManager {
 	}
 	
 	// TODO rename getClientSetting()
-	public static String getCustomerSettings(String customer, String settingName) {
+	public static String getCustomerSettings(String customer, String settingName, boolean forceReload) {
+		if (forceReload){
+			System.out.println("forceRefresh Settings");
+			clientSettings = ClientSettings.loadFromConfig(true);
+		}
+		return getCustomerSettings(customer, settingName);
+	}
+	public static String getCustomerSettings(String customer, String settingName) {		
+		if ((System.currentTimeMillis() - lastUpdated) > (60*60*1000)){
+			System.out.println("refresh Settings");
+			lastUpdated = System.currentTimeMillis();
+			clientSettings = ClientSettings.loadFromConfig(false);
+		}
 		ClientSettings customerSettings = clientSettings.get(customer);
 		if (customerSettings == null) {
 			throw new SettingNotFoundException("no settings for customer " + customer + " were found");
@@ -208,6 +216,33 @@ public class SettingsManager {
 		return settingValue;
 	}
 	
+
+	public static synchronized Boolean updateCustomerSettings(String customer, String setting, String value) {
+		clientSettings = ClientSettings.loadFromConfig(false);
+		ClientSettings customerSettings = clientSettings.get(customer);
+		if (customerSettings == null) {
+			// this version will auto initCustomerSettings if not exist
+			createCustomerSettings(customer);
+		}
+		customerSettings = clientSettings.get(customer);
+		customerSettings.putSetting(setting, value);
+		boolean wasSucessful = ClientSettings.updateToConfig(customer, ClientSettings.toConfigString(customerSettings));
+		
+		return wasSucessful;
+	}
+	
+	public static synchronized Boolean createCustomerSettings(String customerDomain) { 
+		clientSettings = ClientSettings.loadFromConfig(false);
+		ClientSettings customerSettings = clientSettings.get(customerDomain);
+		if (customerSettings != null) {
+			return true;
+		} else {
+			boolean wasSucessful = ClientSettings.addToConfig(customerDomain);
+			clientSettings = ClientSettings.loadFromConfig(false);
+			return wasSucessful;
+		}			
+	}
+		
 	//////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////
 	/////////////// JUNK METHODS ////////////////////////
