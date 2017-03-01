@@ -1,6 +1,6 @@
 package com.wut.resources.cdn;
 
-import com.wut.datasources.cloudflare.CFSource;
+import com.wut.datasources.cloudflare.CloudFlareSource;
 import com.wut.model.Data;
 import com.wut.model.map.MessageData;
 import com.wut.pipeline.WutRequest;
@@ -13,7 +13,7 @@ import com.wut.support.settings.SettingsManager;
 @ResourceGroupAnnotation(name = "file", group = "cdn", desc = "clean cache")
 public class CDNResource extends CrudResource {
 	private static final long serialVersionUID = 3301682262046459168L;
-	private static CDNProvider provider = new CDNProvider(new CFSource());
+	private static CDNProvider provider = new CDNProvider(new CloudFlareSource());
 
 	public CDNResource() {
 		super("file", null);
@@ -46,7 +46,6 @@ public class CDNResource extends CrudResource {
 		String id = ri.getStringParameter("id");
 		String customerDomain = SettingsManager.getCustomerSettings(ri.getCustomer(), "domain");
 		MessageData result = provider.purge(customerDomain, id);
-		//result = MessageData.FAILURE;
 		return result;
 	}
 

@@ -11,8 +11,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.wut.datasources.cloudflare.CFSource;
-import com.wut.datasources.cloudflare.CFUtils;
+import com.wut.datasources.cloudflare.CloudFlareSource;
+import com.wut.datasources.cloudflare.CloudFlareUtils;
 import com.wut.model.map.MessageData;
 
 @RunWith(Parameterized.class)
@@ -24,8 +24,7 @@ public class TestPurgeURL {
 	@Parameters
 	public static Collection<Object[]> configs() {
 		return Arrays.asList(new Object[][] {
-				// {"index.html", "mapiii.com" }
-				{ "page/about.html", "www.oldhousefarm.net" } });
+				{ "blog.html", "www.farmer.events" } });
 	}
 
 	public TestPurgeURL(String id, String customerDomain) {
@@ -41,38 +40,38 @@ public class TestPurgeURL {
 	// PURGE CACHE
 	@Test
 	public void purgeCache() throws InterruptedException {
-		CFSource cfRequest = new CFSource();
+		CloudFlareSource cfRequest = new CloudFlareSource();
 		MessageData purgeCache = cfRequest.purgeCache(customerDomain, id);
 		assertEquals("purge cache fail, MessageData: " + purgeCache.toString(), MessageData.SUCCESS, purgeCache);
 	}
 
 	@Test
 	public void purgeCacheWrongCredential() {
-		CFSource cfRequest = new CFSource();
+		CloudFlareSource cfRequest = new CloudFlareSource();
 		cfRequest.getZoneId(customerDomain);
-		CFSource cfRequest2 = new CFSource("123456abc", "annguyen.qh@gmail.com");
+		CloudFlareSource cfRequest2 = new CloudFlareSource("123456", "test@tend.ag");
 		MessageData purgeCache = cfRequest2.purgeCache(customerDomain, id);
 		assertNotEquals("purge cache fail, MessageData: " + purgeCache.toString(), MessageData.SUCCESS, purgeCache);
 	}
 
 	@Test
 	public void purgeCacheAndValidate() throws InterruptedException, UnsupportedOperationException {
-		CFUtils.getCFCacheStatus(CFUtils.buildHttpsPurgeURL(customerDomain, id));
-		String statusBefore = CFUtils.getCFCacheStatus(CFUtils.buildHttpsPurgeURL(customerDomain, id));
+		CloudFlareUtils.getCacheStatus(CloudFlareUtils.buildHttpsPurgeURL(customerDomain, id));
+		String statusBefore = CloudFlareUtils.getCacheStatus(CloudFlareUtils.buildHttpsPurgeURL(customerDomain, id));
 		assertEquals("cache not HIT ", "HIT", statusBefore);
 
-		CFSource cfRequest = new CFSource();
+		CloudFlareSource cfRequest = new CloudFlareSource();
 		MessageData purgeCache = cfRequest.purgeCache(customerDomain, id);
 		assertEquals("purge cache fail, MessageData: " + purgeCache.toString(), MessageData.SUCCESS, purgeCache);
 		Thread.sleep(3000);
-		String statusAfter = CFUtils.getCFCacheStatus(CFUtils.buildHttpsPurgeURL(customerDomain, id));
-		assertEquals("validate cache fail " + CFUtils.buildPurgeURL(customerDomain, id), "MISS", statusAfter);
+		String statusAfter = CloudFlareUtils.getCacheStatus(CloudFlareUtils.buildHttpsPurgeURL(customerDomain, id));
+		assertEquals("validate cache fail " + CloudFlareUtils.buildPurgeURL(customerDomain, id), "MISS", statusAfter);
 	}
 
 	// ZONE ID
 	@Test
 	public void getZoneId() {
-		CFSource cfRequest = new CFSource();
+		CloudFlareSource cfRequest = new CloudFlareSource();
 		String zoneID = cfRequest.getZoneId(customerDomain);
 		assertNotNull(zoneID);
 		assertNotEquals(zoneID, "");
@@ -80,14 +79,14 @@ public class TestPurgeURL {
 
 	@Test
 	public void getZoneIdNotExist() {
-		CFSource cfRequest = new CFSource();
-		String zoneID = cfRequest.getZoneId("map.com");
+		CloudFlareSource cfRequest = new CloudFlareSource();
+		String zoneID = cfRequest.getZoneId("example.com");
 		assertNull(zoneID);
 	}
 
 	@Test
 	public void getZoneIdWrongCredential() {
-		CFSource cfRequest = new CFSource("123456", "annguyen.qh@gmail.com");
+		CloudFlareSource cfRequest = new CloudFlareSource("123456", "test@tend.ag");
 		String zoneID = cfRequest.getZoneId(customerDomain);
 		assertNull(zoneID);
 	}

@@ -1,13 +1,13 @@
 package com.wut.provider.cdn;
 
-import com.wut.datasources.cloudflare.CFSource;
+import com.wut.datasources.cloudflare.CloudFlareSource;
 import com.wut.model.map.MessageData;
 import com.wut.provider.Provider;
 
 public class CDNProvider implements Provider {
-	private CFSource cfSource;
+	private CloudFlareSource cfSource;
 
-	public CDNProvider(CFSource pcfSource) {
+	public CDNProvider(CloudFlareSource pcfSource) {
 		this.cfSource = pcfSource;
 	}
 

@@ -12,73 +12,77 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import com.wut.model.map.MessageData;
+import com.wut.support.ErrorHandler;
 import com.wut.support.domain.DomainUtils;
+import com.wut.support.logging.WutLogger;
 import com.wut.support.settings.SettingsManager;
 
-public class CFSource {
-	private static CFAuth cloudflareAuth;
+public class CloudFlareSource {
+	private static CloudFlareAuth cloudflareAuth;
 
 	private static final String CF_KEY = SettingsManager.getSystemSetting("cloudflare.api.secretkey");
 	private static final String CF_EMAIL = SettingsManager.getSystemSetting("cloudflare.api.email");
 	private Map<String, String> zoneIds = new HashMap<String, String>();
+	private static WutLogger logger = WutLogger.create(CloudFlareSource.class);
 
-	public CFSource() {
-		cloudflareAuth = new CFAuth(CF_KEY, CF_EMAIL);
+	public CloudFlareSource() {
+		cloudflareAuth = new CloudFlareAuth(CF_KEY, CF_EMAIL);
 	}
 
-	public CFSource(String key, String email) {
-		cloudflareAuth = new CFAuth(key, email);
+	public CloudFlareSource(String key, String email) {
+		cloudflareAuth = new CloudFlareAuth(key, email);
 	}
 
 	public String getZoneId(String customerDomain) {
-		if (zoneIds.containsKey(DomainUtils.getTopLevelDomain(customerDomain))) {
-			System.out.println("existed");
-			return zoneIds.get(DomainUtils.getTopLevelDomain(customerDomain));
+		String topLevelDomain = DomainUtils.getTopLevelDomain(customerDomain);
+		if (zoneIds.containsKey(topLevelDomain)) { //existed
+			logger.info("ZoneId " + customerDomain + " existed...");
+			return zoneIds.get(topLevelDomain);
 		}
-		HttpGet getReq = new HttpGet(CFUtils.listZoneEndpoint());
-		CFUtils.setCFHeader(getReq, cloudflareAuth);
+		HttpGet getReq = new HttpGet(CloudFlareUtils.listZoneEndpoint());
+		CloudFlareUtils.setCFHeader(getReq, cloudflareAuth);
 
-		CFResponse cfResponse;
+		CloudFlareResponse cfResponse;
 		try {
 			CloseableHttpClient client = HttpClients.createDefault();
 			CloseableHttpResponse response = client.execute(getReq);
-			cfResponse = new CFResponse(response);
+			cfResponse = new CloudFlareResponse(response);
 		} catch (IOException e) {
-			e.printStackTrace();
+			ErrorHandler.userError("Unable to get CloudFlare response", e); 
 			return null;
 		}
 
 		if (cfResponse.isSuccess()) {
-			JsonArray cfResult = (JsonArray) cfResponse.getCFReturn().get("result");
+			JsonArray cfResult = (JsonArray) cfResponse.getResult().get("result");
 			for (Object zone : cfResult) {
 				if (zone instanceof JsonObject) {
 					JsonObject item = (JsonObject) zone;
-					if (DomainUtils.getTopLevelDomain(customerDomain).equals(item.get("name").getAsString())) {
-						zoneIds.put(DomainUtils.getTopLevelDomain(customerDomain), item.get("id").getAsString());
+					if (topLevelDomain.equals(item.get("name").getAsString())) {
+						zoneIds.put(topLevelDomain, item.get("id").getAsString());
 						return item.get("id").getAsString();
 					}
 				}
 			}
 			return null;
 		} else {
-			System.out.println(cfResponse.getError().toString());
+			logger.info(cfResponse.getError().toString()); 
 			return null;
 		}
 	}
 
-	public MessageData purgeCache(String customerDomain, String id) throws UnsupportedOperationException {
+	public MessageData purgeCache(String customerDomain, String id) {
 		try {
 			String zoneId = getZoneId(customerDomain);
 			// Send request
-			HttpDeleteWithBody deleteReq = new HttpDeleteWithBody(CFUtils.purgeCacheEndpoint(zoneId));
-			CFUtils.setCFHeader(deleteReq, cloudflareAuth);
-			JsonObject postData = CFUtils.setPurgeCacheData(CFUtils.buildPurgeURL(customerDomain, id));
-			CFUtils.setBody(deleteReq, postData);
-			CFResponse cfResponse;
+			HttpDeleteWithBody deleteReq = new HttpDeleteWithBody(CloudFlareUtils.purgeCacheEndpoint(zoneId));
+			CloudFlareUtils.setCFHeader(deleteReq, cloudflareAuth);
+			JsonObject postData = CloudFlareUtils.getPurgeCachedDataObject(CloudFlareUtils.buildPurgeURL(customerDomain, id));
+			CloudFlareUtils.setBody(deleteReq, postData);
+			CloudFlareResponse cfResponse;
 			try {
 				CloseableHttpClient client = HttpClients.createDefault();
 				CloseableHttpResponse response = client.execute(deleteReq);
-				cfResponse = new CFResponse(response);
+				cfResponse = new CloudFlareResponse(response);
 			} catch (IOException e) {
 				e.printStackTrace();
 				return MessageData.error(e);
@@ -88,15 +92,10 @@ public class CFSource {
 				return MessageData.success();
 			} else {
 				JsonObject cfError = cfResponse.getError();
-				return CFUtils.returnCFMessage(cfError);
+				return CloudFlareUtils.returnMessage(cfError);
 			}
 		} catch (Exception e) {
-			return null;
+			return MessageData.error(e);
 		}
 	}
-
-	public String normalizeDomain(String domainName) {
-		return domainName.startsWith("www.") ? domainName.substring(4) : domainName;
-	}
-
 }
