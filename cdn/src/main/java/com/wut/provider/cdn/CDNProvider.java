@@ -14,4 +14,8 @@ public class CDNProvider implements Provider {
 	public MessageData purge(String customerDomain, String id) {
 		return cfSource.purgeCache(customerDomain, id);
 	}
+	
+	public MessageData purgeAll(String customerDomain) {
+		return cfSource.purgeCacheAll(customerDomain);
+	}
 }

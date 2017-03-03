@@ -10,7 +10,6 @@ import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -39,7 +38,7 @@ public class CloudFlareUtils {
 		}
 		return null;
 	}
-
+	
 	public static final JsonObject getPurgeCachedDataObject(List<String> URLs) {
 		JsonArray listPurge = new JsonArray();
 		for (String url : URLs) {
@@ -47,6 +46,12 @@ public class CloudFlareUtils {
 		}
 		JsonObject postData = new JsonObject();
 		postData.add("files", listPurge);
+		return postData;
+	}
+
+	public static final JsonObject getPurgeCachedDataObject() {
+		JsonObject postData = new JsonObject();
+		postData.addProperty("purge_everything", true);
 		return postData;
 	}
 

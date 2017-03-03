@@ -98,4 +98,33 @@ public class CloudFlareSource {
 			return MessageData.error(e);
 		}
 	}
+	
+	public MessageData purgeCacheAll(String customerDomain) {
+		try {
+			String zoneId = getZoneId(customerDomain);
+			// Send request
+			HttpDeleteWithBody deleteReq = new HttpDeleteWithBody(CloudFlareUtils.purgeCacheEndpoint(zoneId));
+			CloudFlareUtils.setCFHeader(deleteReq, cloudflareAuth);
+			JsonObject postData = CloudFlareUtils.getPurgeCachedDataObject();
+			CloudFlareUtils.setBody(deleteReq, postData);
+			CloudFlareResponse cfResponse;
+			try {
+				CloseableHttpClient client = HttpClients.createDefault();
+				CloseableHttpResponse response = client.execute(deleteReq);
+				cfResponse = new CloudFlareResponse(response);
+			} catch (IOException e) {
+				e.printStackTrace();
+				return MessageData.error(e);
+			}
+
+			if (cfResponse.isSuccess()) {
+				return MessageData.success();
+			} else {
+				JsonObject cfError = cfResponse.getError();
+				return CloudFlareUtils.returnMessage(cfError);
+			}
+		} catch (Exception e) {
+			return MessageData.error(e);
+		}
+	}
 }
