@@ -30,11 +30,6 @@ import org.apache.commons.lang3.StringEscapeUtils;
 // TODO make create() function and use instead of contructor
 public class SendGridEmailer implements Emailer {
 
-//	private static final String SMTP_HOST_NAME = "smtp.sendgrid.net";
-//	private static final String SMTP_AUTH_USER = "retailkit";
-//	private static final String SMTP_AUTH_PWD = "r3t41lr0ck5";
-//	private static final int SMTP_PORT = 2525; // GOOGLE WANTS US TO USE 2525
-
 	public static void main(String[] args) throws Exception {
 		new SendGridEmailer().send("secretsaviors.com", "ruck@ss.com", "rpalmite@gmail.com", "this is a test",
 				"testing 1 2 3 6");
