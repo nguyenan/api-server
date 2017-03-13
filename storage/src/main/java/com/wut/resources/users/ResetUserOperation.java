@@ -35,6 +35,7 @@ import com.wut.pipeline.WutRequest;
 import com.wut.pipeline.WutRequestBuilder;
 import com.wut.support.Language;
 import com.wut.support.settings.SettingsManager;
+import com.wut.support.settings.SystemSettings;
 
 @SuppressWarnings("unused")
 public class ResetUserOperation extends UserOperation {
@@ -84,7 +85,7 @@ public class ResetUserOperation extends UserOperation {
 		boolean providedPassword = toPasswordData != null;
 		
 		String isGlobalReset =  ri.getOptionalParameterAsString("globalReset");
-		String isForceRefresh =  ri.getOptionalParameterAsString("refreshSettings");
+		String isRefreshSettings =  ri.getOptionalParameterAsString("refreshSettings");
 		if ((isSuperAdmin || isDomainAdmin || isForSameUser) && providedPassword) {
 			String newPassword = toPasswordData.toRawString();
 			String subject = "Password Reset";
@@ -98,8 +99,9 @@ public class ResetUserOperation extends UserOperation {
 			String newPassword = new BigInteger(130, random).toString(32);
 			StringData newToken = newToken(affectedCustomer, affectedUser, newPassword);
 			String link = SettingsManager.getClientSettings(requestingCustomer, "reset-pwd.password-reset-link");
+
 			if (isGlobalReset != null && isGlobalReset.equals("true")){
-				link = "https://www.tend.ag/admin/account.html?customer=" + affectedCustomer + "&";
+				link = String.format(SystemSettings.getInstance().getSetting("password-reset-link"), affectedCustomer);
 			}
 			String newTokenEncoded = URLEncoder.encode(newToken.toRawString(), "UTF-8");
 			link += "username=" + affectedUser + "&token=" + newTokenEncoded + "&reset=true";
