@@ -9,6 +9,8 @@ import com.wut.pipeline.Authenticator;
 import com.wut.pipeline.UserStore;
 import com.wut.resources.common.CrudResource;
 import com.wut.resources.common.WutOperation;
+import com.wut.resources.common.AbstractResource.GetSettingOperation;
+import com.wut.resources.common.AbstractResource.SetSettingOperation;
 import com.wut.support.ErrorHandler;
 import com.wut.support.settings.SystemSettings;
 
@@ -85,6 +87,8 @@ public class UsersResource extends CrudResource {
 		operationList.add(new ResetUserOperation(getSource()));
 		operationList.add(getAuthenticateOperation());
 		operationList.add(getValidateTokenOperation());
+		operationList.add(new GetSettingOperation());
+		operationList.add(new SetSettingOperation());
 		return operationList;
 	}
 

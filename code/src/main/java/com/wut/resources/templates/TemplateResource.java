@@ -1,7 +1,9 @@
 package com.wut.resources.templates;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import com.wut.resources.common.AbstractResource;
 import com.wut.resources.common.WutOperation;
@@ -15,6 +17,16 @@ public class TemplateResource extends AbstractResource {
 	public TemplateResource() {
 		super("template");
 	}
+	 
+	@Override
+	public List<String> getReadableSettings() {
+		return Arrays.asList(new String[]{"client.code.dir", "client.site.dir", "git.branch"});
+	}
+	
+	@Override
+	public List<String> getWriteableSettings() {
+		return Arrays.asList(new String[]{"client.code.dir", "client.site.dir", "git.branch", "git.repository"});
+	}
 
 	@Override
 	public Collection<WutOperation> getOperations() {
@@ -26,6 +38,8 @@ public class TemplateResource extends AbstractResource {
 		operations.add(new InitializeTemplateOperation());
 		operations.add(new CopyTemplateOperation());
 		operations.add(new KillTemplateOperation());
+		operations.add(new GetSettingOperation());
+		operations.add(new SetSettingOperation());
 		return operations;
 	}
 

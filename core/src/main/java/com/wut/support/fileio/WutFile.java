@@ -138,22 +138,32 @@ public class WutFile {
 	}
 
 	public static boolean deleteFiles(String directoryPathStr) {
-		File direcotry = new File(directoryPathStr);
-		File[] fList = direcotry.listFiles();
-		
-        for (File file : fList){
-            if (file.isFile()) {
-            	System.out.println("deleting: " + file.getName());
-                file.delete();
-            } else if (file.isDirectory()) {
-            	System.out.println("nested directory: " + file.getName());
-            	String directoryPath  = file.getAbsolutePath();
-            	deleteFiles(directoryPath);
-            	file.delete();
-            }
-        }
-		
-        return true;
+		try {
+			File directory = new File(directoryPathStr);
+			if (!directoryPathStr.startsWith(SystemSettings.getInstance().getSetting("code.dir"))){
+				//prevent delete unwanted files
+				WutLogger.create(WutFile.class).fatal("Trying to delete: '" + directoryPathStr +"'. Rejected!");
+				return false;
+			}	
+			File[] fList = directory.listFiles();
+			
+	        for (File file : fList){
+	            if (file.isFile()) {
+	            	System.out.println("deleting: " + file.getName());
+	                file.delete();
+	            } else if (file.isDirectory()) {
+	            	System.out.println("nested directory: " + file.getName());
+	            	String directoryPath  = file.getAbsolutePath();
+	            	deleteFiles(directoryPath);
+	            	file.delete();
+	            }
+	        }
+	        directory.delete();
+	        return true;
+		} catch (Exception e) {
+			WutLogger.create(WutFile.class).fatal("error deleteing folder for path " + directoryPathStr);
+			return false;
+		}
 	}
 	
 }

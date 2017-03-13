@@ -20,13 +20,13 @@ public class RefreshTemplateOperation extends TemplateOperation {
 		//String application = request.getApplication();
 		String customer = request.getCustomer();
 		
-		String clientCodeDirectory = SettingsManager.getCustomerSettings(customer, "client.code.dir", true);
+		String clientCodeDirectory = SettingsManager.getClientSettings(customer, "client.code.dir");
 		
 		System.out.println("refreshing directory " + clientCodeDirectory);
 		File clientCodeDirectoryFile = new File(clientCodeDirectory);
 		
 		if (clientCodeDirectoryFile.listFiles() == null || clientCodeDirectoryFile.listFiles().length <= 0) {
-			return MessageData.error("client tempaltes not initialized " + clientCodeDirectory);
+			return MessageData.error("client templates not initialized " + clientCodeDirectory);
 		}
 		
 		String gitPath = SettingsManager.getSystemSetting("git.path");

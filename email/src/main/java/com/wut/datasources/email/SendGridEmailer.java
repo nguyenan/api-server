@@ -70,8 +70,8 @@ public class SendGridEmailer implements Emailer {
 			props.put("mail.transport.protocol", "smtp");
 			
 			// TODO bad coupling to settings --- too far down the stack
-			String smtpHost = SettingsManager.getCustomerSettings(customerId, "email-smtp-host");
-			String smtpPort = SettingsManager.getCustomerSettings(customerId, "email-smtp-port");
+			String smtpHost = SettingsManager.getClientSettings(customerId, "email-smtp-host");
+			String smtpPort = SettingsManager.getClientSettings(customerId, "email-smtp-port");
 
 			props.put("mail.smtp.host", smtpHost);
 			props.put("mail.smtp.port", smtpPort);
@@ -79,14 +79,14 @@ public class SendGridEmailer implements Emailer {
 
 			// TODO bad coupling to settings --- too far down the stack
 			//String provider = SettingsManager.getCustomerSettings(customerId, "email-provider");
-			String username = SettingsManager.getCustomerSettings(customerId, "email-username");
-			String password = SettingsManager.getCustomerSettings(customerId, "email-password");
+			String username = SettingsManager.getClientSettings(customerId, "email-username");
+			String password = SettingsManager.getClientSettings(customerId, "email-password");
 			
-			String topLevelDomain = SettingsManager.getCustomerSettings(customerId, "top-level-domain");
+			String topLevelDomain = SettingsManager.getClientSettings(customerId, "top-level-domain");
 			
 			String fromEmail;
 			if (from == null) {
-				fromEmail = SettingsManager.getCustomerSettings(customerId, "email-from-address");
+				fromEmail = SettingsManager.getClientSettings(customerId, "email-from-address");
 			} else if (from.endsWith("@" + topLevelDomain)) {
 				fromEmail = from;
 			} else {
