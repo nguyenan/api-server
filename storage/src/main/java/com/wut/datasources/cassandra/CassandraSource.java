@@ -14,6 +14,9 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.exceptions.InvalidQueryException;
+import com.datastax.driver.core.exceptions.NoHostAvailableException;
+import com.datastax.driver.core.policies.ConstantReconnectionPolicy;
+import com.datastax.driver.core.policies.Policies;
 import com.datastax.driver.core.querybuilder.BuiltStatement;
 import com.datastax.driver.core.querybuilder.Delete;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
@@ -38,18 +41,27 @@ public class CassandraSource extends MultiSource {
 	private static List<String> SPECIAL_COLUMNS =  Arrays.asList("id"); //Arrays.asList("updated", "created", "updator", "creator", "id");
  
 	public CassandraSource() {
-		cluster = Cluster.builder().addContactPoint("db3.tend.co").build();
-		
+		cluster = Cluster.builder().addContactPoint("db3.tend.co")
+				.withReconnectionPolicy(new ConstantReconnectionPolicy(5000L))
+				.withRetryPolicy(Policies.defaultRetryPolicy())
+				.build();
+		doConnectionStuff();
+	}
+	
+	public void doConnectionStuff() {		
 		try {
 			session = cluster.connect(KEYSPACE);
 		} catch (InvalidQueryException e) {
 			// create keyspace here
 			
 			// CREATE KEYSPACE webutilitykit WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 3 };
-			
+			try {
+                Thread.sleep(100);
+            } catch (InterruptedException e1) {
+            	System.out.println("sleep exception" + e1);
+            }
 			session = cluster.connect(KEYSPACE);
 		}
-
 	}
 
 	public List<String> getTables() {
@@ -167,72 +179,72 @@ The DESCRIBE and SHOW commands only work in cqlsh and cassandra-cli.
 //		}
 //	}
 
-	public static void main(String[] args) throws IOException {
-		IdData customer = new IdData("test");
-		IdData application = new IdData("test");
-		
-		Random rand = new Random();
-		CassandraSource db = new CassandraSource();
-
-		// delete the test table
-		IdData table = new IdData("flat2");
-		db.deleteTable(table.toRawString()); // WTF RUSSELL
-		
-		// create a test table
-		db.createTable(table.toRawString());
-
-		// No rows yet
-		ListData d = db.getAllRows(customer, application, table);
-		System.out.println("T1=" + d);
-
-		// make a new row
-		MappedData newRow = new MappedData();
-		//newRow.put("customer", "www.example.com");
-		newRow.put("name", "HotProduct");
-		newRow.put("description", "Solid!");
-		newRow.put("brand", "Hipster Inc");
-		newRow.put("price", "100");
-		newRow.put("msrp", "500");
-		IdData rowId = db.insertRow(customer, application, table, newRow);
-
-		// one new row added
-		ListData d2 = db.getAllRows(customer, application, table);
-		System.out.println("T2=" + d2);
-
-		// update the msrp
-		String newMSRP = String.valueOf(rand.nextInt(1000));
-		newRow.put("msrp", newMSRP);
-		db.updateRow(customer, application, table, rowId, newRow);
-
-		// new msrp
-		ListData d3 = db.getAllRows(customer, application, table);
-		System.out.println("T3=" + d3);
-
-		// just the updated product
-		MappedData r1 = db.getRow(customer, application, table, rowId);
-		System.out.println("R1=" + r1);
-
-		// all products with a price of 100
-		MappedData filter = new MappedData();
-		filter.put("price", "100");
-		ListData d4 = db.getRowsWithFilter(customer, application, table, filter);
-		System.out.println("T4=" + d4);
-
-		// delete the added product
-		// db.deleteRow(table, rowId);
-
-		// back to an empy table
-		ListData d5 = db.getAllRows(customer, application, table);
-		System.out.println("T5=" + d5);
-
-		// ListData d6 = db.getRowsWithFilter(table, filter);
-		// System.out.println("T6=" + d5);
-
-		// clean up the test table
-		// db.deleteTable("test");
-
-		System.out.println("Done.");
-	}
+//	public static void main(String[] args) throws IOException {
+//		IdData customer = new IdData("test");
+//		IdData application = new IdData("test");
+//		
+//		Random rand = new Random();
+//		CassandraSource db = new CassandraSource();
+//
+//		// delete the test table
+//		IdData table = new IdData("flat2");
+//		db.deleteTable(table.toRawString()); // WTF RUSSELL
+//		
+//		// create a test table
+//		db.createTable(table.toRawString());
+//
+//		// No rows yet
+//		ListData d = db.getAllRows(customer, application, table);
+//		System.out.println("T1=" + d);
+//
+//		// make a new row
+//		MappedData newRow = new MappedData();
+//		//newRow.put("customer", "www.example.com");
+//		newRow.put("name", "HotProduct");
+//		newRow.put("description", "Solid!");
+//		newRow.put("brand", "Hipster Inc");
+//		newRow.put("price", "100");
+//		newRow.put("msrp", "500");
+//		IdData rowId = db.insertRow(customer, application, table, newRow);
+//
+//		// one new row added
+//		ListData d2 = db.getAllRows(customer, application, table);
+//		System.out.println("T2=" + d2);
+//
+//		// update the msrp
+//		String newMSRP = String.valueOf(rand.nextInt(1000));
+//		newRow.put("msrp", newMSRP);
+//		db.updateRow(customer, application, table, rowId, newRow);
+//
+//		// new msrp
+//		ListData d3 = db.getAllRows(customer, application, table);
+//		System.out.println("T3=" + d3);
+//
+//		// just the updated product
+//		MappedData r1 = db.getRow(customer, application, table, rowId);
+//		System.out.println("R1=" + r1);
+//
+//		// all products with a price of 100
+//		MappedData filter = new MappedData();
+//		filter.put("price", "100");
+//		ListData d4 = db.getRowsWithFilter(customer, application, table, filter);
+//		System.out.println("T4=" + d4);
+//
+//		// delete the added product
+//		// db.deleteRow(table, rowId);
+//
+//		// back to an empy table
+//		ListData d5 = db.getAllRows(customer, application, table);
+//		System.out.println("T5=" + d5);
+//
+//		// ListData d6 = db.getRowsWithFilter(table, filter);
+//		// System.out.println("T6=" + d5);
+//
+//		// clean up the test table
+//		// db.deleteTable("test");
+//
+//		System.out.println("Done.");
+//	}
 
 	// private static Map<String, AttributeValue> newItem(String name, int year,
 	// String rating, String... fans) {
@@ -374,7 +386,7 @@ The DESCRIBE and SHOW commands only work in cqlsh and cassandra-cli.
 		ResultSet results = executeStatement(update);
 		
 		// TODO fix this
-		return BooleanData.TRUE;
+		return BooleanData.create(results != null);
 		
 	}
 		
@@ -387,7 +399,7 @@ The DESCRIBE and SHOW commands only work in cqlsh and cassandra-cli.
 		ResultSet results = executeStatement(delete);
 		
 		// TODO fix this
-		return BooleanData.TRUE;
+		return BooleanData.create(results != null);
 	}
 
 	// ///////////// HELPER METHODS ///////////////
@@ -427,13 +439,29 @@ The DESCRIBE and SHOW commands only work in cqlsh and cassandra-cli.
 	}
 
 	private ResultSet executeStatement(Statement statement) {
-		ResultSet results = session.execute(statement);
-		return results;
+		int retries = 0;
+        while (retries < 3) {
+            try {
+                ResultSet results = session.execute(statement);
+                return results;
+            } catch (NoHostAvailableException e) {
+                System.out.println("NoHostAvailableException Could not connect to DB");
+                e.printStackTrace();
+                doConnectionStuff();
+                ++retries;
+            } catch (Exception e) {
+            	e.printStackTrace();
+            }
+        } 
+        return null; 
 	}
 
 	private ListData convertResult(ResultSet results) {
 		ListData resultData = new ListData();
-
+		if (results == null) {
+			System.out.println("ResultSet null");
+			return resultData;
+		}
 		for (Row row : results) {
 			Map<String,String> data = row.getMap("data", String.class, String.class);
 
@@ -454,5 +482,4 @@ The DESCRIBE and SHOW commands only work in cqlsh and cassandra-cli.
 
 		return resultData;
 	}
-
 }

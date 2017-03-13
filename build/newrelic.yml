@@ -14,7 +14,7 @@ common: &default_settings
   # You must specify the license key associated with your New Relic
   # account.  This key binds your Agent's data to your account in the
   # New Relic service.
-  license_key: ''
+  license_key: '9a237c0dcbbece6d8a4bb464ab06113d06c5f468'
   
   # Agent Enabled
   # Use this setting to force the agent to run or not run.
@@ -41,7 +41,7 @@ common: &default_settings
   # For example, to report data to"My Application" and "My Application 2" use this:
   # app_name: My Application;My Application 2
   # This setting is required.
-  app_name: My Application
+  app_name: api7
 
   # The agent uses its own log file to keep its logging
   # separate from that of your application.  Specify the log level here.

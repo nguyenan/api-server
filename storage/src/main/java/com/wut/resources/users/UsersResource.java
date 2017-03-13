@@ -63,6 +63,10 @@ public class UsersResource extends CrudResource {
 		return new AuthenticateUser(getSource());
 	}
 	
+	public ValidateToken getValidateTokenOperation() {
+		return new ValidateToken(getSource());
+	}
+	
 	@Override
 	public UpdateUserOperation getUpdateOperation() {
 		return new UpdateUserOperation(getSource());
@@ -80,6 +84,7 @@ public class UsersResource extends CrudResource {
 		operationList.add(getUpdateOperation());
 		operationList.add(new ResetUserOperation(getSource()));
 		operationList.add(getAuthenticateOperation());
+		operationList.add(getValidateTokenOperation());
 		return operationList;
 	}
 

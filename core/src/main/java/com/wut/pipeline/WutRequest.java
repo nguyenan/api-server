@@ -411,6 +411,11 @@ public class WutRequest implements WutRequestInterface {
 		return getResource().equalsIgnoreCase("user") && operation.equalsIgnoreCase("authenticate");
 	}
 	
+	public boolean isValidateTokenRequest() {
+		// TODO remove magic strings
+		return getResource().equalsIgnoreCase("user") && operation.equalsIgnoreCase("validate");
+	}
+	
 	public WutRequestBuilder getBuilder() {
 		return this.builder;
 	}

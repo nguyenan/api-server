@@ -2,6 +2,7 @@ package com.wut.datasources.email;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
 import javax.mail.Authenticator;
@@ -18,6 +19,7 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
+import com.wut.support.ErrorHandler;
 import com.wut.support.Language;
 import com.wut.support.settings.SettingsManager;
 
@@ -27,11 +29,6 @@ import org.apache.commons.lang3.StringEscapeUtils;
 // TODO no longer just SendGridEmailers
 // TODO make create() function and use instead of contructor
 public class SendGridEmailer implements Emailer {
-
-//	private static final String SMTP_HOST_NAME = "smtp.sendgrid.net";
-//	private static final String SMTP_AUTH_USER = "retailkit";
-//	private static final String SMTP_AUTH_PWD = "r3t41lr0ck5";
-//	private static final int SMTP_PORT = 2525; // GOOGLE WANTS US TO USE 2525
 
 	public static void main(String[] args) throws Exception {
 		new SendGridEmailer().send("secretsaviors.com", "ruck@ss.com", "rpalmite@gmail.com", "this is a test",
@@ -57,9 +54,16 @@ public class SendGridEmailer implements Emailer {
 	public void send(String customerId, String from, String to, String subject, String body)
 			throws MailException {
 		send(customerId, from, to, null, null, subject, body);
+	}	
+
+
+	@Override
+	public void send(String customerId, String from, String to, String cc, String bcc, String subject, String body)
+			throws MailException {
+		send(customerId, from, null, to, cc, bcc, subject, body);
 	}
 	
-	public void send(String customerId, String from, String to, String cc, String bcc, String subject,
+	public void send(String customerId, String from, String fromName, String to, String cc, String bcc, String subject,
 			String body) throws MailException {
 		try {
 			Properties props = new Properties();
@@ -137,7 +141,10 @@ public class SendGridEmailer implements Emailer {
 
 			message.setContent(multipart);
 			if (Language.isNotBlank(fromEmail)) {
-				message.setFrom(new InternetAddress(fromEmail));
+				if (fromName != null)
+					message.setFrom(new InternetAddress(fromEmail, fromName));
+				else 
+					message.setFrom(new InternetAddress(fromEmail));
 			} else {
 				message.setFrom(new InternetAddress("system@retailkit.com"));
 			}
@@ -169,8 +176,12 @@ public class SendGridEmailer implements Emailer {
 			throw new MailException(e);
 		} catch (MessagingException e) {
 			throw new MailException(e);
-		}
-
+		}catch (UnsupportedEncodingException e) {
+		 	final String msg = "Error when encoding sender";
+ 			ErrorHandler.userError(null, msg, e);
+			throw new MailException(e);
+  		}
+		
 	}
 
 }

@@ -36,7 +36,7 @@ ADD webapps/payment.war ${CATALINA_WEBAPPS}/
 ADD webapps/code.war ${CATALINA_WEBAPPS}/
 ADD webapps/services.war ${CATALINA_WEBAPPS}/
 ADD webapps/dns.war ${CATALINA_WEBAPPS}/
-ADD webapps/cnd.war ${CATALINA_WEBAPPS}/
+ADD webapps/cdn.war ${CATALINA_WEBAPPS}/
 
 # PHANTOMJS
 RUN mkdir /usr/local/phantomjs 
@@ -48,8 +48,15 @@ RUN rm -rf ${CATALINA_HOME}/conf/server.xml
 ADD server.xml ${CATALINA_HOME}/conf/server.xml
 ADD tend.ag.keystore ${CATALINA_HOME}/tend.ag.keystore
 
+# NEW RELIC
+
+ADD newrelic.zip ./
+RUN unzip newrelic.zip
+ADD newrelic.yml newrelic/
+
 EXPOSE 8080
 EXPOSE 8443
-CMD ["catalina.sh", "run"]
 
 
+
+CMD java -jar newrelic/newrelic.jar install && catalina.sh run
