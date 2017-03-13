@@ -85,6 +85,11 @@ public class WutRequest implements WutRequestInterface {
 		return param == null ? null : String.valueOf(param);
 	}
 	
+	public Boolean getOptionalBooleanParameter(String name, Boolean defaultData) {
+		Data param = parameters.get(name);
+		return (param == null ? defaultData : String.valueOf(param).equals("true"));
+	}
+	
 	// TODO rename getOptionalParameter
 	public Data getOptionalNonStringParameter(String name) {
 		Data data = null;

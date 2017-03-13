@@ -23,7 +23,10 @@ import javax.servlet.http.HttpServletResponse;
 import com.wut.cache.Cache;
 import com.wut.cache.SimpleCacheProcessor;
 import com.wut.format.FormatFactory;
+import com.wut.model.Data;
 import com.wut.model.map.MessageData;
+import com.wut.model.message.ErrorMessage;
+import com.wut.model.scalar.StringData;
 import com.wut.pipeline.ProcessingPipeline;
 import com.wut.pipeline.WutRequest;
 import com.wut.pipeline.WutRequestBuilder;
@@ -31,6 +34,7 @@ import com.wut.resources.ResourceFactory;
 import com.wut.support.ErrorHandler;
 import com.wut.support.Language;
 import com.wut.support.StreamWriter;
+import com.wut.support.settings.SettingsManager;
 
 // TODO name this AbstractHttpResource
 public abstract class AbstractResource extends HttpServlet implements WutResource {
@@ -68,6 +72,74 @@ public abstract class AbstractResource extends HttpServlet implements WutResourc
 		return name;
 	}
 
+
+	public List<String> getReadableSettings() {
+		return new ArrayList<String>();
+	}
+	
+	private Data getSetting(WutRequest request) throws MissingParameterException {
+		String customer = request.getCustomer();
+		String setting = request.getParameter("id").toString();
+		List<String> readableSettings = getReadableSettings();
+		if (!readableSettings.contains(setting))
+			return ErrorMessage.INVALID_SETTING;
+	
+		Boolean refreshSettings = request.getOptionalBooleanParameter("refreshSettings", false);
+		String clientSettings = SettingsManager.getClientSettings(customer, setting, refreshSettings);
+		if (clientSettings.isEmpty())
+			return MessageData.NO_DATA_FOUND;
+		return new StringData(clientSettings);
+	}
+
+	public class GetSettingOperation extends com.wut.resources.operations.GetSettingOperation {
+		
+		public GetSettingOperation() {
+		}
+		
+		@Override
+		public String getName() {
+			return WutOperation.GET_SETTING;
+		}
+
+		@Override
+		public Data perform(WutRequest request) throws Exception {
+			return getSetting(request);
+		}
+		
+	}
+	
+	public List<String> getWriteableSettings() {
+		return getReadableSettings();
+	}
+	
+	private Data setSetting(WutRequest request) throws MissingParameterException {
+		String customer = request.getCustomer();
+		String setting = request.getParameter("id").toString();
+		String value = request.getParameter("value").toString();
+		List<String> writeableSettings = getWriteableSettings();
+		if (!writeableSettings.contains(setting))
+			return ErrorMessage.INVALID_SETTING;
+		
+		Boolean updateCustomerSettings = SettingsManager.setClientSettings(customer, setting, value);
+		return MessageData.successOrFailure(updateCustomerSettings);
+	}
+
+	public class SetSettingOperation extends com.wut.resources.operations.SetSettingOperation {
+		
+		public SetSettingOperation() {
+		}
+		
+		@Override
+		public String getName() {
+			return WutOperation.SET_SETTING;
+		}
+
+		@Override
+		public Data perform(WutRequest request) throws Exception {
+			return setSetting(request);
+		}
+		
+	}
 	// ////// HTTP SERVLET RELATED METHODS /////////
 
 	private static final long serialVersionUID = 1L;
@@ -332,6 +404,7 @@ public abstract class AbstractResource extends HttpServlet implements WutResourc
 
 		response.addHeader("Access-Control-Max-Age", "86400");
 	}
+	
 	
 //	@Override
 //	public List<Cache> getCaches() {

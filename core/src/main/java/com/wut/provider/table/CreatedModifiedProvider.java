@@ -4,6 +4,9 @@ import com.wut.model.list.ListData;
 import com.wut.model.map.MappedData;
 import com.wut.model.scalar.BooleanData;
 import com.wut.model.scalar.IdData;
+import com.wut.model.scalar.ScalarData;
+import com.wut.support.ErrorHandler;
+import com.wut.support.UniqueIdGenerator;
 
 // This makes all row "ids" also contain the table name
 public class CreatedModifiedProvider implements TableProvider {

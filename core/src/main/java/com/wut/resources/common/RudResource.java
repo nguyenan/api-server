@@ -8,15 +8,19 @@ import java.util.Map;
 
 import com.wut.datasources.RudSource;
 import com.wut.model.Data;
+import com.wut.model.map.MessageData;
+import com.wut.model.message.ErrorMessage;
+import com.wut.model.scalar.StringData;
 import com.wut.pipeline.WutRequest;
 import com.wut.resources.common.MissingParameterException;
 import com.wut.resources.operations.UpdateOperation;
+import com.wut.support.settings.SettingsManager;
 
 public class RudResource extends AbstractResource {
 	private static final long serialVersionUID = 7961120612619182819L;
 	private RudSource source;
 	private String name;
-
+	
 	public RudResource(String name, RudSource source) {
 		super(name);
 		this.name = name;
@@ -58,6 +62,8 @@ public class RudResource extends AbstractResource {
 		operationList.add(getReadOperation());
 		operationList.add(getUpdateOperation());
 		operationList.add(getDeleteOperation());
+		operationList.add(getGetSettingOperation());
+		operationList.add(setGetSettingOperation());
 		return operationList;
 	}
 	
@@ -74,6 +80,13 @@ public class RudResource extends AbstractResource {
 		return new DeleteOperation();
 	}
 	
+	public WutOperation getGetSettingOperation() {
+		return new GetSettingOperation();
+	}
+	
+	public WutOperation setGetSettingOperation() {
+		return new SetSettingOperation();
+	}
 	
 	public Data read(WutRequest request) throws MissingParameterException {
 		String identifier = request.getScopeWithId();
@@ -91,6 +104,22 @@ public class RudResource extends AbstractResource {
 		String identifier = request.getScopeWithId();
 		return source.delete(request.getCustomer(), request.getApplication(), identifier);
 	}
+	
+
+//	private Data getSetting(WutRequest request) throws MissingParameterException {
+//		String customer = request.getCustomer();
+//		String setting = request.getParameter("id").toString();
+//		List<String> readableSettings = getReadableSettings();
+//		if (!readableSettings.contains(setting))
+//			return ErrorMessage.INVALID_SETTING;
+//
+//		Boolean isRefresh = request.getOptionalBooleanParameter("refreshSettings", false);
+//		String customerSettings = SettingsManager.getClientSetting(customer, setting, isRefresh);
+//		if (customerSettings.isEmpty())
+//			return MessageData.NO_DATA_FOUND;
+//		return new StringData(customerSettings);
+//	}
+	
 	
 	
 	public class ReadOperation extends com.wut.resources.operations.ReadOperation {
@@ -151,5 +180,24 @@ public class RudResource extends AbstractResource {
 		}
 		
 	}
+	
+//	public class GetSettingOperation extends com.wut.resources.operations.GetSettingOperation {
+//		//private RudSource source;
+//		
+//		public GetSettingOperation() {
+//			//this.source = source;
+//		}
+//		
+//		@Override
+//		public String getName() {
+//			return WutOperation.GET_SETTING;
+//		}
+//
+//		@Override
+//		public Data perform(WutRequest request) throws Exception {
+//			return getSetting(request);
+//		}
+//		
+//	}
 
 }
