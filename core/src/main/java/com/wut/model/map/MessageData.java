@@ -94,6 +94,7 @@ public class MessageData extends MappedData {
 	public static final MessageData INSUFFIENT_PRIVILEGES = new MessageData(500, "insufficient priveleges", "the user does not have sufficient priveleges to complete the requested operation");
 	public static final MessageData TEMPLATE_NOT_INTIALIZED = new MessageData(600, "requires intialization", "client templates not initialized");
 	public static final MessageData CACHE_OUT_OF_DATE = new MessageData(700, "cache out of date", "well shucks, the cache is old so i better not return anything");
+	public static final MessageData CACHE_CDN_ERROR = new MessageData(701, "cdn error", "problem connecting to cdn");
 
 	//@Deprecated
 	public static MessageData error(String string) {
