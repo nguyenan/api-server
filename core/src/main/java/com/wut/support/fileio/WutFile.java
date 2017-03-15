@@ -6,11 +6,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import com.wut.support.logging.WutLogger;
-//import javax.management.RuntimeErrorException;
-//
-////import org.apache.commons.io.FileUtils;
-//
-//import com.wut.support.ErrorHandler;
 import com.wut.support.settings.SystemSettings;
 
 public class WutFile {
@@ -161,7 +156,8 @@ public class WutFile {
 	        directory.delete();
 	        return true;
 		} catch (Exception e) {
-			WutLogger.create(WutFile.class).fatal("error deleteing folder for path " + directoryPathStr);
+			e.printStackTrace();
+			WutLogger.create(WutFile.class).fatal("error deleting folder for path " + directoryPathStr);
 			return false;
 		}
 	}

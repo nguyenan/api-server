@@ -34,7 +34,7 @@ public class SettingsStore implements CrudSource {
 	
 	@Override
 	public Data create(String customer, String application, Map<String, String> data) {
-		return MessageData.FAILURE;
+		return MessageData.NOT_IMPLEMENTED;
 	}
 	 
 	public Data read(String customer, String application, String id) {
