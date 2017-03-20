@@ -36,5 +36,8 @@ public class DefaultFileProvider implements FileProvider {
 		return BooleanData.create(wasSuccess);
 	}
 
-
+	public BooleanData deleteBucket(IdData bucket) {
+		boolean wasSuccess = source.deleteBucket(bucket.toRawString());
+		return BooleanData.create(wasSuccess);
+	}
 }
