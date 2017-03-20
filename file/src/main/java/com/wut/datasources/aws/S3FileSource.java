@@ -140,12 +140,11 @@ public class S3FileSource implements FileSource {
     				
     				// try request again
     				s3client.putObject(putRequest);
+    				return true;
     			} catch (Exception e) {
     				return false;
     			}
             }
-            
-            return false;
         } catch (AmazonClientException ace) {
             System.out.println("Caught an AmazonClientException, which " +
             		"means the client encountered " +
