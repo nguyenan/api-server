@@ -67,6 +67,10 @@ public class UsersResource extends CrudResource {
 		return new ValidateToken(getSource());
 	}
 	
+	public PingOperation getPingOperation() {
+		return new PingOperation(getSource());
+	}
+	
 	@Override
 	public UpdateUserOperation getUpdateOperation() {
 		return new UpdateUserOperation(getSource());
@@ -85,6 +89,7 @@ public class UsersResource extends CrudResource {
 		operationList.add(new ResetUserOperation(getSource()));
 		operationList.add(getAuthenticateOperation());
 		operationList.add(getValidateTokenOperation());
+		operationList.add(getPingOperation());
 		return operationList;
 	}
 
