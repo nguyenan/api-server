@@ -145,6 +145,7 @@ public class S3FileSource implements FileSource {
     				return false;
     			}
             }
+            return false;
         } catch (AmazonClientException ace) {
             System.out.println("Caught an AmazonClientException, which " +
             		"means the client encountered " +
@@ -189,21 +190,17 @@ public class S3FileSource implements FileSource {
 	
     public synchronized boolean deleteBucket(String bucketName) {
         try {
-                ObjectListing object_listing = s3client.listObjects(bucketName);
-                while (true) {
-                        for (Iterator<?> iterator = object_listing.getObjectSummaries().iterator(); iterator.hasNext();) {
-                                S3ObjectSummary summary = (S3ObjectSummary) iterator.next();
-                                s3client.deleteObject(bucketName, summary.getKey());
-                        }
-
-                        // more object_listing to retrieve?
-                        if (object_listing.isTruncated()) {
-                                object_listing = s3client.listNextBatchOfObjects(object_listing);
-                        } else {
-                                break;
-                        }
-                }
-                ;
+                ObjectListing filesInBucket = s3client.listObjects(bucketName);
+                boolean isNextBatch = false;
+                do {
+                	if (isNextBatch)
+                		filesInBucket = s3client.listNextBatchOfObjects(filesInBucket);
+                    for (Iterator<?> iterator = filesInBucket.getObjectSummaries().iterator(); iterator.hasNext();) {
+                            S3ObjectSummary summary = (S3ObjectSummary) iterator.next();
+                            s3client.deleteObject(bucketName, summary.getKey());
+                    }
+                    isNextBatch = true;
+                } while (filesInBucket.isTruncated());
 
                 // bucket ready to delete
                 s3client.deleteBucket(bucketName);

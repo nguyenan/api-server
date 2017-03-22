@@ -26,18 +26,18 @@ public class DefaultFileProvider implements FileProvider {
 
 	public BooleanData update(IdData bucket, IdData folder, StringData filename, StreamData data) {
 		String folderStr = folder != null ? folder.toRawString() : null;
-		boolean success = source.updateFile(bucket.toRawString(), folderStr, filename.toRawString(), data.getRawStream());
-		return BooleanData.create(success);
+		boolean wasSuccessful = source.updateFile(bucket.toRawString(), folderStr, filename.toRawString(), data.getRawStream());
+		return BooleanData.create(wasSuccessful);
 	}
 
 	public BooleanData delete(IdData bucket, IdData folder, StringData filename) {
 		String folderStr = folder != null ? folder.toRawString() : null;
-		boolean wasSuccess = source.deleteFile(bucket.toRawString(), folderStr, filename.toRawString());
-		return BooleanData.create(wasSuccess);
+		boolean wasSuccessful = source.deleteFile(bucket.toRawString(), folderStr, filename.toRawString());
+		return BooleanData.create(wasSuccessful);
 	}
 
 	public BooleanData deleteBucket(IdData bucket) {
-		boolean wasSuccess = source.deleteBucket(bucket.toRawString());
-		return BooleanData.create(wasSuccess);
+		boolean wasSuccessful = source.deleteBucket(bucket.toRawString());
+		return BooleanData.create(wasSuccessful);
 	}
 }
