@@ -268,7 +268,7 @@ public class CFSource {
 		}
 
 		if (cfResponse.isSuccess()) {
-			if (recordName.equals("www") || recordName.equals("www." + normalizeDomain(customerDomain))) {
+			if (recordName.equals(normalizeDomain(customerDomain))) {
 				List<PageRule> defaultPagerules = defaultPagerules(customerDomain);
 				for (PageRule rule : defaultPagerules) {
 					createPagerule(customerDomain, zoneId, rule);
@@ -311,7 +311,7 @@ public class CFSource {
 		}
 
 		if (cfResponse.isSuccess()) {
-			if (recordName.equals("www") || recordName.equals("www." + normalizeDomain(customerDomain))) {
+			if (recordName.equals(normalizeDomain(customerDomain))) {
 				List<PageRule> defaultPagerules = defaultPagerules(customerDomain);
 				for (PageRule rule : defaultPagerules) {
 					createPagerule(customerDomain, zoneId, rule);
@@ -387,33 +387,31 @@ public class CFSource {
 
 	private List<PageRule> defaultPagerules(String customerDomain) {
 		List<PageRule> pagerules = new ArrayList<PageRule>();
+		
+		// #1. Apply https
+		MappedData fwToHttps = new MappedData();
+		fwToHttps.put("url", String.format("https://%s/$1", customerDomain));
+		fwToHttps.put("status_code", new IntegerData(301));
+		Action httpsAction = new Action("forwarding_url", fwToHttps);
+		String URLPatternFrom = String.format("http://%s/*", customerDomain);
+		pagerules.add(new PageRule(URLPatternFrom, new Action[] { httpsAction }));
+
+		// #2. Add www
+		if (customerDomain.startsWith("www.")){
+			MappedData fwTowww = new MappedData();
+			fwTowww.put("url", String.format("https://%s/$1", customerDomain));
+			fwTowww.put("status_code", new IntegerData(301));
+			Action fwAction = new Action("forwarding_url", fwTowww);
+			String URLPatternFrom2 = String.format("http://%s/*", normalizeDomain(customerDomain));
+			pagerules.add(new PageRule(URLPatternFrom2, new Action[] { fwAction }));
+		}		
+
+		// #3. Apply cache
 		Action cacheAction1 = new Action("browser_cache_ttl", new IntegerData(60 * 60 * 4));// 4 hours
 		Action cacheAction2 = new Action("cache_level", new StringData("cache_everything"));
-		String cacheURLPattern = String.format("https://www.%s/*", normalizeDomain(customerDomain));
-
+		String cacheURLPattern = String.format("https://%s/*", customerDomain);
 		pagerules.add(new PageRule(cacheURLPattern, new Action[] { cacheAction1, cacheAction2 }));
 
-		MappedData fwData = new MappedData();
-		fwData.put("url", String.format("https://www.%s/$1", normalizeDomain(customerDomain)));
-		fwData.put("status_code", new IntegerData(301));
-		Action fwAction = new Action("forwarding_url", fwData);
-		String fwURLPattern = String.format("http://%s/*", normalizeDomain(customerDomain));
-
-		pagerules.add(new PageRule(fwURLPattern, new Action[] { fwAction }));
-
-		// The "Always Use HTTPS" option will only appear if your zone has an
-		// active SSL certificate associated with it on Cloudflare
-		// Action httpsAction = new Action("always_use_https", new
-		// StringData("on"));
-		// String httpsURLPattern = String.format("https://www.%s/*",
-		// normalizeDomain(customerDomain));
-		MappedData httpsData = new MappedData();
-		httpsData.put("url", String.format("https://www.%s/$1", normalizeDomain(customerDomain)));
-		httpsData.put("status_code", new IntegerData(301));
-		Action httpsAction = new Action("forwarding_url", httpsData);
-		String httpsURLPattern = String.format("http://www.%s/*", normalizeDomain(customerDomain));
-
-		pagerules.add(new PageRule(httpsURLPattern, new Action[] { httpsAction }));
 		return pagerules;
 	}
 
