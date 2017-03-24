@@ -70,8 +70,8 @@ public class FileResource extends CrudResource {
 	
 	private IdData getBucket(WutRequest request) {
 		String client = request.getCustomer();
-		String realDomain = DomainUtils.getRealDomain(client);
-		return new IdData(realDomain);
+		//String realDomain = DomainUtils.getRealDomain(client);
+		return new IdData(client);
 	}
 	
 	private IdData getFolder(WutRequest request) throws MissingParameterException {
