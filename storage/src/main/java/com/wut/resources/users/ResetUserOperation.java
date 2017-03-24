@@ -39,13 +39,14 @@ import com.wut.support.settings.SystemSettings;
 
 @SuppressWarnings("unused")
 public class ResetUserOperation extends UserOperation {
+	private static SystemSettings sysSettings = SystemSettings.getInstance();
 	private SecureRandom random = new SecureRandom();
-	private static final String footer = "<div style=\"text-align:center; margin:15px 0px; vertical-align: middle;\">"
-			+ "<hr style=\"padding: 0px; margin: 0px 0px 28px 0px;\"/>"
-			+ "<p style=\"font-family: 'Arial'; font-size: 8px; color: #98948A; letter-spacing: 2px; vertical-align: bottom;\">POWERED BY&nbsp;&nbsp;"
-			+ "<a style=\"\" href=\"http://www.tend.co\" target=\"_blank\"><img style=\"display:inline-block;max-height: 16px; vertical-align: middle;\" src=\"https://cdn.webutilitykit.com/img/tend-logo-small.png\"></a></p>"
-			+ "<p style=\"font-family: 'Arial'; font-size: 10px; font-style: italic; color: #98948A; letter-spacing: 1px;\">Manage your organic farm easily</p>"
-			+ "</div>";
+//	private static final String footer = "<div style=\"text-align:center; margin:15px 0px; vertical-align: middle;\">"
+//			+ "<hr style=\"padding: 0px; margin: 0px 0px 28px 0px;\"/>"
+//			+ "<p style=\"font-family: 'Arial'; font-size: 8px; color: #98948A; letter-spacing: 2px; vertical-align: bottom;\">POWERED BY&nbsp;&nbsp;"
+//			+ "<a style=\"\" href=\"http://www.tend.co\" target=\"_blank\"><img style=\"display:inline-block;max-height: 16px; vertical-align: middle;\" src=\"https://cdn.webutilitykit.com/img/tend-logo-small.png\"></a></p>"
+//			+ "<p style=\"font-family: 'Arial'; font-size: 10px; font-style: italic; color: #98948A; letter-spacing: 1px;\">Manage your organic farm easily</p>"
+//			+ "</div>";
 	//private Emailer emailer = new SendGridEmailer();
 
 	public ResetUserOperation(CrudSource source) {
@@ -89,7 +90,7 @@ public class ResetUserOperation extends UserOperation {
 		if ((isSuperAdmin || isDomainAdmin || isForSameUser) && providedPassword) {
 			String newPassword = toPasswordData.toRawString();
 			String subject = "Password Reset";
-			String body = "You password has been reset.<br><br>" + footer;
+			String body =  sysSettings.getSetting("password-reset-success") + sysSettings.getSetting("password-reset-footer");
 			
 			sendEmail(affectedCustomer, "support@"+affectedCustomer, affectedUser, subject, body);
 
@@ -101,13 +102,12 @@ public class ResetUserOperation extends UserOperation {
 			String link = SettingsManager.getClientSettings(requestingCustomer, "reset-pwd.password-reset-link");
 
 			if (isGlobalReset != null && isGlobalReset.equals("true")){
-				link = String.format(SystemSettings.getInstance().getSetting("password-reset-link"), affectedCustomer);
+				link = String.format(sysSettings.getSetting("password-reset-link"), affectedCustomer);
 			}
 			String newTokenEncoded = URLEncoder.encode(newToken.toRawString(), "UTF-8");
 			link += "username=" + affectedUser + "&token=" + newTokenEncoded + "&reset=true";
 			String subject = "Password Reset Request";
-			String body = "We have received a request for your password to be reset. Click <a href=\"" + link + "\">here</a> to set your new password. If this request was not made by you, please ignore this email.<br><br>";
-			body += footer;
+			String body = String.format(sysSettings.getSetting("password-reset-request"), link) + sysSettings.getSetting("password-reset-footer");
 			sendEmail(affectedCustomer, "support@"+affectedCustomer, affectedUser, subject, body);
 		} else {
 			return MessageData.INVALID_PERMISSIONS;

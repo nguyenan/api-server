@@ -61,7 +61,7 @@ public class SettingsManager {
 			// cdn
 			setClientSettings(domain, "domain", domain);
 		} catch (Exception e) {
-			ErrorHandler.userError("init Clientsetting fail", e);
+			ErrorHandler.systemError("init Clientsetting fail", e);
 			return false;
 		}
 		return true;
@@ -77,38 +77,48 @@ public class SettingsManager {
 	 */
 
 	public static String getClientSettings(String customer, String settingName, boolean refreshSettings) {
-		MappedData clientSettings = clientSettingsMap.get(customer);
-		if (clientSettings != null && !refreshSettings) {
-			Data settingsData = clientSettings.get(settingName);
-			if (settingsData != null)
-				return ((StringData) settingsData).toString();
-		}
-
-		Data settingsData = settingsStore.read(customer, APPLICATION, settingName);
-		if (settingsData.equals(MessageData.NO_DATA_FOUND))
-			return "";
-
-		if (clientSettings == null)
-			clientSettings = new MappedData();
-		clientSettings.put(settingName, settingsData);
-		clientSettingsMap.put(customer, clientSettings);
-		return ((StringData) settingsData).toString();
-	}
-
-	public static Boolean setClientSettings(String customer, String settingName, String settingValue) {
-		MappedData userData = new MappedData();
-		userData.put("value", new StringData(settingValue));
-		Map<String, String> settingDataPojo = userData.getMapAsPojo();
-		Data result = settingsStore.update(customer, APPLICATION, settingName, settingDataPojo);
-		if (result.equals(MessageData.SUCCESS)) {
+		try {		
 			MappedData clientSettings = clientSettingsMap.get(customer);
+			if (clientSettings != null && !refreshSettings) {
+				Data settingsData = clientSettings.get(settingName);
+				if (settingsData != null)
+					return ((StringData) settingsData).toString();
+			}
+	
+			Data settingsData = settingsStore.read(customer, APPLICATION, settingName);
+			if (settingsData.equals(MessageData.NO_DATA_FOUND))
+				return "";
+	
 			if (clientSettings == null)
 				clientSettings = new MappedData();
-			clientSettings.put(settingName, new StringData(settingValue));
+			clientSettings.put(settingName, settingsData);
 			clientSettingsMap.put(customer, clientSettings);
-			return true;
+			return ((StringData) settingsData).toString();			
+		} catch (Exception e) {
+			ErrorHandler.userError("get Clientsetting fail", e);
+			return "";
 		}
-		return false;
+	}
+
+	public static synchronized Boolean setClientSettings(String customer, String settingName, String settingValue) {
+		try {
+			MappedData userData = new MappedData();
+			userData.put("value", new StringData(settingValue));
+			Map<String, String> settingDataPojo = userData.getMapAsPojo();
+			Data result = settingsStore.update(customer, APPLICATION, settingName, settingDataPojo);
+			if (MessageData.SUCCESS.equals(result)) {
+				MappedData clientSettings = clientSettingsMap.get(customer);
+				if (clientSettings == null)
+					clientSettings = new MappedData();
+				clientSettings.put(settingName, new StringData(settingValue));
+				clientSettingsMap.put(customer, clientSettings);
+				return true;
+			}
+			return false;
+		} catch (Exception e) {
+			ErrorHandler.userError("set Clientsetting fail", e);
+			return false;
+		}
 	}
 
 	//////////////////////////////////////////////////////

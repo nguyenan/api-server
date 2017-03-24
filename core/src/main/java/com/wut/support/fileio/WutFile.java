@@ -5,12 +5,13 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import com.wut.support.ErrorHandler;
 import com.wut.support.logging.WutLogger;
 import com.wut.support.settings.SystemSettings;
 
 public class WutFile {
 	private BufferedWriter out;
-	
+	private static WutLogger logger = WutLogger.create(WutFile.class);
 	private WutFile(String customer, String filePlusPath) {
 		try {
 			// TODO do this for each customer at system startup instead of on each file creation
@@ -113,17 +114,16 @@ public class WutFile {
 		
 		try {
 			if (!dir.exists()) {
-				WutLogger.create(WutFile.class).info("# creating directory " + path);
-				System.out.println("# creating directory " + path);
+				logger.info("# creating directory " + path);
 				boolean directoryCreated = dir.mkdirs();
 				if (!directoryCreated) {
-					WutLogger.create(WutFile.class).fatal("error creating folder for path " + path);
+					logger.fatal("error creating folder for path " + path);
 				}
 			} else if (!dir.isDirectory()) {
-				WutLogger.create(WutFile.class).fatal("unable to create folder " + path + " because file is present");
+				logger.fatal("unable to create folder " + path + " because file is present");
 			}
 		} catch (Exception e) {
-			WutLogger.create(WutFile.class).fatal("error creating folder for path " + path);
+			logger.fatal("error creating folder for path " + path);
 		}
 	}
 
@@ -137,27 +137,36 @@ public class WutFile {
 			File directory = new File(directoryPathStr);
 			if (!directoryPathStr.startsWith(SystemSettings.getInstance().getSetting("code.dir"))){
 				//prevent delete unwanted files
-				WutLogger.create(WutFile.class).fatal("Trying to delete: '" + directoryPathStr +"'. Rejected!");
+				ErrorHandler.systemError("Trying to delete: '" + directoryPathStr +"'. Rejected!");
 				return false;
 			}	
 			File[] fList = directory.listFiles();
 			
 	        for (File file : fList){
 	            if (file.isFile()) {
-	            	System.out.println("deleting: " + file.getName());
-	                file.delete();
+	            	logger.info("deleting: " + file.getName());
+	                if (!file.delete()){
+	                	ErrorHandler.systemError("error deleting file: " + file.getPath());
+	                	return false;
+	                }
 	            } else if (file.isDirectory()) {
-	            	System.out.println("nested directory: " + file.getName());
+	            	logger.info(file.getPath());
+	            	logger.info("nested directory: " + file.getName());
 	            	String directoryPath  = file.getAbsolutePath();
 	            	deleteFiles(directoryPath);
-	            	file.delete();
+	            	if (!file.delete()){
+	            		ErrorHandler.systemError("error deleting file: " + file.getPath());
+	                	return false;
+	                }
 	            }
 	        }
-	        directory.delete();
+	        if (!directory.delete()){
+	        	ErrorHandler.systemError("error deleting directory: " + directory.getPath());
+            	return false;
+            }
 	        return true;
 		} catch (Exception e) {
-			e.printStackTrace();
-			WutLogger.create(WutFile.class).fatal("error deleting folder for path " + directoryPathStr);
+			ErrorHandler.systemError("error deleting directory: " + directoryPathStr, e);
 			return false;
 		}
 	}

@@ -17,15 +17,14 @@ public class InitializeTemplateOperation extends TemplateOperation {
 	@Override
 	public Data perform(WutRequest request) throws Exception {
 		StringData override = request.getParameter("override", true);
-		if (override != null && override.equals(new StringData("true"))) {
+		if ((new StringData("true")).equals(override)) {
 			String clientCodeDirectoryStr = getClientCodeDirectory(request);
 			boolean deleteSuccessful = WutFile.deleteFiles(clientCodeDirectoryStr);
 			if (!deleteSuccessful)
-				return MessageData.successOrFailure(deleteSuccessful);
+				return MessageData.FAILURE;
 		}
 		
 		boolean wasCloneSuccessful = gitClone(request);
 		return MessageData.successOrFailure(wasCloneSuccessful);
 	}
-
 }

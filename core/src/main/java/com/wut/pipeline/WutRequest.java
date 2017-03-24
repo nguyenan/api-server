@@ -11,6 +11,7 @@ import java.util.Map;
 
 import com.wut.model.Data;
 import com.wut.model.map.MappedData;
+import com.wut.model.scalar.BooleanData;
 import com.wut.model.scalar.StringData;
 import com.wut.resources.common.MissingParameterException;
 import com.wut.support.ErrorHandler;
@@ -86,10 +87,10 @@ public class WutRequest implements WutRequestInterface {
 	}
 	
 	public Boolean getOptionalBooleanParameter(String name, Boolean defaultData) {
-		Data param = parameters.get(name);
-		return (param == null ? defaultData : String.valueOf(param).equals("true"));
+		Data param = parameters.get(name);		
+		return new StringData("true").equals(param);
 	}
-	
+		
 	// TODO rename getOptionalParameter
 	public Data getOptionalNonStringParameter(String name) {
 		Data data = null;
