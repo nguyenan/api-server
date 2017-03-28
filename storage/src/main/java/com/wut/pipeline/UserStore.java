@@ -21,15 +21,8 @@ public class UserStore implements CrudSource {
 	
 	@Override // TODO this needs to be synchronized across servers --- really??? bullshit!!!
 	public Data create(String customer, String application, Map<String, String> data) {
-//		MappedData mappedData = MappedData.convert(data);
-//		table.insertRow(usersTable, mappedData);
-//		//tokenToUsername.put(data.get("token"), data.get("username"));
-//		MessageData successMsg = MessageData.success();
-//		successMsg.setData(new StringData(data.get("username")));
-//		return successMsg;
-		
 		// this method is not used by "user" resource
-		return MessageData.FAILURE;
+		return MessageData.NOT_IMPLEMENTED;
 	}
 	
 	@Override
@@ -57,7 +50,6 @@ public class UserStore implements CrudSource {
 
 	@Override
 	public Data update(String customer, String application, String id, Map<String, String> data) {
-		//final boolean updateSuccess = store.update(name, data);
 		MappedData mappedData = MappedData.convert(data);
 		Data d = table.updateRow(IdData.create(customer), IdData.create(application), usersTable, new IdData(id), mappedData); // TODO this needs to be update and not override .... 
 		return d;
@@ -65,7 +57,6 @@ public class UserStore implements CrudSource {
 
 	@Override
 	public Data delete(String customer, String application, String id) {
-		//final boolean deleteSuccess = store.delete(name);
 		Data d = table.deleteRow(IdData.create(customer), IdData.create(application), usersTable, new IdData(id));
 		return d;
 	}
