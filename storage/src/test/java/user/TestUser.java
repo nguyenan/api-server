@@ -18,7 +18,7 @@ public class TestUser {
 	@Test
 	public void testReadSecureInformation() {
 		String customer = "dev1.tend.ag";
-		String username = "an.nguyenhoang@tend.ag";
+		String username = "test@dev1.tend.ag";
 		String application = "core";
 
 		String id = Authenticator.getUserId(customer, username);
@@ -34,7 +34,7 @@ public class TestUser {
 	@Test
 	public void testReadSecureInformationNoData() {
 		String customer = "dev1.tend.ag";
-		String username = "an.nguyenhoang@tend";
+		String username = "test@dev1.tend.ag";
 		String application = "core";
 
 		String id = Authenticator.getUserId(customer, username);
@@ -48,7 +48,7 @@ public class TestUser {
 	@Test
 	public void testRead() {
 		String customer = "dev1.tend.ag";
-		String username = "an.nguyenhoang@tend.ag";
+		String username = "test@dev1.tend.ag";
 		String application = "core";
 
 		String id = Authenticator.getUserId(customer, username);
@@ -64,7 +64,7 @@ public class TestUser {
 	@Test
 	public void testReadNoData() {
 		String customer = "dev1.tend.ag";
-		String username = "an.nguyenhoang@tend";
+		String username = "unknow@dev1.tend.ag";
 		String application = "core";
 
 		String id = Authenticator.getUserId(customer, username);
@@ -77,7 +77,7 @@ public class TestUser {
 	@Test
 	public void testUpdate() {
 		String customer = "dev1.tend.ag";
-		String username = "an.nguyenhoang@tend.ag";
+		String username = "test@dev1.tend.ag";
 		String application = "core";
 
 		String id = Authenticator.getUserId(customer, username);
@@ -106,7 +106,7 @@ public class TestUser {
 		userMap.put("lastName", "");
 		userMap.put("username", username);
 		userMap.put("id", id);
-		userMap.put("password", "465eaca53428a2109210c602f7bda1ae");
+		userMap.put("password", "b389d7ba1a7dc968c893d2c5823fc80e");
 		userMap.put("token", new StringData(Token.generateNewToken(username, username).getToken()));
 		userMap.put("customer", customer);
 
@@ -150,7 +150,7 @@ public class TestUser {
 		userMap.put("lastName", "");
 		userMap.put("username", username);
 		userMap.put("id", id);
-		userMap.put("password", "465eaca53428a2109210c602f7bda1ae");
+		userMap.put("password", "b389d7ba1a7dc968c893d2c5823fc80e");
 		userMap.put("token", new StringData(Token.generateNewToken(username, username).getToken()));
 		userMap.put("customer", customer);
 

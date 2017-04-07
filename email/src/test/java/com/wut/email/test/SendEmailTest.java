@@ -25,7 +25,7 @@ public class SendEmailTest {
 
 	@Test
 	public void testSendEmailWithCC() throws MailException {
-		new SendGridEmailer().send("www.tend.ag", "test@tend.ag", emailTo, "an.nguyenhoang@tend.ag", null, "TendAPIs",
+		new SendGridEmailer().send("www.tend.ag", "test@tend.ag", emailTo, "testcc@tend.ag", null, "TendAPIs",
 				"testSendEmailWithFromName Mapiii");
 	}
 
