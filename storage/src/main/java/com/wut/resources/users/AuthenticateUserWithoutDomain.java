@@ -18,7 +18,7 @@ public class AuthenticateUserWithoutDomain extends UserOperation {
 
 	@Override
 	public String getName() {
-		return "authenticate2";
+		return "authenticate";
 	}
 
 	@Override
@@ -36,13 +36,17 @@ public class AuthenticateUserWithoutDomain extends UserOperation {
 			return MessageData.UNKNOWN_USER;
 		}
 		System.out.println(credentials);
-		StringData listDomains = (StringData) credentials.get("farm");
+		StringData listDomains = (StringData) credentials.get("farms");
 		System.out.println(listDomains);
-		String realCustomer = listDomains.toRawString().split(",")[1];
+		String[] listCustomers = listDomains.toRawString().split(",");
 
 		String actualPassword = credentials.get("password").toString();
 		if (requestPassword.equals(actualPassword)) {
-			return newToken(realCustomer, username, requestPassword);
+			MappedData domainMap = new MappedData();
+			for (String domain : listCustomers){
+				domainMap.put(domain,  newToken(domain, username, requestPassword));
+			}
+			return domainMap;
 		} else {
 			return ErrorData.INVALID_LOGIN;
 		}

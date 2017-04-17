@@ -59,8 +59,8 @@ public class UsersResource extends CrudResource {
 		return parentInitializationSucceeded;
 	}
 
-	public AuthenticateUser getAuthenticateOperation() {
-		return new AuthenticateUser(getSource());
+	public AuthenticateUserWithoutDomain getAuthenticateOperation() {
+		return new AuthenticateUserWithoutDomain(getSource());
 	}
 	
 	public ValidateToken getValidateTokenOperation() {
@@ -87,7 +87,6 @@ public class UsersResource extends CrudResource {
 		operationList.add(getReadOperation());
 		operationList.add(getUpdateOperation());
 		operationList.add(new ResetUserOperation(getSource()));
-		operationList.add(new AuthenticateUserWithoutDomain(getSource()));
 		operationList.add(getAuthenticateOperation());
 		operationList.add(getValidateTokenOperation());
 		operationList.add(getPingOperation());
