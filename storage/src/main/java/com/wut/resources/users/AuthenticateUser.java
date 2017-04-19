@@ -5,12 +5,13 @@ import com.wut.model.Data;
 import com.wut.model.map.MappedData;
 import com.wut.model.map.MessageData;
 import com.wut.model.message.ErrorData;
+import com.wut.model.scalar.StringData;
 import com.wut.pipeline.Authenticator;
+import com.wut.pipeline.CustomerStore;
 import com.wut.pipeline.WutRequest;
 
 public class AuthenticateUser extends UserOperation {
-	//private AuthenticationHelper authHelper;
-	
+	private static CustomerStore domainsStore = new CustomerStore();
 	public AuthenticateUser(CrudSource source) {
 		super(source);
 	}
@@ -26,8 +27,6 @@ public class AuthenticateUser extends UserOperation {
 		String username = ri.getStringParameter("username");
 		String requestPassword = ri.getStringParameter("password");
 		String application = ri.getApplication();
-				
-		//return authHelper.authenticate(customer, username, requestPassword);
 		
 		String id = Authenticator.getUserId(customer, username);
 		
@@ -39,7 +38,19 @@ public class AuthenticateUser extends UserOperation {
 
 		String actualPassword = credentials.get("password").toString();
 		if (requestPassword.equals(actualPassword)) {
-			return newToken(customer, username, requestPassword);
+			if (!customer.equals("tend")) // Storefront user
+				return newToken(customer, username, requestPassword);
+			else { // Admin user	
+				Data listDomains = domainsStore.read("tend", application, username);
+				if (listDomains.equals(MessageData.NO_DATA_FOUND))
+					return MessageData.NO_DATA_FOUND;
+				String[] listCustomers =  ((StringData) listDomains).toRawString().split(",");
+				MappedData domainMap = new MappedData();
+				for (String domain : listCustomers){
+					domainMap.put(domain,  newToken(domain, username, requestPassword));
+				}
+				return domainMap;
+			}
 		} else {
 			return ErrorData.INVALID_LOGIN;
 		}
@@ -47,4 +58,3 @@ public class AuthenticateUser extends UserOperation {
 	}
 	
 }
-
