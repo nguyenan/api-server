@@ -15,121 +15,100 @@ import com.wut.model.scalar.StringData;
 import com.wut.pipeline.Authenticator;
 import com.wut.pipeline.UserStore;
 import com.wut.provider.table.TableProvider;
+import com.wut.provider.table.TableResourceProvider;
 import com.wut.resources.storage.TableResource;
 
 public class CassandraImportUser {
-	// private static final IdData customer = new IdData("www.tend.ag");
-	// private static final IdData customer = new IdData("demo.retailkit.com");
+	private static TableResourceProvider provider = TableResource.getProvider();
 	private static UserStore userStore = new UserStore();
 	private static final String appStr = "core";
-	private static final String tendCustId = "tend";
-	private static final String farmRows = "farms";
 	private static final IdData app = new IdData(appStr);
+	private static final String tendCustId = "tend";
+	private static final String domainsTable = "domains";
+	private static final IdData user = new IdData("public");
 	private static final IdData tableId = IdData.create("flat2");
 
-	// @Test
 	public static void main(String[] agrs) {
-
-		/*
-		 * List<String> allCustomers = getAllCustomers(); for (String customer :
-		 * allCustomers) { System.out.println(customer);
-		 * cloneAllUserCustomer(customer); }
-		 */
-
-/*		 cloneUser("www.mapiii.com");
-		 cloneUser("test.farmer.guide");
-		 cloneUser("www.farmer.events");*/
-		/*CassandraSource cassSource = new CassandraSource();
-		cassSource.createTable("flat2");
-		TableProvider table = TableResource.getTableProvider();
-		IdData usersTable = new IdData("users");
-		ListData listUsers = table.getRows(IdData.create("test.farmer.guide"), IdData.create("core"), usersTable);
-		System.out.println(listUsers);*/
-		// System.out.println("deleting list users from " + tendCustId + "\t
-		// size: " + listUsers.size());
-		
-		// get list user 
-		TableProvider table = TableResource.getTableProvider();
-		IdData usersTable = new IdData("users");
-		ListData listUsers = table.getRows(IdData.create(tendCustId), IdData.create("core"), usersTable);
-		System.out.println(listUsers);
+		// cloneUser("test.farmer.guide");
+		// cloneUser("www.farmer.events");
+		//cloneUser("www.mapiii.com");
+		// listAdminUsers();
 		System.exit(0);
-
-		// deleteTendUser();
-
-		// CassandraSource cassSource = new CassandraSource();
-		// System.out .println(cassSource.getAllRows(IdData.create(tendCustId),
-		// IdData.create("users"), tableId));
-		// cassSource.getAllRows(customer, application, tableId);
-
-		/*
-		 * Get specific user MappedData userData = (MappedData)
-		 * (userStore.readSecureInformation("www.farmer.events", applicationStr,
-		 * Authenticator.getUserId("www.farmer.events",
-		 * "quan.nguyen@tend.ag"))); System.out.println(userData);
-		 */
-		// www.mapiii.com
-		// test.farmer.guide
-		// www.farmer.events
 	}
 
 	public static void cloneUser(String customerId) {
-		String oldUserId = "";
-		String tendUserId = "";
 		List<String> listUsers = getListUsers(customerId);
 		System.out.println("cloning from " + customerId + "\t size: " + listUsers.size());
 		for (String username : listUsers) {
-			tendUserId = Authenticator.getUserId(tendCustId, username);
-			oldUserId = Authenticator.getUserId(customerId, username);
-			System.out.println(oldUserId);
-
 			// check if account imported to Tend
+			String tendUserId = Authenticator.getUserId(tendCustId, username);
 			MappedData userData = (MappedData) (userStore.readSecureInformation(tendCustId, appStr, tendUserId));
 			if (!userData.equals(MessageData.NO_DATA_FOUND)) {
-				// already imported with another domain => update listFarm
-				addFarm(userData, new StringData(username), new StringData(customerId));
+				updateListDomain(username, customerId);
 				continue;
 			}
+
+			String oldUserId = Authenticator.getUserId(customerId, username);
 			userData = (MappedData) userStore.readSecureInformation(customerId, appStr, oldUserId);
 			if (!userData.equals(MessageData.NO_DATA_FOUND)) {
-				importUser(userData);
+				createAdminUser(userData);
+				updateListDomain(username, customerId);
 				continue;
 			}
-			System.out.println("skipped" + userData);
+			System.out.println("skipped " + username);
 		}
 	}
 
-	public static void addFarm(MappedData userData, StringData username, StringData additionalCustomer) {
-		// existed with another domain => update listDomain
-		StringData farmIds = (StringData) userData.get(farmRows);
-		IdData tendUserId = (IdData) userData.get("id");
-		if (farmIds == null)
-			farmIds = additionalCustomer;
+	public static void updateListDomain(String username, String customer) {
+		StringData domains = new StringData("");
+		MappedData result = (MappedData) provider.read(app, new IdData(tendCustId), user, new IdData(domainsTable),
+				new IdData(username), null);
+		if (result.equals(MessageData.NO_DATA_FOUND))
+			domains = new StringData(customer);
 		else {
-			List<String> listFarmIds = Arrays.asList(farmIds.toRawString().split(","));
-			listFarmIds = new ArrayList<String>(listFarmIds);
-			System.out.println("listFarmIds: " + listFarmIds);
-			if (listFarmIds.contains(additionalCustomer.toRawString()))
+			StringData data = (StringData) result.get("value");
+			List<String> listDomains = Arrays.asList(data.toRawString().split(","));
+			listDomains = new ArrayList<String>(listDomains);
+			if (listDomains.contains(customer))
 				return;
-			listFarmIds.add(additionalCustomer.toRawString());
-			farmIds = new StringData(StringUtils.join(listFarmIds, ","));
+			listDomains.add(customer);
+			domains = new StringData(StringUtils.join(listDomains, ","));
 		}
-		userData.put(farmRows, farmIds);
 
-		System.out.println("update: " + userData);
-		userStore.update(tendCustId, app.toRawString(), tendUserId.toRawString(), userData.getMapAsPojo());
+		MappedData customerValue = new MappedData();
+		customerValue.put("value", domains);
+		customerValue.put("id", username);
+		provider.update(app, new IdData(tendCustId), user, new IdData(domainsTable), new IdData(username),
+				customerValue);
 	}
 
-	public static void importUser(MappedData userData) {
+	public static void createAdminUser(MappedData userData) {
 		StringData username = (StringData) userData.get("username");
-		System.out.println("Import: " + userData);
-		StringData oldCustomer = (StringData) userData.get("customer");
 		String tendUserId = Authenticator.getUserId(tendCustId, username.toRawString());
-		// update the corresponde customer and listDomain
+		// update corresponde customer
 		userData.put("id", new IdData(tendUserId));
 		userData.put("customer", new IdData(tendCustId));
-		userData.put("password", "9e3e657b9979ccdca9039487152f7082");
-		addFarm(userData, username, oldCustomer);
+		// userData.put("password", "9e3e657b9979ccdca9039487152f7082");
+		System.out.println("Create: " + userData);
+		userStore.update(tendCustId, app.toRawString(), tendUserId, userData.getMapAsPojo());
+	}
+
+	public static List<String> getAllCustomers() {
+		IdData customer = new IdData("www.tend.ag");
+		List<String> customers = new ArrayList<String>();
+		CassandraSource cassSource = new CassandraSource();
+		MappedData filter = new MappedData();
+		String table = String.format("core:%s:public:%s", "www.tend.ag", "site");
+		filter.put("table", new IdData(table));
+		ListData rowsWithFilter = cassSource.getRowsWithFilter(customer, app, tableId, filter);
+		System.out.println(rowsWithFilter.size() + " customers");
+		String customerId = "";
+		for (Object obj : rowsWithFilter) {
+			MappedData row = (MappedData) obj;
+			customerId = row.get("id").toString().replaceAll(table + ":", "");
+			customers.add(customerId);
+		}
+		return customers;
 	}
 
 	public static List<String> getListUsers(String customerId) {
@@ -151,36 +130,46 @@ public class CassandraImportUser {
 		return emails;
 	}
 
-	public static List<String> getAllCustomers() {
-		IdData customer = new IdData("www.tend.ag");
-		List<String> customers = new ArrayList<String>();
-		CassandraSource cassSource = new CassandraSource();
-		MappedData filter = new MappedData();
-		String table = String.format("core:%s:public:%s", "www.tend.ag", "site");
-		filter.put("table", new IdData(table));
-		ListData rowsWithFilter = cassSource.getRowsWithFilter(customer, app, tableId, filter);
-		System.out.println(rowsWithFilter.size() + " customers");
-		String customerId = "";
-		for (Object obj : rowsWithFilter) {
-			MappedData row = (MappedData) obj;
-			customerId = row.get("id").toString().replaceAll(table + ":", "");
-			customers.add(customerId);
+	public static void listAdminUsers() {
+		TableProvider table = TableResource.getTableProvider();
+		IdData usersTable = new IdData("users");
+		ListData listUsers = table.getRows(IdData.create(tendCustId), IdData.create("core"), usersTable);
+		System.out.println("listAdminUsers size: " + listUsers.size());
+		for (Object item : listUsers) {
+			System.out.println(item);
 		}
-		return customers;
 	}
 
-	public static void deleteTendUser() {
-
+	public static void deleteAdminUser() {
 		TableProvider table = TableResource.getTableProvider();
 		IdData usersTable = new IdData("users");
 		ListData listUsers = table.getRows(IdData.create(tendCustId), IdData.create("core"), usersTable);
 		System.out.println("deleting list users from " + tendCustId + "\t size: " + listUsers.size());
 		for (Object item : listUsers) {
 			MappedData user = (MappedData) item;
-			// check if account imported
 			Data delete = userStore.delete(tendCustId, appStr, user.get("id").toString());
 			System.out.println(user.get("id").toString() + delete);
 		}
 	}
+
+	public static void getUserInfo(String customerId, String email) {
+		MappedData userData = (MappedData) (userStore.readSecureInformation(customerId, appStr,
+				Authenticator.getUserId(customerId, email)));
+		System.out.println(userData);
+	}
+
+	/*
+	 * CassandraSource cassSource = new CassandraSource();
+	 * cassSource.createTable("flat2"); TableProvider table =
+	 * TableResource.getTableProvider(); IdData usersTable = new
+	 * IdData("users"); ListData listUsers =
+	 * table.getRows(IdData.create("test.farmer.guide"), IdData.create("core"),
+	 * usersTable); System.out.println(listUsers);
+	 */
+
+	// CassandraSource cassSource = new CassandraSource();
+	// cassSource.getAllRows(IdData.create(tendCustId),
+	// IdData.create("users"), tableId);
+	// cassSource.getAllRows(customer, application, tableId);
 
 }
