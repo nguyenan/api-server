@@ -9,9 +9,11 @@ import com.wut.model.scalar.StringData;
 import com.wut.pipeline.Authenticator;
 import com.wut.pipeline.CustomerStore;
 import com.wut.pipeline.WutRequest;
+import com.wut.support.settings.SystemSettings;
 
 public class AuthenticateUser extends UserOperation {
 	private static CustomerStore domainsStore = new CustomerStore();
+	private static String adminCustomerId = SystemSettings.getInstance().getSetting("admin.customerid");
 	public AuthenticateUser(CrudSource source) {
 		super(source);
 	}
@@ -38,12 +40,12 @@ public class AuthenticateUser extends UserOperation {
 
 		String actualPassword = credentials.get("password").toString();
 		if (requestPassword.equals(actualPassword)) {
-			if (!customer.equals("tend")) // Storefront user
+			if (!customer.equals(adminCustomerId)) // Storefront user
 				return newToken(customer, username, requestPassword);
 			else { // Admin user	
-				Data listDomains = domainsStore.read("tend", application, username);
+				Data listDomains = domainsStore.read(adminCustomerId, application, username);
 				if (listDomains.equals(MessageData.NO_DATA_FOUND))
-					return MessageData.NO_DATA_FOUND;
+					return ErrorData.NO_CUSTOMER;
 				String[] listCustomers =  ((StringData) listDomains).toRawString().split(",");
 				MappedData domainMap = new MappedData();
 				for (String domain : listCustomers){

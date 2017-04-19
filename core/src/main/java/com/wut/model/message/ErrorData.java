@@ -52,4 +52,8 @@ public class ErrorData extends MessageData {
     public static final Data DOMAIN_NOT_REGISTERED = new ErrorData(6012, "not a registered domain");
     public static final Data RECORD_EXISTED = new ErrorData(6021, "record already exists");
     public static final Data RECORD_INVALID = new ErrorData(6022, "invalid DNS record");
+    
+    // user
+    public static final Data NO_CUSTOMER = new ErrorData(7001, "there is no customer this account has access permission");
+    public static final Data CUSTOMER_EXISTED = new ErrorData(7002, "this customer existed in user control list");
 }
