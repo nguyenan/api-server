@@ -40,6 +40,11 @@ public abstract class UserOperation extends ParameteredOperation {
 		return token;
 	}
 	
+	public void removeToken(String token) {
+		Authenticator.removeToken(token);
+	}
+	
+	
 	private User getUserObj(MappedData userData) {
 		String customerStr = userData.get("customer").toString();
 		String tokenStr = userData.get("token").toString();

@@ -88,7 +88,10 @@ public class ResetUserOperation extends UserOperation {
 			sendEmail(affectedCustomer, "support@"+affectedCustomer, affectedUser, subject, body);
 
 			newToken(affectedCustomer, affectedUser, newPassword);
+			
 			// MAKE SURE OLD TOKEN FROM RESET GETS REMOVED -- THIS HAPPENS WITH ONLY 1 TOKEN
+			String token = ri.getAuthenticationToken();
+			removeToken(ri.getAuthenticationToken());
 		} else if (requestingCustomer.equals(affectedCustomer)) {
 			String newPassword = new BigInteger(130, random).toString(32);
 			StringData newToken = newToken(affectedCustomer, affectedUser, newPassword);

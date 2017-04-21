@@ -3,13 +3,7 @@ package com.wut.pipeline;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.wut.datasources.TableRowSource;
-import com.wut.datasources.jdbc.derby.Derby;
-import com.wut.model.Data;
-import com.wut.model.map.MappedData;
-import com.wut.model.map.MessageData;
 import com.wut.model.message.ErrorData;
-import com.wut.model.scalar.IdData;
 import com.wut.support.ErrorHandler;
 
 // TODO rename AuthenticationProcessor
@@ -145,6 +139,15 @@ public class Authenticator extends AbstractProcessor {
 //		if (!updated) {
 //			ErrorHandler.fatalError("unable to save new token");
 //		}
+	}
+
+	public static boolean removeToken(String token) {
+		try {
+			return ((userTokens.remove(token)) != null);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}		
 	}
 
 	public static User getUser(String token) {
