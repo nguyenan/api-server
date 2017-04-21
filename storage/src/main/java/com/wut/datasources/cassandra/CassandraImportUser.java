@@ -29,15 +29,16 @@ public class CassandraImportUser {
 	private static final IdData tableId = IdData.create("flat2");
 
 	public static void main(String[] agrs) {
-		// cloneUser("test.farmer.guide");
+		System.out.println(getListAdminUsers("beta.tend.ag"));
+		// cloneUser("beta.tend.ag");
 		// cloneUser("www.farmer.events");
-		//cloneUser("www.mapiii.com");
+		// cloneUser("www.mapiii.com");
 		// listAdminUsers();
 		System.exit(0);
 	}
 
 	public static void cloneUser(String customerId) {
-		List<String> listUsers = getListUsers(customerId);
+		List<String> listUsers = getListAdminUsers(customerId);
 		System.out.println("cloning from " + customerId + "\t size: " + listUsers.size());
 		for (String username : listUsers) {
 			// check if account imported to Tend
@@ -111,21 +112,32 @@ public class CassandraImportUser {
 		return customers;
 	}
 
-	public static List<String> getListUsers(String customerId) {
+	public static List<String> getListAdminUsers(String customerId) {
 		IdData customer = new IdData(customerId);
 		List<String> emails = new ArrayList<String>();
 		CassandraSource cassSource = new CassandraSource();
 		MappedData filter = new MappedData();
-		String table = String.format("core:%s:public:%s", customerId, "user");
+		String table = String.format("core:%s:public:%s", customerId, "permission");
 		filter.put("table", new IdData(table));
 		ListData rowsWithFilter = cassSource.getRowsWithFilter(customer, app, tableId, filter);
 		System.out.println(rowsWithFilter.size() + " users");
 		String email = "";
 		for (Object obj : rowsWithFilter) {
 			MappedData row = (MappedData) obj;
-			// System.out.println(row);
-			email = row.get("id").toString().replaceAll(table + ":", "");
-			emails.add(email);
+			System.out.println(row);
+			email = "";
+			Data admin = row.get("admin");
+			Data role = row.get("role");
+			if ((new StringData("true")).equals(admin)) {
+				email = row.get("id").toString().replaceAll(table + ":", "");
+			} else if ((new StringData("crewmember")).equals(role) 
+					|| (new StringData("admin")).equals(role)
+					|| (new StringData("manager")).equals(role) 
+					|| (new StringData("owner")).equals(role)) {
+				email = row.get("id").toString().replaceAll(table + ":", "");
+			}
+			if (!email.isEmpty())
+				emails.add(email);
 		}
 		return emails;
 	}
