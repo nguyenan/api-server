@@ -40,6 +40,7 @@ import com.wut.support.settings.SystemSettings;
 @SuppressWarnings("unused")
 public class ResetUserOperation extends UserOperation {
 	private SecureRandom random = new SecureRandom();
+	private static String adminCustomerId = SystemSettings.getInstance().getSetting("admin.customerid");
 	//private Emailer emailer = new SendGridEmailer();
 
 	public ResetUserOperation(CrudSource source) {
@@ -85,7 +86,7 @@ public class ResetUserOperation extends UserOperation {
 			String subject = "Password Reset";
 			String body = "You password has been reset.<br><br>";
 			
-			sendEmail(affectedCustomer, "support@"+affectedCustomer, affectedUser, subject, body);
+			sendEmail(affectedCustomer, "support@" + (affectedCustomer.equals(adminCustomerId)? "www.tend.ag": affectedCustomer), affectedUser, subject, body);
 
 			newToken(affectedCustomer, affectedUser, newPassword);
 			// MAKE SURE OLD TOKEN FROM RESET GETS REMOVED -- THIS HAPPENS WITH ONLY 1 TOKEN
@@ -107,7 +108,7 @@ public class ResetUserOperation extends UserOperation {
 			String subject = "Password Reset Request";
 			String body = "We have received a request for your password to be reset. Click <a href=\"" + link + "\">here</a> to set your new password. If this request was not made by you, please ignore this email.<br><br>";
 			
-			sendEmail(affectedCustomer, "support@"+affectedCustomer, affectedUser, subject, body);
+			sendEmail(affectedCustomer, "support@" + (affectedCustomer.equals(adminCustomerId)? "www.tend.ag": affectedCustomer), affectedUser, subject, body);
 		} else {
 			return MessageData.INVALID_PERMISSIONS;
 		}
