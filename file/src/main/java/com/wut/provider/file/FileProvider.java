@@ -15,4 +15,6 @@ public interface FileProvider extends Provider {
 	
 	public BooleanData delete(IdData bucket, IdData folder, StringData id);
 	
+	public BooleanData deleteBucket(IdData bucket);
+	
 }

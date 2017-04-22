@@ -12,4 +12,12 @@
     <servlet-name>file</servlet-name>
     <url-pattern>/file</url-pattern>
   </servlet-mapping>
+  <servlet>
+    <servlet-name>bucket</servlet-name>
+    <servlet-class>com.wut.resources.file.BucketResource</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>bucket</servlet-name>
+    <url-pattern>/bucket</url-pattern>
+  </servlet-mapping>
 </web-app>
