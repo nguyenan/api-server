@@ -145,7 +145,7 @@ public class Authenticator extends AbstractProcessor {
 		try {
 			return ((userTokens.remove(token)) != null);
 		} catch (Exception e) {
-			e.printStackTrace();
+			ErrorHandler.systemError("Error when removing token " + token, e);
 			return false;
 		}		
 	}
