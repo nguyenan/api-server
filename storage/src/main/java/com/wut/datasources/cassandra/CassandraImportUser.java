@@ -45,7 +45,7 @@ public class CassandraImportUser {
 		List<String> listUsers = getListAdminUsers(customerId);
 		System.out.println("cloning from " + customerId + "\t size: " + listUsers.size());
 		for (String username : listUsers) {
-			// check if account imported to Tend
+			// check if account was imported
 			String tendUserId = Authenticator.getUserId(tendCustId, username);
 			MappedData userData = (MappedData) (userStore.readSecureInformation(tendCustId, appStr, tendUserId));
 			if (!userData.equals(MessageData.NO_DATA_FOUND)) {
@@ -163,4 +163,29 @@ public class CassandraImportUser {
 				Authenticator.getUserId(customerId, email)));
 		System.out.println(userData);
 	}
+
+
+	/*
+	 * public static void listAdminUsers() { TableProvider table =
+	 * TableResource.getTableProvider(); IdData usersTable = new
+	 * IdData("users"); ListData listUsers =
+	 * table.getRows(IdData.create(tendCustId), IdData.create("core"),
+	 * usersTable); System.out.println("listAdminUsers size: " +
+	 * listUsers.size()); for (Object item : listUsers) {
+	 * System.out.println(item); } } public static void main2(String[] agrs) {
+	 * System.out.println(getListAdminUsers("beta.tend.ag")); //
+	 * cloneUser("beta.tend.ag"); // cloneUser("www.farmer.events"); //
+	 * cloneUser("www.mapiii.com"); // listAdminUsers(); System.exit(0); }
+	 * CassandraSource cassSource = new CassandraSource();
+	 * cassSource.createTable("flat2"); TableProvider table =
+	 * TableResource.getTableProvider(); IdData usersTable = new
+	 * IdData("users"); ListData listUsers =
+	 * table.getRows(IdData.create("test.farmer.guide"), IdData.create("core"),
+	 * usersTable); System.out.println(listUsers);
+	 */
+
+	// CassandraSource cassSource = new CassandraSource();
+	// cassSource.getAllRows(IdData.create(tendCustId),
+	// IdData.create("users"), tableId);
+	// cassSource.getAllRows(customer, application, tableId);
 }
