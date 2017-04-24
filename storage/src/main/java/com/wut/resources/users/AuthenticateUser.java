@@ -12,7 +12,7 @@ import com.wut.pipeline.WutRequest;
 import com.wut.support.settings.SystemSettings;
 
 public class AuthenticateUser extends UserOperation {
-	private static CustomerStore domainsStore = new CustomerStore();
+	private static CustomerStore customerIdStore = new CustomerStore();
 	private static String adminCustomerId = SystemSettings.getInstance().getSetting("admin.customerid");
 	public AuthenticateUser(CrudSource source) {
 		super(source);
@@ -43,15 +43,15 @@ public class AuthenticateUser extends UserOperation {
 			if (!customer.equals(adminCustomerId)) // Storefront user
 				return newToken(customer, username, requestPassword);
 			else { // Admin user	
-				Data listDomains = domainsStore.read(adminCustomerId, application, username);
+				Data listDomains = customerIdStore.read(adminCustomerId, application, username);
 				if (listDomains.equals(MessageData.NO_DATA_FOUND))
-					return ErrorData.NO_CUSTOMER;
+					return ErrorData.CUSTOMER_LIST_EMPTY;
 				String[] listCustomers =  ((StringData) listDomains).toRawString().split(",");
-				MappedData domainMap = new MappedData();
+				MappedData customerIdMap = new MappedData();
 				for (String domain : listCustomers){
-					domainMap.put(domain,  newToken(domain, username, requestPassword));
+					customerIdMap.put(domain,  newToken(domain, username, requestPassword));
 				}
-				return domainMap;
+				return customerIdMap;
 			}
 		} else {
 			return ErrorData.INVALID_LOGIN;

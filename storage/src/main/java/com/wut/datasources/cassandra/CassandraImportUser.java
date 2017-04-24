@@ -17,27 +17,31 @@ import com.wut.pipeline.UserStore;
 import com.wut.provider.table.TableProvider;
 import com.wut.provider.table.TableResourceProvider;
 import com.wut.resources.storage.TableResource;
+import com.wut.support.settings.SystemSettings;
 
 public class CassandraImportUser {
 	private static TableResourceProvider provider = TableResource.getProvider();
 	private static UserStore userStore = new UserStore();
 	private static final String appStr = "core";
 	private static final IdData app = new IdData(appStr);
-	private static final String tendCustId = "tend";
+	private static final String tendCustId = SystemSettings.getInstance().getSetting("admin.customerid");
 	private static final String domainsTable = "domains";
 	private static final IdData user = new IdData("public");
 	private static final IdData tableId = IdData.create("flat2");
 
 	public static void main(String[] agrs) {
-		System.out.println(getListAdminUsers("beta.tend.ag"));
-		// cloneUser("beta.tend.ag");
-		// cloneUser("www.farmer.events");
-		// cloneUser("www.mapiii.com");
-		// listAdminUsers();
+		// cloneAllCustomer();
 		System.exit(0);
 	}
 
-	public static void cloneUser(String customerId) {
+	public static void cloneAllCustomer() {
+		List<String> allCustomers = getAllCustomers();
+		for (String customerId : allCustomers) {
+			cloneAdminAccounts(customerId);
+		}
+	}
+
+	public static void cloneAdminAccounts(String customerId) {
 		List<String> listUsers = getListAdminUsers(customerId);
 		System.out.println("cloning from " + customerId + "\t size: " + listUsers.size());
 		for (String username : listUsers) {
@@ -142,16 +146,6 @@ public class CassandraImportUser {
 		return emails;
 	}
 
-	public static void listAdminUsers() {
-		TableProvider table = TableResource.getTableProvider();
-		IdData usersTable = new IdData("users");
-		ListData listUsers = table.getRows(IdData.create(tendCustId), IdData.create("core"), usersTable);
-		System.out.println("listAdminUsers size: " + listUsers.size());
-		for (Object item : listUsers) {
-			System.out.println(item);
-		}
-	}
-
 	public static void deleteAdminUser() {
 		TableProvider table = TableResource.getTableProvider();
 		IdData usersTable = new IdData("users");
@@ -169,19 +163,4 @@ public class CassandraImportUser {
 				Authenticator.getUserId(customerId, email)));
 		System.out.println(userData);
 	}
-
-	/*
-	 * CassandraSource cassSource = new CassandraSource();
-	 * cassSource.createTable("flat2"); TableProvider table =
-	 * TableResource.getTableProvider(); IdData usersTable = new
-	 * IdData("users"); ListData listUsers =
-	 * table.getRows(IdData.create("test.farmer.guide"), IdData.create("core"),
-	 * usersTable); System.out.println(listUsers);
-	 */
-
-	// CassandraSource cassSource = new CassandraSource();
-	// cassSource.getAllRows(IdData.create(tendCustId),
-	// IdData.create("users"), tableId);
-	// cassSource.getAllRows(customer, application, tableId);
-
 }

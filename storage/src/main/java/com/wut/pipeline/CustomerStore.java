@@ -16,7 +16,7 @@ import com.wut.provider.table.UniqueRowProvider;
 
 public class CustomerStore implements CrudSource {
 	private static TableResourceProvider provider = getProvider();
-	private static final IdData domainsTable = new IdData("domains");
+	private static final IdData customerIdTable = new IdData("domains");
 	private static final IdData user = new IdData("public"); 
 
 	public static TableProvider getTableProvider() {
@@ -39,7 +39,7 @@ public class CustomerStore implements CrudSource {
 	}
 
 	public Data read(String customer, String application, String id) {
-		Data data = provider.read(new IdData(application), new IdData(customer), user, domainsTable, new IdData(id),
+		Data data = provider.read(new IdData(application), new IdData(customer), user, customerIdTable, new IdData(id),
 				null);
 		if (data == null || data.equals(MessageData.NO_DATA_FOUND)) {
 			return MessageData.NO_DATA_FOUND;
@@ -52,7 +52,7 @@ public class CustomerStore implements CrudSource {
 	@Override
 	public Data update(String customer, String application, String rowId, Map<String, String> data) {
 		MappedData mappedData = MappedData.convert(data);
-		Data d = provider.update(new IdData(application), new IdData(customer), user, domainsTable, new IdData(rowId),
+		Data d = provider.update(new IdData(application), new IdData(customer), user, customerIdTable, new IdData(rowId),
 				mappedData);
 		return d;
 	}
