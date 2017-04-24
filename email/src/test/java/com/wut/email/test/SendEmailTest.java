@@ -10,46 +10,50 @@ import com.wut.datasources.email.SendGridEmailer;
 
 public class SendEmailTest {
 
-	String emailTo;
-
+	static String emailFrom;
+	static String emailTo;
+	static String customerId;
+	
 	@BeforeClass
-	public void initialize() {
+	public static void initialize() {
 		emailTo = "apitest@tendtest.com";
+		emailFrom = "admin@webutilitykit.com";
+		customerId = "www.webutilitykit.com";
 	}
 
 	@Test
 	public void testSendEmailWithFromName() throws MailException {
-		new SendGridEmailer().send("www.tend.ag", "test@tend.ag", "Mapiii", emailTo, null, null, "TendAPIs",
-				"testSendEmailWithFromName Mapiii");
+		new SendGridEmailer().send(customerId, emailFrom, "Webutility Kit", emailTo, null, null, "TendAPIs-SendEmailWithFromName",
+				"testSendEmailWithFromName Webutility Kit");
 	}
 
 	@Test
 	public void testSendEmailWithCC() throws MailException {
-		new SendGridEmailer().send("www.tend.ag", "test@tend.ag", emailTo, "testcc@tend.ag", null, "TendAPIs",
-				"testSendEmailWithFromName Mapiii");
+		new SendGridEmailer().send(customerId, emailFrom, emailTo, "apitest-cc@tendtest.com", null, "TendAPIs-SendEmailWithCC",
+				"testSendEmailWithCC");
 	}
 
 	@Test
 	public void testSendEmailWithoutFrom() throws MailException {
-		new SendGridEmailer().send("www.tend.ag", null, emailTo, "TendAPIs", "testSendEmailWithFromName null");
+		new SendGridEmailer().send(customerId, null, emailTo, "TendAPIs-SendEmailWithoutFrom", "testSendEmailWithoutFrom");
 	}
 
 	@Test
 	public void testSendEmail() throws MailException {
-		new SendGridEmailer().send("www.tend.ag", "test@tend.ag", emailTo, "TendAPIs",
+		new SendGridEmailer().send(customerId, emailFrom, emailTo, "TendAPIsSendEmailWithFromNameNull",
 				"testSendEmailWithFromName null");
 	}
 
 	@Test
 	public void testSendEmailWithFromNameEmpty() throws MailException {
-		new SendGridEmailer().send("www.tend.ag", "test@tend.ag", "", emailTo, null, null, "TendAPIs",
-				"testSendEmailWithFromName empty");
+		new SendGridEmailer().send(customerId, emailFrom, "", emailTo, null, null, "TendAPIs-SendEmailWithFromNameEmpty",
+				"testSendEmailWithFromNameEmpty");
 	}
 
 	@Test
 	public void testSendFromNonMatchingDomain() throws MailException {
 		try {
-			new SendGridEmailer().send("www.tend.ag", "test@test.ag", emailTo, "TendAPIs",
+			new SendGridEmailer().send(customerId, "test@utilitykit.com", emailTo, "TendAPIs-Wrong",
 					"Sent from different domain");
 			fail("Sent from different domain");
 		} catch (Exception e) {
@@ -61,7 +65,7 @@ public class SendEmailTest {
 	@Test
 	public void testSendFromNonTopLevelDomain() throws MailException {
 		try {
-			new SendGridEmailer().send("www.tend.ag", "test@test.tend.ag", emailTo, "TendAPIs",
+			new SendGridEmailer().send(customerId, "test@www.webutilitykit.com", emailTo, "TendAPIs-WrongCase",
 					"Sent from Non TopLevel domain");
 			fail("Sent from Non TopLevel domain");
 		} catch (Exception e) {
