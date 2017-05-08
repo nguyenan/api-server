@@ -49,14 +49,17 @@ ADD server.xml ${CATALINA_HOME}/conf/server.xml
 ADD tend.ag.keystore ${CATALINA_HOME}/tend.ag.keystore
 
 # NEW RELIC
-
 ADD newrelic.zip ./
 RUN unzip newrelic.zip
 ADD newrelic.yml newrelic/
 
+# APP DYNAMIC
+ADD AppServerAgent-4.2.14.0.zip ./
+RUN mkdir -p /opt/appdynamics/appagent
+RUN unzip AppServerAgent-4.2.14.0.zip -d /opt/appdynamics/appagent
+ENV CATALINA_OPTS="-javaagent:/opt/appdynamics/appagent/javaagent.jar"
+
 EXPOSE 8080
 EXPOSE 8443
-
-
 
 CMD java -jar newrelic/newrelic.jar install && catalina.sh run
