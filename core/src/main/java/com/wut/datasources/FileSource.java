@@ -10,4 +10,6 @@ public interface FileSource extends DataSource {
 	
 	public boolean deleteFile(String bucket, String folder, String filename);
 	
+	public boolean deleteBucket(String bucket);
+	
 }

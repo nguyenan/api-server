@@ -53,7 +53,11 @@ public class ErrorData extends MessageData {
     public static final Data RECORD_EXISTED = new ErrorData(6021, "record already exists");
     public static final Data RECORD_INVALID = new ErrorData(6022, "invalid DNS record");
     
+
     // user
     public static final Data CUSTOMER_LIST_EMPTY = new ErrorData(7001, "account doesn't have permission to access any customer");
     public static final Data CUSTOMER_EXISTED = new ErrorData(7002, "account already had permission to access this customer");
+
+    // PERMISSION
+    public static final Data ROLE_INVALID = new ErrorData(7010, "invalid role");
 }

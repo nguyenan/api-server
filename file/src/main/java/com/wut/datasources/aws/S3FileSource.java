@@ -3,6 +3,7 @@ package com.wut.datasources.aws;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.Iterator;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSCredentials;
@@ -16,14 +17,17 @@ import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.CreateBucketRequest;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.Grant;
+import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.Permission;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.Region;
 import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.services.s3.model.SetBucketWebsiteConfigurationRequest;
 import com.wut.datasources.FileSource;
+import com.wut.support.ErrorHandler;
 import com.wut.support.StringHelper;
 import com.wut.support.binary.Base64;
 import com.wut.support.settings.SettingsManager;
@@ -136,11 +140,11 @@ public class S3FileSource implements FileSource {
     				
     				// try request again
     				s3client.putObject(putRequest);
+    				return true;
     			} catch (Exception e) {
     				return false;
     			}
             }
-            
             return false;
         } catch (AmazonClientException ace) {
             System.out.println("Caught an AmazonClientException, which " +
@@ -183,4 +187,28 @@ public class S3FileSource implements FileSource {
 			return false;
 		}
 	}
+	
+    public synchronized boolean deleteBucket(String bucketName) {
+        try {
+                ObjectListing filesInBucket = s3client.listObjects(bucketName);
+                boolean isNextBatch = false;
+                do {
+                	if (isNextBatch)
+                		filesInBucket = s3client.listNextBatchOfObjects(filesInBucket);
+                    for (Iterator<?> iterator = filesInBucket.getObjectSummaries().iterator(); iterator.hasNext();) {
+                            S3ObjectSummary summary = (S3ObjectSummary) iterator.next();
+                            s3client.deleteObject(bucketName, summary.getKey());
+                    }
+                    isNextBatch = true;
+                } while (filesInBucket.isTruncated());
+
+                // bucket ready to delete
+                s3client.deleteBucket(bucketName);
+                return true;
+        } catch (AmazonServiceException e) {
+                ErrorHandler.userError("Error when deleting S3Bucket '" + bucketName + "' : " + e.getErrorCode());
+                return false;
+        }
+}
+
 }
