@@ -2,14 +2,13 @@ package com.wut.resources.permission;
 
 import com.wut.datasources.CrudSource;
 import com.wut.model.Data;
-import com.wut.model.map.MappedData;
-import com.wut.model.map.MessageData;
 import com.wut.model.message.ErrorData;
 import com.wut.pipeline.Authenticator;
 import com.wut.pipeline.WutRequest;
+import com.wut.support.settings.SystemSettings;
 
 public class ReadPermissionUserOperation extends PermissionOperation {
-	
+	private static final String adminCustId = SystemSettings.getInstance().getSetting("admin.customerid");
 	public ReadPermissionUserOperation(CrudSource source) {
 		super(source);
 	}
@@ -22,12 +21,14 @@ public class ReadPermissionUserOperation extends PermissionOperation {
 	@Override
 	public Data perform(WutRequest ri) throws Exception {
 		String token = ri.getToken();
-		String requestingUser = ri.getEscapedUsername();
-		String customer = ri.getStringParameter("customer");
 		String requestingCustomer = ri.getCustomer();
+		String requestingUser = ri.getUserId();
+		
+		String affectedCustomer = ri.getStringParameter("customer");
 		String affectedUser = ri.getStringParameter("username");
+		
 		String application = ri.getApplication();
-		String affectedUserId = Authenticator.getUserId(customer, affectedUser);			
+		String affectedUserId = Authenticator.getUserId(adminCustId, affectedUser);			
 		
 		// only authenticated users are allowed to access this feature
 		Authenticator authenticator = new Authenticator();
@@ -36,12 +37,9 @@ public class ReadPermissionUserOperation extends PermissionOperation {
 			return ErrorData.INVALID_TOKEN;
 		}
 		
-		MappedData permisisonData = (MappedData) source.read(customer, application, affectedUserId);
-		
-		if (permisisonData == null || permisisonData.get("role") == null) {
-			return MessageData.UNKNOWN_USER;
-		}	  
-		return permisisonData;
+		// read Permission Data
+		Data data = source.read(adminCustId, application, affectedUserId, affectedCustomer);		
+		return data;	 
 	}
 	
 }

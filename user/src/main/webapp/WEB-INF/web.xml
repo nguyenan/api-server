@@ -12,4 +12,12 @@
     <servlet-name>permission</servlet-name>
     <url-pattern>/permission</url-pattern>
   </servlet-mapping>
+    <servlet>
+    <servlet-name>user</servlet-name>
+    <servlet-class>com.wut.resources.users.UsersResource</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>user</servlet-name>
+    <url-pattern>/user</url-pattern>
+  </servlet-mapping>
 </web-app>

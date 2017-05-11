@@ -33,6 +33,20 @@ public class PermissionStore implements CrudSource {
 		}
 	}
 
+	public Data read(String customer, String application, String id, String affectedCustomer) {
+		Data d = table.getRow(IdData.create(customer), IdData.create(application), permissionsTable, new IdData(id));
+		if (d == null) {
+			return MessageData.NO_DATA_FOUND;
+		} else {
+			MappedData mappedData = (MappedData) d;
+			Data permissionData = ((MappedData) mappedData).get(affectedCustomer);
+			if (permissionData == null) {
+				return MessageData.NO_DATA_FOUND;
+			}
+			return permissionData;
+		}
+	}
+
 	@Override
 	public Data update(String customer, String application, String id, Map<String, String> data) {
 		MappedData mappedData = MappedData.convert(data);
