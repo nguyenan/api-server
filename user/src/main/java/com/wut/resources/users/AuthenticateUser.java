@@ -53,8 +53,9 @@ public class AuthenticateUser extends UserOperation {
 				MappedData mappedData = (MappedData) permissions;
 				MappedData customerIdMap = new MappedData();
 				for (ScalarData key : mappedData.keys()) {
-					if (!PermissionRole.contains(key.toRawString()))
-					customerIdMap.put(key, newToken(key.toRawString(), username, requestPassword));
+					Data role = mappedData.get(key);
+					if (PermissionRole.contains(role.toString()))
+						customerIdMap.put(key, newToken(key.toRawString(), username, requestPassword));
 				}
 				return customerIdMap;
 			}
