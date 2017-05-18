@@ -122,6 +122,8 @@ public abstract class AbstractResource extends HttpServlet implements WutResourc
 			PrintWriter pw = new PrintWriter(sw);
 			e.printStackTrace(pw);
 			String stackTraceStr = sw.toString();
+			stackTraceStr = stackTraceStr.replaceAll("\n", "");
+			stackTraceStr = stackTraceStr.replaceAll("\t", "    ");
 			error.put("stacktrace", stackTraceStr);
 			PrintWriter out = response.getWriter();
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
