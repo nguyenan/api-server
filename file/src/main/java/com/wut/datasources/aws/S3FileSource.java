@@ -11,6 +11,7 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.AccessControlList;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.BucketWebsiteConfiguration;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
@@ -57,17 +58,18 @@ public class S3FileSource implements FileSource {
 	
 	public InputStream getFile(String bucket, String folder, String filename) {
 		GetObjectRequest getObjectRequest = new GetObjectRequest(bucket, getObjectKey(folder,filename));
-		S3Object object = s3client.getObject(getObjectRequest);
-		InputStream objectData = object.getObjectContent();
-		
-		// TODO base64 encode this stream
-		
-		return objectData; // TODO make sure this gets closed up the stack
-	}
-	
-	public static void main(String[] args) {
-		S3FileSource s3 = new S3FileSource();
-		s3.updateFile("www.cleverhen.com", "storefront", "test3.test", StringHelper.asInputStream("<hi>love this</hi>"));
+		try {
+			S3Object object = s3client.getObject(getObjectRequest);
+			InputStream objectData = object.getObjectContent();
+			
+			// TODO base64 encode this stream
+			
+			return objectData; // TODO make sure this gets closed up the stack
+			
+		} catch (AmazonS3Exception e) {
+			ErrorHandler.systemError(e.getErrorCode() + " - Exception geting file - "  + getObjectKey(folder,filename), e);
+			return null;
+		}
 	}
 
 	public boolean updateFile(String bucket, String folder, String filename, InputStream fileData) {
