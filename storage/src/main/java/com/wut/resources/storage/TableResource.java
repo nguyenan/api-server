@@ -5,6 +5,7 @@ import com.wut.datasources.cassandra.CassandraSource;
 import com.wut.datasources.jdbc.derby.Derby;
 import com.wut.model.Data;
 import com.wut.model.map.MappedData;
+import com.wut.model.map.MessageData;
 import com.wut.model.scalar.IdData;
 import com.wut.model.scalar.StringData;
 import com.wut.pipeline.WutRequest;
@@ -16,6 +17,8 @@ import com.wut.provider.table.TableResourceProvider;
 import com.wut.provider.table.UniqueRowProvider;
 import com.wut.resources.common.CrudResource;
 import com.wut.resources.common.MissingParameterException;
+import com.wut.support.CustomerIdGenerator;
+import com.wut.support.UniqueIdGenerator;
 
 public class TableResource extends CrudResource {
 	private static final long serialVersionUID = -9114702464429163887L;
@@ -95,6 +98,16 @@ public class TableResource extends CrudResource {
 		IdData rowId = getRowIdParam(request);
 		MappedData data = getDataParam(request);
 		
+		if (tableId.equals(new IdData("site"))){
+			// customerId = new generated Id
+			rowId = new IdData(CustomerIdGenerator.getNewId());
+			data.put("customer", rowId.toRawString());
+			data.put("id", rowId.toRawString());
+			Data result = provider.update(application, customer, user, tableId, rowId, data);
+			if (result.equals(MessageData.SUCCESS))
+				return rowId;
+			return result;
+		}
 		Data result = provider.update(application, customer, user, tableId, rowId, data);
 		return result;
 	}
