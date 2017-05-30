@@ -1,5 +1,10 @@
 package com.wut.resources.permission;
 
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+
 import com.wut.datasources.CrudSource;
 import com.wut.model.Data;
 import com.wut.model.PermissionRole;
@@ -12,7 +17,19 @@ import com.wut.pipeline.Authenticator;
 import com.wut.pipeline.WutRequest;
 import com.wut.support.settings.SystemSettings;
 
-// TODO I dont think this operation is used currently
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.Authorization;
+import io.swagger.annotations.AuthorizationScope;
+
+
+@Path("/permission")
+@Api(value = "permission", authorizations = { @Authorization(value = "tend_authenticate", scopes = {
+		@AuthorizationScope(scope = "update:permission", description = "Update Permission data") }) 
+}, tags = "permission")
+@Produces({ MediaType.APPLICATION_JSON })
 public class UpdatePermissionOperation extends PermissionOperation {
 	private static final String adminCustId = SystemSettings.getInstance().getSetting("admin.customerid");
 
@@ -25,6 +42,16 @@ public class UpdatePermissionOperation extends PermissionOperation {
 		return "update";
 	}
 
+	@POST
+	@Path("/operation=update")
+	  @ApiOperation(value = "Update Permission data, only authenticated users which have permission on affectedCustomer are allowed to update", 
+	    notes = "Returns a Mapped Data", 
+	    response = Data.class,
+	    authorizations = @Authorization(value = "token")
+	  )
+	  @ApiResponses(value = { @ApiResponse(code = 5013, message = "Invalid Token"),
+			  @ApiResponse(code = 180, message = "invalid permissions"),
+			  @ApiResponse(code = 7010, message = "invalid role")})
 	@Override
 	public Data perform(WutRequest ri) throws Exception {
 		String token = ri.getToken();

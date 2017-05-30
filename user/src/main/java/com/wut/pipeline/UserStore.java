@@ -11,27 +11,30 @@ import com.wut.model.scalar.StringData;
 import com.wut.provider.table.TableProvider;
 import com.wut.resources.storage.TableResource;
 
+/**
+ * 
+ * @author annguyen
+ *
+ * UserStore: manage admin's authenticate Information: { "id", "username", "name", "password", "token" }
+ */
 public class UserStore implements CrudSource {
 	private static TableProvider table = TableResource.getTableProvider();
 	private IdData usersTable = new IdData("users");
-	//private Map<String, String> tokenToUsername = new HashMap<String, String>();
 	
 	private static final String[] fieldNames = new String[] { "id", "username", "name", "password", "token" };
 	public FieldSet fields = new FieldSet(fieldNames);
 	
-	@Override // TODO this needs to be synchronized across servers --- really??? bullshit!!!
+	@Override
 	public Data create(String customer, String application, Map<String, String> data) {
-//		MappedData mappedData = MappedData.convert(data);
-//		table.insertRow(usersTable, mappedData);
-//		//tokenToUsername.put(data.get("token"), data.get("username"));
-//		MessageData successMsg = MessageData.success();
-//		successMsg.setData(new StringData(data.get("username")));
-//		return successMsg;
-		
-		// this method is not used by "user" resource
-		return MessageData.FAILURE;
+		return MessageData.NOT_IMPLEMENTED;
 	}
 	
+	/**
+	 * Read User Information (without secure data: password and token)
+	 * @param customer
+	 * @param application
+	 * @param id UserId
+	 */
 	@Override
 	public Data read(String customer, String application, String id) {
 		Data d = table.getRow(IdData.create(customer), IdData.create(application), usersTable, new IdData(id));
@@ -45,6 +48,12 @@ public class UserStore implements CrudSource {
 		}
 	}
 	
+	/**
+	 * Read User Secure Information
+	 * @param customer
+	 * @param application
+	 * @param id UserId
+	 */
 	public Data readSecureInformation(String customer, String application, String id) {
 		Data d = table.getRow(IdData.create(customer), IdData.create(application), usersTable, new IdData(id));
 		if (d == null) {
@@ -54,20 +63,30 @@ public class UserStore implements CrudSource {
 			return mappedData;
 		}
 	}
-
+	
+	/**
+	 * Update User's Secure Information
+	 * @param customer
+	 * @param application
+	 * @param id UserId
+	 * @param data Map: "id", "username", "name", "password", "token"
+	 */
 	@Override
 	public Data update(String customer, String application, String id, Map<String, String> data) {
-		//final boolean updateSuccess = store.update(name, data);
 		MappedData mappedData = MappedData.convert(data);
 		Data d = table.updateRow(IdData.create(customer), IdData.create(application), usersTable, new IdData(id), mappedData); // TODO this needs to be update and not override .... 
 		return d;
 	}
 
+	/**
+	 * Delete User
+	 * @param customer
+	 * @param application
+	 * @param id UserId
+	 */
 	@Override
 	public Data delete(String customer, String application, String id) {
-		//final boolean deleteSuccess = store.delete(name);
 		Data d = table.deleteRow(IdData.create(customer), IdData.create(application), usersTable, new IdData(id));
 		return d;
 	}
-
 }

@@ -1,5 +1,10 @@
 package com.wut.resources.users;
 
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+
 import com.wut.datasources.CrudSource;
 import com.wut.model.Data;
 import com.wut.model.PermissionRole;
@@ -12,6 +17,18 @@ import com.wut.pipeline.PermissionStore;
 import com.wut.pipeline.WutRequest;
 import com.wut.support.settings.SystemSettings;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.Authorization;
+import io.swagger.annotations.AuthorizationScope;
+
+@Path("/user")
+@Api(value = "user", authorizations = { @Authorization(value = "tend_authenticate", scopes = {
+		@AuthorizationScope(scope = "authenticate:user", description = "") }) 
+}, tags = "user")
+@Produces({ MediaType.APPLICATION_JSON })
 public class AuthenticateUser extends UserOperation {
 	private static PermissionStore permissionStore = new PermissionStore();
 	private static final String adminCustId = SystemSettings.getInstance().getSetting("admin.customerid");
@@ -25,6 +42,16 @@ public class AuthenticateUser extends UserOperation {
 		return "authenticate";
 	}
 
+	@POST
+	@Path("/operation=authenticate")
+	  @ApiOperation(value = "After an Admin user login successful", 
+	    notes = "Generate tokens for ALL farms this user has admin permission. Returns a Mapped Data", 
+	    response = Data.class,
+	    authorizations = @Authorization(value = "token")
+	  )
+	  @ApiResponses(value = { 
+			  @ApiResponse(code = 5012, message = "Invalid Login"),
+			  @ApiResponse(code = 7001, message = "account doesn't have permission to access any customer")})
 	@Override
 	public Data perform(WutRequest ri) throws Exception {
 		String customer = ri.getStringParameter("customer");
