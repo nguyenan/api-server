@@ -1,7 +1,5 @@
 package com.wut.resources.users;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.security.SecureRandom;
@@ -20,30 +18,35 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 
 import com.wut.datasources.CrudSource;
-//import com.wut.datasources.email.Emailer;
-//import com.wut.datasources.email.SendGridEmailer;
 import com.wut.model.Data;
-//import com.wut.model.map.MappedData;
 import com.wut.model.map.MessageData;
 import com.wut.model.scalar.StringData;
-import com.wut.pipeline.UserStore;
 import com.wut.pipeline.WutRequest;
-import com.wut.pipeline.WutRequestBuilder;
 import com.wut.support.Language;
 import com.wut.support.settings.SettingsManager;
 import com.wut.support.settings.SystemSettings;
 
-@SuppressWarnings("unused")
-public class ResetUserOperation extends UserOperation {
-	private SecureRandom random = new SecureRandom();
-	private static String adminCustomerId = SystemSettings.getInstance().getSetting("admin.customerid");
-	//private Emailer emailer = new SendGridEmailer();
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
-	public ResetUserOperation(CrudSource source) {
+@Path("/user")
+@Api(value = "user", tags = "user")
+@Produces({ MediaType.APPLICATION_JSON })
+public class ResetPasswordOperation extends UserOperation {
+	private SecureRandom random = new SecureRandom();
+	private static String adminCustomerId = SystemSettings.getInstance().getSetting("admin.customerid"); 
+
+	public ResetPasswordOperation(CrudSource source) {
 		super(source);
 	}
 
@@ -66,6 +69,13 @@ public class ResetUserOperation extends UserOperation {
 		return isSameCustomer && isAdmin;
 	}
 	
+	@POST
+	@Path("/operation=reset")
+	  @ApiOperation(value = "Reset user's password", 
+	    notes = "Returns a Mapped Data", 
+	    response = Data.class
+	  )
+	  @ApiResponses(value = { @ApiResponse(code = 180, message = "invalid permissions")})
 	@Override
 	public Data perform(WutRequest ri) throws Exception {
 		String affectedCustomer = ri.getStringParameter("customer");
@@ -158,7 +168,6 @@ public class ResetUserOperation extends UserOperation {
 			message.setFrom(new InternetAddress(from));
 			message.setSubject(subject);
 
-			//List<Address> messageAddresses = new ArrayList<Address>();
 			if (Language.isNotBlank(to)) {
 				message.addRecipient(Message.RecipientType.TO,
 						new InternetAddress(to));
@@ -188,29 +197,4 @@ public class ResetUserOperation extends UserOperation {
 			return new PasswordAuthentication(this.username, this.password);
 		}
 	}
-	
-	public static void main(String[] args) throws Exception {
-		// CODE TO MANUALLY RESET A USER PASSWORD
-		WutRequestBuilder request = new WutRequestBuilder();
-		request.resource("user")
-				.operation("reset")
-				.setUserId("admin")
-				.setCustomerId("izkit")
-				.parameters("{'customer':'myvegas.com','username':'REPLACE_ME@gmail.com','password':'REPLACE_ME'}");
-		WutRequest r = request.build();
-		
-		UserStore userStore = new UserStore();
-
-		ResetUserOperation resetOp = new ResetUserOperation(userStore);
-		
-		resetOp.perform(r);
-		
-	}
-	
-	//		boolean isAdmin = requestingUser.equals("admin");
-	//boolean isFromRetailKit = requestingCustomer.equals("izkit");
-	//boolean isSuperAdmin = isAdmin && isFromRetailKit;
-	//return isSuperAdmin;
-	
 }
-

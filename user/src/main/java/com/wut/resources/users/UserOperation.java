@@ -14,11 +14,9 @@ import com.wut.resources.operations.ParameteredOperation;
 public abstract class UserOperation extends ParameteredOperation {
 	private static final String APPLICATION = "core";
 	protected UserStore source;
-	protected AuthenticationHelper authHelper;
 	
 	public UserOperation(CrudSource source) {
 		this.source = (UserStore) source;
-		this.authHelper = new AuthenticationHelper(source);
 	}
 	
 	

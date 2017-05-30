@@ -75,10 +75,6 @@ public class WutRequest implements WutRequestInterface {
 		this.token = token;
 	}
 
-//	public OperationIdentifier getOperationIdentifier() {
-//		return new OperationIdentifier(resource, operation.toLowerCase());
-//	}
-
 	// TODO rename getOptionParameterAsString (or get option string parameter)
 	public String getOptionalParameterAsString(String name) {
 		Data param = parameters.get(name);
@@ -108,16 +104,6 @@ public class WutRequest implements WutRequestInterface {
 		return parameters;
 	}
 	
-//	// TODO this whole method needs fixing / genericizing
-//	@SuppressWarnings("unchecked") // OK for this crazy function --- for now TODO review this usage
-//	public <T extends Data> T getParam(String name) throws MissingParameterException {
-//		//ResourceFactory fact = new ResourceFactory();
-//		// get parameters for this request and check that this parameter is valid
-//		Data d  = (T) null;
-//		//d.getClass();
-//		return (T) new StringData(getStringParameter(name)); // TODO fix so it's not just string
-//	}
-
 	public String getEncdodedParameter(String name) {
 		try {
 			return URLEncoder.encode(String.valueOf(parameters.get(name)), "UTF-8");
@@ -126,7 +112,6 @@ public class WutRequest implements WutRequestInterface {
 			ErrorHandler.systemError(e, "failed to get encoded paramter");
 			return null;
 		}
-		//return Reference.encode(String.valueOf(parameters.get(name)));
 	}
 
 	public String getFormat() {
@@ -136,10 +121,6 @@ public class WutRequest implements WutRequestInterface {
 	public String getResource() {
 		return resource;
 	}
-
-//	public TYPE getOperationType() {
-//		return operationType;
-//	}
 
 	@Override
 	public String toString() {
@@ -151,8 +132,6 @@ public class WutRequest implements WutRequestInterface {
 		sob.append(" Parameters:" + String.valueOf(parameters));
 		sob.append(" Body: ");
 		writeBody(sob);
-		//String uri = request.getMetric("uri");
-		//System.out.println(uri);
 		return sob.toString();
 	}
 	
@@ -221,30 +200,7 @@ public class WutRequest implements WutRequestInterface {
 		sob.append("</request>\n");
 		return sob.toString();
 	}
-
 	
-//	private static String inputStreamAsString(InputStream stream) {
-//		if (stream == null) {
-//			return "";
-//		}
-//		BufferedReader br = new BufferedReader(new InputStreamReader(stream));
-//		StringBuilder sb = new StringBuilder();
-//		String line = null;
-//
-//		try {
-//			while ((line = br.readLine()) != null) {
-//				sb.append(line).append("\n");
-//			}
-//			br.close();
-//		} catch (IOException e) {
-//			ErrorHandler.systemError(
-//					"requestinfo>inputStreamAsString error", e);
-//		} finally {
-//		}
-//
-//		return sb.toString();
-//	}
-
 	// TODO get User out of request
 	public User getUser() {
 		return user;
@@ -265,23 +221,7 @@ public class WutRequest implements WutRequestInterface {
 	public String getUserId() {
 		return this.userId;
 	}
-
-//	public String getCustomerAndUser() {
-//		return this.customer + ":" + this.userId;
-//	}
 	
-	// TODO get rid of this method
-//	public ProcessingPipeline getPipeline() {
-//		return this.pipeline;
-//	}
-
-//	public static class MissingParameterException extends Exception {
-//		private static final long serialVersionUID = 23452461254L;
-//		public MissingParameterException(String name) {
-//			super("Missing Parameter " + name);
-//		}
-//	}
-
 	public InputStream getBodyData() {
 		return this.bodyData;
 	}
@@ -339,13 +279,7 @@ public class WutRequest implements WutRequestInterface {
 			// return makeScope("web-utility-kit", customer, userId, "none");
 		}
 	}
-	
-//	public String getUserScope() throws MissingParameterException {
-//		return customer + "-" + userId;
-//		// TODO update to be:
-//		// return makeScope("web-utility-kit", customer, userId, "none");
-//	}
-	
+		
 	public String getCustomer() {
 		return customer;
 	}
@@ -419,15 +353,4 @@ public class WutRequest implements WutRequestInterface {
 	public WutRequestBuilder getBuilder() {
 		return this.builder;
 	}
-	
-//	// TODO rename execute ???
-//	public WutResponseInterface getResponse() {
-//		ProcessingPipeline pipeline = ProcessingPipeline.create();
-//		WutResponse response = new WutResponse();
-//		response.setStream(StreamWriter.create(System.out));
-//		pipeline.process(response, this);
-//		return response;
-//	}
-	
-	
 }

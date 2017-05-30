@@ -1,7 +1,6 @@
 package com.wut.model;
 
 
-
 public interface Data /*extends Serializable*/ {
 
 	//public Representation getRepresentation(String representationName); // getFormatedData

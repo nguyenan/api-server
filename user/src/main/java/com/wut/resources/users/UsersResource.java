@@ -42,15 +42,12 @@ public class UsersResource extends CrudResource {
 			
 			try {
 				Map<String, String> newUser = new HashMap<String, String>();
-				newUser.put("customer", customer); // TODO rename client (clientId)
+				newUser.put("customer", customer); 
 				newUser.put("username", userId);
 				newUser.put("password", password);
 				newUser.put("token", token);
 				String key = Authenticator.getUserId(customer, userId);
 				
-				//AuthenticationHelper helper;
-				//Authenticator.update(user);
-				//userStore.update(key, newUser);
 			} catch (Exception e) {
 				ErrorHandler.systemError(e, "failed to initialize default user " + userId);
 			}
@@ -86,7 +83,7 @@ public class UsersResource extends CrudResource {
 		ArrayList<WutOperation> operationList = new ArrayList<WutOperation>();
 		operationList.add(getReadOperation());
 		operationList.add(getUpdateOperation());
-		operationList.add(new ResetUserOperation(getSource()));
+		operationList.add(new ResetPasswordOperation(getSource()));
 		operationList.add(getAuthenticateOperation());
 		operationList.add(getValidateTokenOperation());
 		operationList.add(getPingOperation());

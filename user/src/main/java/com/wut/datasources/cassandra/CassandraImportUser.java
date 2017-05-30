@@ -30,12 +30,10 @@ public class CassandraImportUser {
 
 	public static void main(String[] agrs) {
 		// cloneAllCustomer();
-		cloneAdminAccounts("test.an.farmer.guide");
-		// System.out.println(getListAdminUsers(adminCustId));
-		//getUserInfo(adminCustId, "an.nguyen.hoang@tendtest.com");
 		System.exit(0);
 	}
 
+	
 	public static void cloneAllCustomer() {
 		List<String> allCustomers = getAllCustomers();
 		for (String customerId : allCustomers) {
@@ -43,6 +41,13 @@ public class CassandraImportUser {
 		}
 	}
 
+
+	/**
+	 * Scan specific customer and:
+	 * 		Import user authenticates information into admin.tend.ag (only admin user, not storefront)
+	 * 		Update permission information into Permission table
+	 * @param customerId
+	 */
 	public static void cloneAdminAccounts(String customerId) {
 		Map<String, String> listUsers = getListAdminUsers(customerId);
 		System.out.println("cloning from " + customerId + "\t size: " + listUsers.size());

@@ -30,30 +30,19 @@ public class SoftDeleteProvider implements TableProvider {
 			}
 		}
 		return newResults;
-	}
-
-//	private boolean isRowDeleted(MappedData row) {
-//		// TODO implement is row deleted
-//		// Data isDeleted = item.get("_deleted");
-//		// if (!String.valueOf(isDeleted).equals("true")) {
-//		// return true;
-//		// }
-//		return false;
-//	}
-
+	} 
+	
 	@Override
 	public MappedData getRow(IdData customer, IdData application, IdData tableId, IdData rowId) {
-		//MappedData data = provider.getRow(tableId, rowId);
-		// if ()
-
+		// MappedData data = provider.getRow(tableId, rowId);
+		// TODO implement
 		return null;
 	}
 
 	@Override
 	public BooleanData deleteRow(IdData customer, IdData application, IdData tableId, IdData rowId) {
 		// get
-		// return provider.updateRow(tableId, rowId); // TODO no tableId here
-
+		// return provider.updateRow(tableId, rowId);
 		// TODO implement
 		return null;
 	}
@@ -70,7 +59,6 @@ public class SoftDeleteProvider implements TableProvider {
 	public BooleanData crupdateRow(IdData customer, IdData application, IdData tableId, IdData rowId, MappedData data) {
 		data.put("table", tableId);
 		// return provider.crupdateRow(systemTable, rowId, data);
-
 		// TODO implement
 		return null;
 	}
