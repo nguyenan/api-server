@@ -30,7 +30,12 @@ public abstract class UserOperation extends ParameteredOperation {
 		userData.put("id", new StringData(userId));
 		userData.put("token", token);
 		Map<String,String> userDataPojo = userData.getMapAsPojo();
-		source.update(customer, APPLICATION, userId, userDataPojo);
+		 
+		/* don't update token here. 
+		 * Because if admin user create token, it'll update user password as well
+			(admin user's password could be different with storefront user's password )
+		*/
+		// source.update(customer, APPLICATION, userId, userDataPojo);
 		
 		User userObj = getUserObj(userData);
 		Authenticator.updateUser(userObj);
