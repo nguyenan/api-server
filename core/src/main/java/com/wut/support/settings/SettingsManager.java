@@ -48,27 +48,27 @@ public class SettingsManager {
 	}
 	
 
-	public static synchronized Boolean updateCustomerSettings(String customer, String setting, String value) {
+	public static synchronized Boolean updateCustomerSettings(String customerId, String setting, String value) {
 		clientSettings = ClientSettings.loadFromConfig(false);
-		ClientSettings customerSettings = clientSettings.get(customer);
+		ClientSettings customerSettings = clientSettings.get(customerId);
 		if (customerSettings == null) {
 			// this version will auto initCustomerSettings if not exist
-			createCustomerSettings(customer);
+			createCustomerSettings(customerId);
 		}
-		customerSettings = clientSettings.get(customer);
+		customerSettings = clientSettings.get(customerId);
 		customerSettings.putSetting(setting, value);
-		boolean wasSucessful = ClientSettings.updateToConfig(customer, ClientSettings.toConfigString(customerSettings));
+		boolean wasSucessful = ClientSettings.updateToConfig(customerId, ClientSettings.toConfigString(customerSettings));
 		
 		return wasSucessful;
 	}
 	
-	public static synchronized Boolean createCustomerSettings(String customerDomain) { 
+	public static synchronized Boolean createCustomerSettings(String customerId) { 
 		clientSettings = ClientSettings.loadFromConfig(false);
-		ClientSettings customerSettings = clientSettings.get(customerDomain);
+		ClientSettings customerSettings = clientSettings.get(customerId);
 		if (customerSettings != null) {
 			return true;
 		} else {
-			boolean wasSucessful = ClientSettings.addToConfig(customerDomain);
+			boolean wasSucessful = ClientSettings.addToConfig(customerId);
 			clientSettings = ClientSettings.loadFromConfig(false);
 			return wasSucessful;
 		}			

@@ -2,6 +2,8 @@ package com.wut.support.domain;
 
 public class DomainUtils {
 	public static String getRealDomain(String client) {
+		if (client.isEmpty())
+			return "";
 		if (client.indexOf('.') == client.lastIndexOf('.')) {
 			return "www." + client;
 		} else {
@@ -10,6 +12,8 @@ public class DomainUtils {
 	}
 	
 	public static String getTopLevelDomain(String domain) {
+		if (domain.isEmpty())
+			return "";
 		if (domain.indexOf('.') == domain.lastIndexOf('.')) {
 			return domain;
 		} else {

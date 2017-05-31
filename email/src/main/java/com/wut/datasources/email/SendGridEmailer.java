@@ -76,16 +76,12 @@ public class SendGridEmailer implements Emailer {
 			//String provider = SettingsManager.getCustomerSettings(customerId, "email-provider");
 			String username = SettingsManager.getCustomerSettings(customerId, "email-username");
 			String password = SettingsManager.getCustomerSettings(customerId, "email-password");
-			
-			String topLevelDomain = SettingsManager.getCustomerSettings(customerId, "top-level-domain");
-			
+						
 			String fromEmail;
 			if (from == null) {
 				fromEmail = SettingsManager.getCustomerSettings(customerId, "email-from-address");
-			} else if (from.endsWith("@" + topLevelDomain)) {
-				fromEmail = from;
 			} else {
-				throw new RuntimeException("invalid from address");
+				fromEmail = from;
 			}
 			
 			Authenticator auth = new SMTPAuthenticator(username, password);
