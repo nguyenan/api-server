@@ -46,7 +46,7 @@ public class AuthenticateUser extends UserOperation {
 		String actualPassword = credentials.get("password").toString();
 		if (requestPassword.equals(actualPassword)) {
 			if (!customer.equals(adminCustId)) // Storefront user
-				return newToken(customer, username, requestPassword);
+				return newToken(customer, username, requestPassword, true);
 			else { // Admin user
 
 				Data permissions = permissionStore.read(adminCustId, application, userId);
@@ -57,7 +57,7 @@ public class AuthenticateUser extends UserOperation {
 				for (ScalarData key : mappedData.keys()) {
 					Data role = mappedData.get(key);
 					if (PermissionRole.contains(role.toString()))
-						customerIdMap.put(key, newToken(key.toRawString(), username, requestPassword));
+						customerIdMap.put(key, newToken(key.toRawString(), username, requestPassword, false));
 				}
 				return customerIdMap;
 			}

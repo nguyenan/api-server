@@ -87,11 +87,11 @@ public class ResetUserOperation extends UserOperation {
 			
 			sendEmail(affectedCustomer, "support@www.tend.ag", affectedUser, subject, body);
 
-			newToken(affectedCustomer, affectedUser, newPassword);
+			newToken(affectedCustomer, affectedUser, newPassword, true);
 			// MAKE SURE OLD TOKEN FROM RESET GETS REMOVED -- THIS HAPPENS WITH ONLY 1 TOKEN
 		} else if (requestingCustomer.equals(affectedCustomer)) {
 			String newPassword = new BigInteger(130, random).toString(32);
-			StringData newToken = newToken(affectedCustomer, affectedUser, newPassword);
+			StringData newToken = newToken(affectedCustomer, affectedUser, newPassword, true);
 			String link = "";
 			if (isRefreshSettings != null && isRefreshSettings.equals("true")){
 				link = SettingsManager.getCustomerSettings(requestingCustomer, "password-reset-link", true);
