@@ -1,15 +1,12 @@
 package com.wut.resources.storage;
 
-import com.wut.datasources.aws.DynamoDb;
 import com.wut.datasources.cassandra.CassandraSource;
-import com.wut.datasources.jdbc.derby.Derby;
 import com.wut.model.Data;
 import com.wut.model.map.MappedData;
 import com.wut.model.map.MessageData;
 import com.wut.model.scalar.IdData;
 import com.wut.model.scalar.StringData;
 import com.wut.pipeline.WutRequest;
-import com.wut.provider.row.TableRowSourceToTableProviderAdapter;
 import com.wut.provider.table.DefaultTableProvider;
 import com.wut.provider.table.FlatTableProvider;
 import com.wut.provider.table.TableProvider;
@@ -18,14 +15,12 @@ import com.wut.provider.table.UniqueRowProvider;
 import com.wut.resources.common.CrudResource;
 import com.wut.resources.common.MissingParameterException;
 import com.wut.support.CustomerIdGenerator;
-import com.wut.support.UniqueIdGenerator;
 
 public class TableResource extends CrudResource {
 	private static final long serialVersionUID = -9114702464429163887L;
-	private static TableResourceProvider provider = getProvider(); // = ProviderManager.create().getTableProvider();
+	private static TableResourceProvider provider = getProvider();
 	
 	public static TableProvider getTableProvider() {
-		//DynamoDb dynamoDbSource = new DynamoDb();
 		CassandraSource dynamoDbSource = new CassandraSource();
 		DefaultTableProvider defaultTableProvider = new DefaultTableProvider(dynamoDbSource);
 		FlatTableProvider flatTableProvider = new FlatTableProvider(defaultTableProvider, "flat2");
@@ -38,15 +33,6 @@ public class TableResource extends CrudResource {
 		TableResourceProvider tableResourceProvider = new TableResourceProvider(provider);
 		return tableResourceProvider;
 	}
-	
-	// TODO not used
-//	public static TableProvider getCacheProvider() {
-//		Derby derbySource = new Derby();
-//		TableRowToTableProviderAdapter adapter = new TableRowToTableProviderAdapter(derbySource);
-//		FlatTableProvider flatTableProvider = new FlatTableProvider(adapter, "webutilitykit");
-//		TableProvider provider = new UniqueRowProvider(flatTableProvider);
-//		return provider;
-//	}
 	
 	// TODO change resource name to table and attribute table to type (or schema)
 	
@@ -98,7 +84,7 @@ public class TableResource extends CrudResource {
 		IdData rowId = getRowIdParam(request);
 		MappedData data = getDataParam(request);
 		
-		if (tableId.equals(new IdData("site"))){
+		if (tableId.equals(new IdData("site")) && rowId.toRawString().equals("")){
 			// customerId = new generated Id
 			rowId = new IdData(CustomerIdGenerator.getNewId());
 			data.put("customer", rowId.toRawString());
