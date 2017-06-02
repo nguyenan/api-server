@@ -8,7 +8,6 @@ import com.wut.provider.dns.DNSProvider;
 import com.wut.resources.common.CrudResource;
 import com.wut.resources.common.MissingParameterException;
 import com.wut.resources.common.ResourceGroupAnnotation;
-import com.wut.support.settings.SettingsManager;
 
 @ResourceGroupAnnotation(name = "record", group = "dns", desc = "add record")
 public class DNSRecordResource extends CrudResource {
@@ -26,24 +25,30 @@ public class DNSRecordResource extends CrudResource {
 
 	@Override
 	public Data create(WutRequest ri) throws MissingParameterException {
-		String customerDomain = ri.getCustomer();
+		String customerId = ri.getCustomer();
 		String name = ri.getStringParameter("name");
 		String content = ri.getStringParameter("content");
+		String domain = ri.getOptionalParameterAsString("domain");
+		String customerDomain = (domain != null && !domain.isEmpty()) ? domain : customerId;
 		return provider.createRecord(customerDomain, name, content);
 	}
 
 	@Override
 	public Data read(WutRequest ri) throws MissingParameterException {
-		String customerDomain = ri.getCustomer();
+		String customerId = ri.getCustomer();
 		String name = ri.getStringParameter("name");
+		String domain = ri.getOptionalParameterAsString("domain");
+		String customerDomain = (domain != null && !domain.isEmpty()) ? domain : customerId;
 		return provider.getRecordDetails(customerDomain, name);
 	}
 
 	@Override
 	public Data update(WutRequest ri) throws MissingParameterException {
-		String customerDomain = ri.getCustomer();
+		String customerId = ri.getCustomer();
 		String name = ri.getStringParameter("name");
 		String content = ri.getStringParameter("content");
+		String domain = ri.getOptionalParameterAsString("domain");
+		String customerDomain = (domain != null && !domain.isEmpty()) ? domain : customerId;
 		return provider.updateRecord(customerDomain, name, content);
 	}
 

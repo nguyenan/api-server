@@ -24,7 +24,9 @@ public class ZoneResource extends CrudResource {
 
 	@Override
 	public Data create(WutRequest ri) {
-		String customerDomain = ri.getCustomer();
+		String customerId = ri.getCustomer();
+		String domain = ri.getOptionalParameterAsString("domain");
+		String customerDomain = (domain != null && !domain.isEmpty()) ? domain : customerId;
 		return provider.createZone(customerDomain);
 	}
 
@@ -41,7 +43,9 @@ public class ZoneResource extends CrudResource {
 
 	@Override
 	public Data delete(WutRequest ri) {
-		String customerDomain = ri.getCustomer();
+		String customerId = ri.getCustomer();
+		String domain = ri.getOptionalParameterAsString("domain");
+		String customerDomain = (domain != null && !domain.isEmpty()) ? domain : customerId;
 		return provider.deleteZone(customerDomain);
 	}
 
