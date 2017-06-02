@@ -84,7 +84,7 @@ public class TableResource extends CrudResource {
 		IdData rowId = getRowIdParam(request);
 		MappedData data = getDataParam(request);
 		
-		if (tableId.equals(new IdData("site")) && rowId.toRawString().equals("")){
+		if (tableId.equals(new IdData("site")) && rowId.toRawString().equals("default")){
 			// customerId = new generated Id
 			rowId = new IdData(CustomerIdGenerator.getNewId());
 			data.put("customer", rowId.toRawString());
