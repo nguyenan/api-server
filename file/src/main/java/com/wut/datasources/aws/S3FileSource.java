@@ -3,6 +3,7 @@ package com.wut.datasources.aws;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.Iterator;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSCredentials;
@@ -10,20 +11,24 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.AccessControlList;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.BucketWebsiteConfiguration;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.CreateBucketRequest;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.Grant;
+import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.Permission;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.Region;
 import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.services.s3.model.SetBucketWebsiteConfigurationRequest;
 import com.wut.datasources.FileSource;
+import com.wut.support.ErrorHandler;
 import com.wut.support.StringHelper;
 import com.wut.support.binary.Base64;
 import com.wut.support.settings.SettingsManager;
@@ -53,17 +58,18 @@ public class S3FileSource implements FileSource {
 	
 	public InputStream getFile(String bucket, String folder, String filename) {
 		GetObjectRequest getObjectRequest = new GetObjectRequest(bucket, getObjectKey(folder,filename));
-		S3Object object = s3client.getObject(getObjectRequest);
-		InputStream objectData = object.getObjectContent();
-		
-		// TODO base64 encode this stream
-		
-		return objectData; // TODO make sure this gets closed up the stack
-	}
-	
-	public static void main(String[] args) {
-		S3FileSource s3 = new S3FileSource();
-		s3.updateFile("www.cleverhen.com", "storefront", "test3.test", StringHelper.asInputStream("<hi>love this</hi>"));
+		try {
+			S3Object object = s3client.getObject(getObjectRequest);
+			InputStream objectData = object.getObjectContent();
+			
+			// TODO base64 encode this stream
+			
+			return objectData; // TODO make sure this gets closed up the stack
+			
+		} catch (AmazonS3Exception e) {
+			ErrorHandler.systemError(e.getErrorCode() + " - Exception geting file - "  + getObjectKey(folder,filename), e);
+			return null;
+		}
 	}
 
 	public boolean updateFile(String bucket, String folder, String filename, InputStream fileData) {
@@ -136,11 +142,11 @@ public class S3FileSource implements FileSource {
     				
     				// try request again
     				s3client.putObject(putRequest);
+    				return true;
     			} catch (Exception e) {
     				return false;
     			}
             }
-            
             return false;
         } catch (AmazonClientException ace) {
             System.out.println("Caught an AmazonClientException, which " +
@@ -183,4 +189,28 @@ public class S3FileSource implements FileSource {
 			return false;
 		}
 	}
+	
+    public synchronized boolean deleteBucket(String bucketName) {
+        try {
+                ObjectListing filesInBucket = s3client.listObjects(bucketName);
+                boolean isNextBatch = false;
+                do {
+                	if (isNextBatch)
+                		filesInBucket = s3client.listNextBatchOfObjects(filesInBucket);
+                    for (Iterator<?> iterator = filesInBucket.getObjectSummaries().iterator(); iterator.hasNext();) {
+                            S3ObjectSummary summary = (S3ObjectSummary) iterator.next();
+                            s3client.deleteObject(bucketName, summary.getKey());
+                    }
+                    isNextBatch = true;
+                } while (filesInBucket.isTruncated());
+
+                // bucket ready to delete
+                s3client.deleteBucket(bucketName);
+                return true;
+        } catch (AmazonServiceException e) {
+                ErrorHandler.userError("Error when deleting S3Bucket '" + bucketName + "' : " + e.getErrorCode());
+                return false;
+        }
+}
+
 }

@@ -1,4 +1,4 @@
-
+/*
 package com.wut.resources.settings;
 
 import java.util.ArrayList;
@@ -162,3 +162,4 @@ public class SettingsResource extends RudResource {
 	}
 	
 }
+*/

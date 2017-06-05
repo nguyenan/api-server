@@ -1,27 +1,25 @@
-/*package com.wut;
+package user;
 
 import static org.junit.Assert.*;
 
 import org.junit.Test;
 
 import com.wut.model.map.MappedData;
+import com.wut.model.map.MessageData;
 import com.wut.model.scalar.StringData;
 import com.wut.pipeline.Authenticator;
-import com.wut.pipeline.User;
 import com.wut.pipeline.UserStore;
 import com.wut.resources.users.AuthenticateUser;
 import com.wut.resources.users.UsersResource;
 
-public class TestValidateToken {
+public class TestAuthenticate {
 
 	@Test
 	public void testAuthenticate() {
-		String customer = "dev.retailkit.com";
+		String customer = "dev1.tend.ag";
 		String username = "an.nguyenhoang@tend.ag";
-		String requestPassword = "b389d7ba1a7dc968c893d2c5823fc80e";
+		String requestPassword = "465eaca53428a2109210c602f7bda1ae";
 		String application = "core";
-
-		// return authHelper.authenticate(customer, username, requestPassword);
 
 		String id = Authenticator.getUserId(customer, username);
 		UserStore source = new UserStore();
@@ -32,7 +30,6 @@ public class TestValidateToken {
 
 		String actualPassword = credentials.get("password").toString();
 		assertEquals("Authenticate fail", actualPassword, requestPassword);
-
 	}
 
 	@Test
@@ -41,8 +38,6 @@ public class TestValidateToken {
 		String username = "an.nguyenhoang@tend.ag";
 		String requestPassword = "b389d7ba1a7dc968c893d2c5823fc80f";
 		String application = "core";
-
-		// return authHelper.authenticate(customer, username, requestPassword);
 
 		String id = Authenticator.getUserId(customer, username);
 		UserStore source = new UserStore();
@@ -53,43 +48,49 @@ public class TestValidateToken {
 
 		String actualPassword = credentials.get("password").toString();
 		assertNotEquals("Authenticate must fail", actualPassword, requestPassword);
-
 	}
 
 	@Test
-	public void testValidateTokenPublic() {
+	public void testAuthenticateNotFound() {
 		String customer = "dev.retailkit.com";
-		String username = "public";
-		String token = "public";
-		Authenticator authenticator = new Authenticator();
-		boolean checkToken = authenticator.checkToken(customer, username, token);
-		assertTrue("token public must pass", checkToken);
-	}
+		String username = "an.nguyenhoang@tend";
+		String application = "core";
 
-	@Test
-	public void testValidateTokenPublicFail() {
-		String customer = "dev.retailkit.com";
-		String username = "public";
-		String token = "b389d7ba1a7dc968c893d2c5823fc80e";
-		Authenticator authenticator = new Authenticator();
-		boolean checkToken = authenticator.checkToken(customer, username, token);
-		assertFalse("token public must fail", checkToken);
+		String id = Authenticator.getUserId(customer, username);
+		UserStore source = new UserStore();
+		MappedData credentials = (MappedData) source.readSecureInformation(customer, application, id);
+
+		assertEquals(MessageData.NO_DATA_FOUND, credentials);
 	}
 
 	@Test
 	public void testValidateToken() {
 		String customer = "dev.retailkit.com";
 		String username = "an.nguyenhoang@tend.ag";
-		String requestPassword = "b389d7ba1a7dc968c893d2c5823fc80e";
+		String requestPassword = "465eaca53428a2109210c602f7bda1ae";
 		UsersResource usersResourceInts = new UsersResource();
 		AuthenticateUser authenticateOperation = usersResourceInts.getAuthenticateOperation();
 		StringData newToken = authenticateOperation.newToken(customer, username, requestPassword);
 		assertNotNull(newToken);
 
 		Authenticator authenticator = new Authenticator();
-		User userInfo = authenticator.validateToken(newToken.toString());
-		System.out.println("userInfo: " + userInfo.toString());
-		assertEquals("token must pass", username, userInfo.getUsername());
+		boolean validateToken = authenticator.validateToken(customer, username, newToken.toString());
+		assertTrue(validateToken);
+	}
+
+	@Test
+	public void testValidateTokenWrongUser() {
+		String customer = "dev.retailkit.com";
+		String username = "an.nguyenhoang@tend.ag";
+		String requestPassword = "465eaca53428a2109210c602f7bda1ae";
+		UsersResource usersResourceInts = new UsersResource();
+		AuthenticateUser authenticateOperation = usersResourceInts.getAuthenticateOperation();
+		StringData newToken = authenticateOperation.newToken(customer, username, requestPassword);
+		assertNotNull(newToken);
+
+		Authenticator authenticator = new Authenticator();
+		boolean validateToken = authenticator.validateToken(customer, "an.nguyenhoang@tend", newToken.toString());
+		assertFalse(validateToken);
 	}
 
 	@Test
@@ -99,10 +100,18 @@ public class TestValidateToken {
 		String newToken = "t000728.8367a75";
 
 		Authenticator authenticator = new Authenticator();
-		User userInfo = authenticator.validateToken(newToken);
-		assertNull("token must fail", userInfo);
-		// System.out.println(newToken.toString());
+		boolean validateToken = authenticator.validateToken(customer, username, newToken);
+		assertFalse(validateToken);
+	}
 
+	@Test
+	public void testValidateTokenNull() {
+		String customer = "dev.retailkit.com";
+		String username = null;
+		String newToken = "t000728.8367a75";
+
+		Authenticator authenticator = new Authenticator();
+		boolean validateToken = authenticator.validateToken(customer, username, newToken);
+		assertFalse(validateToken);
 	}
 }
-*/

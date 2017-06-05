@@ -22,7 +22,7 @@ public abstract class UserOperation extends ParameteredOperation {
 	}
 	
 	
-	public StringData newToken(String customer, String username, String password) {
+	public StringData newToken(String customer, String username, String password, boolean updateData) {
 		StringData token = new StringData(Token.generateNewToken(username, password).getToken());
 		MappedData userData = new MappedData();
 		userData.put("customer", new StringData(customer));
@@ -32,13 +32,18 @@ public abstract class UserOperation extends ParameteredOperation {
 		userData.put("id", new StringData(userId));
 		userData.put("token", token);
 		Map<String,String> userDataPojo = userData.getMapAsPojo();
-		source.update(customer, APPLICATION, userId, userDataPojo);
+		if (updateData) source.update(customer, APPLICATION, userId, userDataPojo);
 		
 		User userObj = getUserObj(userData);
 		Authenticator.updateUser(userObj);
 		
 		return token;
 	}
+	
+	public void removeToken(String token) {
+		Authenticator.removeToken(token);
+	}
+	
 	
 	private User getUserObj(MappedData userData) {
 		String customerStr = userData.get("customer").toString();

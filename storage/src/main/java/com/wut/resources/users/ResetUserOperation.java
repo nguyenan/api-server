@@ -41,13 +41,7 @@ import com.wut.support.settings.SystemSettings;
 public class ResetUserOperation extends UserOperation {
 	private static SystemSettings sysSettings = SystemSettings.getInstance();
 	private SecureRandom random = new SecureRandom();
-//	private static final String footer = "<div style=\"text-align:center; margin:15px 0px; vertical-align: middle;\">"
-//			+ "<hr style=\"padding: 0px; margin: 0px 0px 28px 0px;\"/>"
-//			+ "<p style=\"font-family: 'Arial'; font-size: 8px; color: #98948A; letter-spacing: 2px; vertical-align: bottom;\">POWERED BY&nbsp;&nbsp;"
-//			+ "<a style=\"\" href=\"http://www.tend.co\" target=\"_blank\"><img style=\"display:inline-block;max-height: 16px; vertical-align: middle;\" src=\"https://cdn.webutilitykit.com/img/tend-logo-small.png\"></a></p>"
-//			+ "<p style=\"font-family: 'Arial'; font-size: 10px; font-style: italic; color: #98948A; letter-spacing: 1px;\">Manage your organic farm easily</p>"
-//			+ "</div>";
-	//private Emailer emailer = new SendGridEmailer();
+	private static String adminCustomerId = SystemSettings.getInstance().getSetting("admin.customerid"); 
 
 	public ResetUserOperation(CrudSource source) {
 		super(source);
@@ -92,14 +86,15 @@ public class ResetUserOperation extends UserOperation {
 			String subject = "Password Reset";
 			String body =  sysSettings.getSetting("password-reset-success") + sysSettings.getSetting("password-reset-footer");
 			
-			sendEmail(affectedCustomer, "support@"+affectedCustomer, affectedUser, subject, body);
+			sendEmail(affectedCustomer, "support@" + (affectedCustomer.equals(adminCustomerId)? "tend.ag": affectedCustomer), affectedUser, subject, body);
 
-			newToken(affectedCustomer, affectedUser, newPassword);
+			newToken(affectedCustomer, affectedUser, newPassword, true);
 			// MAKE SURE OLD TOKEN FROM RESET GETS REMOVED -- THIS HAPPENS WITH ONLY 1 TOKEN
 		} else if (requestingCustomer.equals(affectedCustomer)) {
 			String newPassword = new BigInteger(130, random).toString(32);
 			StringData newToken = newToken(affectedCustomer, affectedUser, newPassword);
 			String link = SettingsManager.getClientSettings(requestingCustomer, "reset-pwd.password-reset-link");
+      String topLevelDomain = SettingsManager.getClientSettings(affectedCustomer, "reset-pwd.top-level-domain");
 
 			if (isGlobalReset != null && isGlobalReset.equals("true")){
 				link = String.format(sysSettings.getSetting("password-reset-link"), affectedCustomer);
@@ -108,7 +103,7 @@ public class ResetUserOperation extends UserOperation {
 			link += "username=" + affectedUser + "&token=" + newTokenEncoded + "&reset=true";
 			String subject = "Password Reset Request";
 			String body = String.format(sysSettings.getSetting("password-reset-request"), link) + sysSettings.getSetting("password-reset-footer");
-			sendEmail(affectedCustomer, "support@"+affectedCustomer, affectedUser, subject, body);
+			sendEmail(affectedCustomer, "support@"+ topLevelDomain, affectedUser, subject, body);
 		} else {
 			return MessageData.INVALID_PERMISSIONS;
 		}
@@ -130,9 +125,6 @@ public class ResetUserOperation extends UserOperation {
 
 			String username = SettingsManager.getClientSettings(customerId, "reset-pwd.email-username");
 			String password = SettingsManager.getClientSettings(customerId, "reset-pwd.email-password");
-			
-			String topLevelDomain = SettingsManager.getClientSettings(customerId, "reset-pwd.top-level-domain");
-			
 			Authenticator auth = new SMTPAuthenticator(username, password);
 			
 			Session mailSession = Session.getDefaultInstance(props, auth);
@@ -205,12 +197,6 @@ public class ResetUserOperation extends UserOperation {
 		
 		resetOp.perform(r);
 		
-	}
-	
-	//		boolean isAdmin = requestingUser.equals("admin");
-	//boolean isFromRetailKit = requestingCustomer.equals("izkit");
-	//boolean isSuperAdmin = isAdmin && isFromRetailKit;
-	//return isSuperAdmin;
-	
+	}	
 }
 

@@ -30,11 +30,6 @@ import org.apache.commons.lang3.StringEscapeUtils;
 // TODO make create() function and use instead of contructor
 public class SendGridEmailer implements Emailer {
 
-	public static void main(String[] args) throws Exception {
-		new SendGridEmailer().send("secretsaviors.com", "ruck@ss.com", "rpalmite@gmail.com", "this is a test",
-				"testing 1 2 3 6");
-	}
-
 	private class SMTPAuthenticator extends javax.mail.Authenticator {
 		private String username;
 		private String password;
@@ -79,18 +74,14 @@ public class SendGridEmailer implements Emailer {
 
 			// TODO bad coupling to settings --- too far down the stack
 			//String provider = SettingsManager.getCustomerSettings(customerId, "email-provider");
-			String username = SettingsManager.getClientSettings(customerId, "email-username");
-			String password = SettingsManager.getClientSettings(customerId, "email-password");
-			
-			String topLevelDomain = SettingsManager.getClientSettings(customerId, "top-level-domain");
-			
+			String username = SettingsManager.getCustomerSettings(customerId, "email-username");
+			String password = SettingsManager.getCustomerSettings(customerId, "email-password");
+						
 			String fromEmail;
 			if (from == null) {
-				fromEmail = SettingsManager.getClientSettings(customerId, "email-from-address");
-			} else if (from.endsWith("@" + topLevelDomain)) {
-				fromEmail = from;
+				fromEmail = SettingsManager.getCustomerSettings(customerId, "email-from-address");
 			} else {
-				throw new RuntimeException("invalid from address");
+				fromEmail = from;
 			}
 			
 			Authenticator auth = new SMTPAuthenticator(username, password);

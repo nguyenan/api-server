@@ -46,7 +46,7 @@ public class UpdateUserOperation extends UserOperation {
 			return MessageData.USER_EXISTS;
 		}
 		
-		newToken(customer, username, password);
+		newToken(customer, username, password, true);
 		
 		return MessageData.success();
 	}
