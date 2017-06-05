@@ -1,6 +1,7 @@
 package com.wut.resources.payments;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -10,6 +11,8 @@ import com.wut.pipeline.WutRequest;
 import com.wut.resources.OperationParameter;
 import com.wut.resources.common.CrudResource;
 import com.wut.resources.common.WutOperation;
+import com.wut.resources.common.AbstractResource.GetSettingOperation;
+import com.wut.resources.common.AbstractResource.SetSettingOperation;
 import com.wut.support.cipher.Cipher;
 
 public class PaymentResource extends CrudResource {
@@ -18,6 +21,16 @@ public class PaymentResource extends CrudResource {
 
 	public PaymentResource() {
 		super("payment", null);
+	}
+	 
+	@Override
+	public List<String> getReadableSettings() {
+		return Arrays.asList(new String[]{"braintree-mechant-id", "braintree-public-key", "stripe-api-key", "payment-processor"});
+	}
+	
+	@Override
+	public List<String> getWriteableSettings() {
+		return Arrays.asList(new String[]{"braintree-mechant-id", "braintree-public-key", "braintree-private-key", "stripe-api-key", "payment-processor"});
 	}
 
 	@Override
@@ -64,6 +77,8 @@ public class PaymentResource extends CrudResource {
 		operationListCopy.add(getRefundOperation());
 		operationListCopy.add(getSettleOperation());
 		operationListCopy.add(getStoreOperation());
+		operationListCopy.add(new GetSettingOperation());
+		operationListCopy.add(new SetSettingOperation());
 		// TODO this is put here temporarily for GoodMouth Transition
 //		operationListCopy.add(new WutOperation() {
 //			@Override

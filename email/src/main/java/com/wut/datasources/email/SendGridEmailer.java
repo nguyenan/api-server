@@ -65,8 +65,8 @@ public class SendGridEmailer implements Emailer {
 			props.put("mail.transport.protocol", "smtp");
 			
 			// TODO bad coupling to settings --- too far down the stack
-			String smtpHost = SettingsManager.getCustomerSettings(customerId, "email-smtp-host");
-			String smtpPort = SettingsManager.getCustomerSettings(customerId, "email-smtp-port");
+			String smtpHost = SettingsManager.getClientSettings(customerId, "email-smtp-host");
+			String smtpPort = SettingsManager.getClientSettings(customerId, "email-smtp-port");
 
 			props.put("mail.smtp.host", smtpHost);
 			props.put("mail.smtp.port", smtpPort);

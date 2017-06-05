@@ -48,7 +48,7 @@ public class SettingResource extends CrudResource {
 
 		setting = (setting.equals("theme")) ? "git.branch" : setting;
 		String customer = request.getCustomer();
-		String settingValue = SettingsManager.getCustomerSettings(customer, setting);
+		String settingValue = SettingsManager.getClientSettings(customer, setting, true);
 		if (settingValue.isEmpty()) {
 			return ErrorMessage.INVALID_SETTING;
 		} else { 
@@ -65,14 +65,14 @@ public class SettingResource extends CrudResource {
 
 		setting = (setting.equals("theme")) ? "git.branch" : setting;
 		String customer = request.getCustomer();
-		Boolean wasSucessful = SettingsManager.updateCustomerSettings(customer, setting, value);
-		return MessageData.successOrFailure(wasSucessful);
+		Boolean updateCustomerSettings = SettingsManager.setClientSettings(customer, setting, value);
+		return MessageData.successOrFailure(updateCustomerSettings);
 	}
 	
 	@Override
 	public Data create(WutRequest request) throws MissingParameterException {
 		String customerDomain = request.getCustomer();
-		Boolean wasSucessful = SettingsManager.createCustomerSettings(customerDomain);
+		Boolean wasSucessful = SettingsManager.initClientSettings(customerDomain);
 		return MessageData.successOrFailure(wasSucessful);
 	}
 	@Override

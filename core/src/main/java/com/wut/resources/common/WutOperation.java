@@ -14,8 +14,10 @@ public abstract class WutOperation {
 	public static String UPDATE = "update";
 	public static String DELETE = "delete";
 	public static String SEARCH = "search";
+	public static String GET_SETTING = "get-setting";
+	public static String SET_SETTING = "set-setting";
 	
-	public enum TYPE { CREATE, READ, UPDATE, DELETE, AUTHENTICATE }; // TODO rename ACTION
+	public enum TYPE { CREATE, READ, UPDATE, DELETE, AUTHENTICATE, GET_SETTING, SET_SETTING }; // TODO rename ACTION
 	
 	// TODO settings !!!!!!!! it depend on aka uses
 	

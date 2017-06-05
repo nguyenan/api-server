@@ -14,12 +14,8 @@ import com.wut.resources.common.MissingParameterException;
 import com.wut.support.Defaults;
 import com.wut.support.StringHelper;
 import com.wut.support.SystemHelper;
-import com.wut.support.binary.StringUtils;
 import com.wut.support.fileio.WutFile;
 import com.wut.support.settings.SettingsManager;
-//import com.wut.threading.WutProcess;
-//import com.wut.threading.WutProcessExecuter;
-//import com.wut.threading.WutSystemCommandProcess;
 
 public abstract class TemplateOperation extends AbstractOperation {
 	
@@ -36,22 +32,12 @@ public abstract class TemplateOperation extends AbstractOperation {
 	
 	protected String getClientCodeDirectory(WutRequest request) {
 		String customer = request.getCustomer();
-		String clientCodeDirectory = SettingsManager.getCustomerSettings(customer, "client.code.dir");
-		return clientCodeDirectory;
-	}
-	
-	protected String getClientCodeDirectory(WutRequest request, boolean forceReload) {
-		String customer = request.getCustomer();
-		String clientCodeDirectory = SettingsManager.getCustomerSettings(customer, "client.code.dir", forceReload);
+		String clientCodeDirectory = SettingsManager.getClientSettings(customer, "client.code.dir");
 		return clientCodeDirectory;
 	}
 	
 	// TODO rename pull out common code with getOutputDirectory()
-	private String getInputDirectory(WutRequest request) throws MissingParameterException {
-//		String customer = request.getCustomer();
-//		String clientCodeDirectory = SettingsManager.getCustomerSettings(customer, "client.code.dir");
-//		return clientCodeDirectory;
-		
+	private String getInputDirectory(WutRequest request) throws MissingParameterException {		
 		StringBuilder inputFolder = new StringBuilder();
 		
 //		String customer = request.getCustomer();
@@ -84,15 +70,15 @@ public abstract class TemplateOperation extends AbstractOperation {
 	protected boolean gitClone(WutRequest request) {
 		try {
 			String customer = request.getCustomer();
-			String clientCodeDirectory = getClientCodeDirectory(request, true);
+			String clientCodeDirectory = getClientCodeDirectory(request);
 			File clientCodeDirectoryFile = new File(clientCodeDirectory);
 			
 			String gitPath = getGitPath();
-	
+			if (!clientCodeDirectoryFile.exists())
+				clientCodeDirectoryFile.mkdirs();
 			if (clientCodeDirectoryFile.listFiles().length <= 0) {
-				// git clone https://rpalmite@bitbucket.org/jeremyroberts0/generated.git
-				String gitUrl = SettingsManager.getCustomerSettings(customer, "git.repository", true);
-				String gitBranch = SettingsManager.getCustomerSettings(customer, "git.branch");
+				String gitUrl = SettingsManager.getClientSettings(customer, "git.repository");
+				String gitBranch = SettingsManager.getClientSettings(customer, "git.branch");
 				SystemHelper.runCommand(clientCodeDirectory, gitPath, new String[] { "clone", "-b", gitBranch, gitUrl, "."}, null);
 				return true;
 			}
@@ -121,7 +107,7 @@ public abstract class TemplateOperation extends AbstractOperation {
 		StringBuilder outputFolder = new StringBuilder();
 		
 		String customer = request.getCustomer();
-		String siteFolder = SettingsManager.getCustomerSettings(customer, "client.site.dir");
+		String siteFolder = SettingsManager.getClientSettings(customer, "client.site.dir");
 		outputFolder.append(siteFolder);
 		outputFolder.append("/");
 		

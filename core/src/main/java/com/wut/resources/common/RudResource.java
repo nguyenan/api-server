@@ -10,13 +10,12 @@ import com.wut.datasources.RudSource;
 import com.wut.model.Data;
 import com.wut.pipeline.WutRequest;
 import com.wut.resources.common.MissingParameterException;
-import com.wut.resources.operations.UpdateOperation;
 
 public class RudResource extends AbstractResource {
 	private static final long serialVersionUID = 7961120612619182819L;
 	private RudSource source;
 	private String name;
-
+	
 	public RudResource(String name, RudSource source) {
 		super(name);
 		this.name = name;
@@ -58,6 +57,8 @@ public class RudResource extends AbstractResource {
 		operationList.add(getReadOperation());
 		operationList.add(getUpdateOperation());
 		operationList.add(getDeleteOperation());
+		operationList.add(getGetSettingOperation());
+		operationList.add(setGetSettingOperation());
 		return operationList;
 	}
 	
@@ -74,6 +75,13 @@ public class RudResource extends AbstractResource {
 		return new DeleteOperation();
 	}
 	
+	public WutOperation getGetSettingOperation() {
+		return new GetSettingOperation();
+	}
+	
+	public WutOperation setGetSettingOperation() {
+		return new SetSettingOperation();
+	}
 	
 	public Data read(WutRequest request) throws MissingParameterException {
 		String identifier = request.getScopeWithId();
@@ -90,8 +98,7 @@ public class RudResource extends AbstractResource {
 	public Data delete(WutRequest request) throws MissingParameterException {
 		String identifier = request.getScopeWithId();
 		return source.delete(request.getCustomer(), request.getApplication(), identifier);
-	}
-	
+	}	
 	
 	public class ReadOperation extends com.wut.resources.operations.ReadOperation {
 		// TODO is source needed here? compiler warns it's not used!!!! private
