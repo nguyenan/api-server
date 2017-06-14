@@ -21,6 +21,7 @@ import javax.mail.internet.MimeMultipart;
 
 import com.wut.support.ErrorHandler;
 import com.wut.support.Language;
+import com.wut.support.domain.DomainUtils;
 import com.wut.support.settings.SettingsManager;
 
 //import org.apache.commons.lang.StringEscapeUtils;
@@ -65,21 +66,23 @@ public class SendGridEmailer implements Emailer {
 			props.put("mail.transport.protocol", "smtp");
 			
 			// TODO bad coupling to settings --- too far down the stack
-			String smtpHost = SettingsManager.getClientSettings(customerId, "email-smtp-host");
-			String smtpPort = SettingsManager.getClientSettings(customerId, "email-smtp-port");
+			String smtpHost = SettingsManager.getClientSettings(customerId, "email.email-smtp-host");
+			String smtpPort = SettingsManager.getClientSettings(customerId, "email.email-smtp-port");
 
 			props.put("mail.smtp.host", smtpHost);
 			props.put("mail.smtp.port", smtpPort);
 			props.put("mail.smtp.auth", "true");
 
 			// TODO bad coupling to settings --- too far down the stack
-			//String provider = SettingsManager.getCustomerSettings(customerId, "email-provider");
-			String username = SettingsManager.getCustomerSettings(customerId, "email-username");
-			String password = SettingsManager.getCustomerSettings(customerId, "email-password");
+			String username = SettingsManager.getClientSettings(customerId, "email.email-username");
+			String password = SettingsManager.getClientSettings(customerId, "email.email-password");
+			
+			String topLevelDomain = DomainUtils.getTopLevelDomain(SettingsManager.getClientSettings(customerId, "email.domain"));
+			String fromAddress = "support@" + topLevelDomain;
 						
 			String fromEmail;
 			if (from == null) {
-				fromEmail = SettingsManager.getCustomerSettings(customerId, "email-from-address");
+				fromEmail = fromAddress;
 			} else {
 				fromEmail = from;
 			}
@@ -160,7 +163,6 @@ public class SendGridEmailer implements Emailer {
 			// TODO must have to, cc, or bcc
 
 			transport.connect();
-			//Address[] recipients = message.getRecipients(Message.RecipientType.TO);
 			Transport.send(message);
 			transport.close();
 		} catch (NoSuchProviderException e) {
@@ -174,5 +176,4 @@ public class SendGridEmailer implements Emailer {
   		}
 		
 	}
-
 }

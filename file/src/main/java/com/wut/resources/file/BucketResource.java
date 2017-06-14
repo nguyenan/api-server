@@ -10,7 +10,7 @@ import com.wut.provider.file.DefaultFileProvider;
 import com.wut.provider.file.FileProvider;
 import com.wut.resources.common.CrudResource;
 import com.wut.resources.common.MissingParameterException;
-import com.wut.support.domain.DomainUtils;
+import com.wut.support.settings.SettingsManager;
 
 public class BucketResource extends CrudResource {
 	
@@ -45,9 +45,8 @@ public class BucketResource extends CrudResource {
 	}
 	
 	private IdData getBucket(WutRequest request) {
-		String client = request.getCustomer();
-		String realDomain = DomainUtils.getRealDomain(client);
-		return new IdData(realDomain);
+		String customerDomain = SettingsManager.getClientSettings(request.getCustomer(), "file.domain");
+		//String realDomain = DomainUtils.getRealDomain(customerDomain);
+		return new IdData(customerDomain);
 	}
-
 }

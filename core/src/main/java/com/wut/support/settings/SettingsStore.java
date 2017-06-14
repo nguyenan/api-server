@@ -56,7 +56,8 @@ public class SettingsStore implements CrudSource {
 
 	@Override
 	public Data delete(String customer, String application, String rowId) {
-		return MessageData.NOT_IMPLEMENTED;
+		Data d = provider.delete(IdData.create(application), IdData.create(customer),user, settingsTable, new IdData(rowId));
+		return d;
 	}
 
 }

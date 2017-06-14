@@ -27,12 +27,12 @@ public class EmailResource extends CrudResource {
 	
 	@Override
 	public List<String> getReadableSettings() {
-		return Arrays.asList(new String[]{"email-smtp-host", "email-smtp-port", "email-username", "top-level-domain", "email-from-address"});
+		return Arrays.asList(new String[]{"email.domain", "email.email-smtp-host", "email.email-smtp-port", "email.email-username"});
 	}
 	
 	@Override
 	public List<String> getWriteableSettings() {
-		return Arrays.asList(new String[]{"email-smtp-host", "email-smtp-port", "email-username", "email-password", "top-level-domain", "email-from-address"});
+		return Arrays.asList(new String[]{"email.domain", "email.email-smtp-host", "email.email-smtp-port", "email.email-username", "email.email-password"});
 	}
 	
 	@Override

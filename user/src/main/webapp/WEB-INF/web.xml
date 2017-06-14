@@ -33,8 +33,8 @@
 
     <servlet-mapping>
         <servlet-name>jersey</servlet-name>
-        <url-pattern>/swagger/*</url-pattern>
-    </servlet-mapping>
+        <url-pattern>/swaggers/*</url-pattern>
+    </servlet-mapping> 
 
 <servlet>
         <servlet-name>Jersey2Config</servlet-name>
@@ -45,7 +45,7 @@
         </init-param>
         <init-param>
             <param-name>swagger.api.basepath</param-name>
-            <param-value>/user/api-docs.html</param-value>
+            <param-value>/</param-value>
         </init-param>
         <load-on-startup>2</load-on-startup>
     </servlet>

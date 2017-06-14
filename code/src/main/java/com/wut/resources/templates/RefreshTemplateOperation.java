@@ -21,7 +21,7 @@ public class RefreshTemplateOperation extends TemplateOperation {
 		//String application = request.getApplication();
 		String customer = request.getCustomer();
 		
-		String clientCodeDirectory = SettingsManager.getClientSettings(customer, "client.code.dir");
+		String clientCodeDirectory = getClientCodeDirectory(request);
 		
 		logger.info("refreshing directory " + clientCodeDirectory);
 		File clientCodeDirectoryFile = new File(clientCodeDirectory);

@@ -20,8 +20,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.wut.cache.Cache;
-import com.wut.cache.SimpleCacheProcessor;
 import com.wut.format.FormatFactory;
 import com.wut.model.Data;
 import com.wut.model.map.MessageData;
@@ -84,8 +82,7 @@ public abstract class AbstractResource extends HttpServlet implements WutResourc
 		if (!readableSettings.contains(setting))
 			return ErrorMessage.INVALID_SETTING;
 	
-		Boolean refreshSettings = request.getOptionalBooleanParameter("refreshSettings", false);
-		String clientSettings = SettingsManager.getClientSettings(customer, setting, refreshSettings);
+		String clientSettings = SettingsManager.getClientSettings(customer, setting);
 		if (clientSettings.isEmpty())
 			return MessageData.NO_DATA_FOUND;
 		return new StringData(clientSettings);

@@ -20,7 +20,7 @@ public abstract class UserOperation extends ParameteredOperation {
 	}
 	
 	
-	public StringData newToken(String customer, String username, String password) {
+	public StringData newToken(String customer, String username, String password, boolean updateData) {
 		StringData token = new StringData(Token.generateNewToken(username, password).getToken());
 		MappedData userData = new MappedData();
 		userData.put("customer", new StringData(customer));
@@ -30,12 +30,7 @@ public abstract class UserOperation extends ParameteredOperation {
 		userData.put("id", new StringData(userId));
 		userData.put("token", token);
 		Map<String,String> userDataPojo = userData.getMapAsPojo();
-		 
-		/* don't update token here. 
-		 * Because if admin user create token, it'll update user password as well
-			(admin user's password could be different with storefront user's password )
-		*/
-		// source.update(customer, APPLICATION, userId, userDataPojo);
+		if (updateData) source.update(customer, APPLICATION, userId, userDataPojo);
 		
 		User userObj = getUserObj(userData);
 		Authenticator.updateUser(userObj);

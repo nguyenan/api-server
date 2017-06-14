@@ -5,15 +5,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import com.wut.model.Data;
-import com.wut.model.scalar.StringData;
-import com.wut.pipeline.WutRequest;
-import com.wut.resources.OperationParameter;
 import com.wut.resources.common.CrudResource;
 import com.wut.resources.common.WutOperation;
-import com.wut.resources.common.AbstractResource.GetSettingOperation;
-import com.wut.resources.common.AbstractResource.SetSettingOperation;
-import com.wut.support.cipher.Cipher;
 
 public class PaymentResource extends CrudResource {
 
@@ -25,12 +18,12 @@ public class PaymentResource extends CrudResource {
 	 
 	@Override
 	public List<String> getReadableSettings() {
-		return Arrays.asList(new String[]{"braintree-mechant-id", "braintree-public-key", "stripe-api-key", "payment-processor"});
+		return Arrays.asList(new String[]{"payment.payment-processor", "payment.braintree-mechant-id", "payment.braintree-public-key"});
 	}
 	
 	@Override
 	public List<String> getWriteableSettings() {
-		return Arrays.asList(new String[]{"braintree-mechant-id", "braintree-public-key", "braintree-private-key", "stripe-api-key", "payment-processor"});
+		return Arrays.asList(new String[]{"payment.payment-processor", "payment.braintree-mechant-id", "payment.braintree-public-key", "payment.braintree-private-key"});
 	}
 
 	@Override
@@ -79,30 +72,6 @@ public class PaymentResource extends CrudResource {
 		operationListCopy.add(getStoreOperation());
 		operationListCopy.add(new GetSettingOperation());
 		operationListCopy.add(new SetSettingOperation());
-		// TODO this is put here temporarily for GoodMouth Transition
-//		operationListCopy.add(new WutOperation() {
-//			@Override
-//			public Data perform(WutRequest request) throws Exception {
-//				StringData token = request.getParameter("token");
-//				String decrypted = new Cipher().decrypt(token.toRawString());
-//				return new StringData(decrypted);
-//			}
-//			
-//			@Override
-//			public List<OperationParameter> getParameters() {
-//				return null;
-//			}
-//			
-//			@Override
-//			public String getName() {
-//				return "decrypt";
-//			}
-//			
-//			@Override
-//			public boolean checkPermission(WutRequest request) {
-//				return false;
-//			}
-//		});
 		return operationListCopy;
 	}
 

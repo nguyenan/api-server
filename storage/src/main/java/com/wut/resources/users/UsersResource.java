@@ -1,16 +1,16 @@
 package com.wut.resources.users;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.wut.pipeline.Authenticator;
 import com.wut.pipeline.UserStore;
 import com.wut.resources.common.CrudResource;
 import com.wut.resources.common.WutOperation;
-import com.wut.resources.common.AbstractResource.GetSettingOperation;
-import com.wut.resources.common.AbstractResource.SetSettingOperation;
 import com.wut.support.ErrorHandler;
 import com.wut.support.settings.SystemSettings;
 
@@ -20,6 +20,16 @@ public class UsersResource extends CrudResource {
 
 	public UsersResource() {
 		super("user", userStore);
+	}
+	
+	@Override
+	public List<String> getReadableSettings() {
+		return Arrays.asList(new String[]{"user.email-smtp-host", "user.email-smtp-port", "user.email-username", "user.domain"});
+	}
+	
+	@Override
+	public List<String> getWriteableSettings() {
+		return Arrays.asList(new String[]{"user.email-smtp-host", "user.email-smtp-port", "user.email-username", "user.email-password", "user.domain"});
 	}
 
 	@Override
@@ -48,11 +58,7 @@ public class UsersResource extends CrudResource {
 				newUser.put("username", userId);
 				newUser.put("password", password);
 				newUser.put("token", token);
-				String key = Authenticator.getUserId(customer, userId);
-				
-				//AuthenticationHelper helper;
-				//Authenticator.update(user);
-				//userStore.update(key, newUser);
+				String key = Authenticator.getUserId(customer, userId);				
 			} catch (Exception e) {
 				ErrorHandler.systemError(e, "failed to initialize default user " + userId);
 			}

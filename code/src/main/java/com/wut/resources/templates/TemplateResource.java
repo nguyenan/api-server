@@ -8,8 +8,6 @@ import java.util.List;
 import com.wut.resources.common.AbstractResource;
 import com.wut.resources.common.WutOperation;
 
-//com.wut.resources.templates.TemplateResource
-
 public class TemplateResource extends AbstractResource {
 
 	private static final long serialVersionUID = 5461222419822890264L;
@@ -20,19 +18,18 @@ public class TemplateResource extends AbstractResource {
 	 
 	@Override
 	public List<String> getReadableSettings() {
-		return Arrays.asList(new String[]{"client.code.dir", "client.site.dir", "git.branch"});
+		return Arrays.asList(new String[]{"template.domain", "template.git.branch"});
 	}
 	
 	@Override
 	public List<String> getWriteableSettings() {
-		return Arrays.asList(new String[]{"client.code.dir", "client.site.dir", "git.branch", "git.repository"});
+		return Arrays.asList(new String[]{"template.domain", "template.git.branch", "template.git.repository"});
 	}
 
 	@Override
 	public Collection<WutOperation> getOperations() {
 		ArrayList<WutOperation> operations = new ArrayList<WutOperation>();
 		operations.add(new ReadTemplateOperation());
-		//operations.add(new GenerateTemplateOperation());
 		operations.add(new RenderTemplateOperation());
 		operations.add(new RefreshTemplateOperation());
 		operations.add(new InitializeTemplateOperation());

@@ -34,6 +34,7 @@ import com.wut.pipeline.UserStore;
 import com.wut.pipeline.WutRequest;
 import com.wut.pipeline.WutRequestBuilder;
 import com.wut.support.Language;
+import com.wut.support.domain.DomainUtils;
 import com.wut.support.settings.SettingsManager;
 import com.wut.support.settings.SystemSettings;
 
@@ -79,6 +80,9 @@ public class ResetUserOperation extends UserOperation {
 		boolean isForSameUser = affectedCustomer.equals(requestingCustomer) && affectedUser.equals(requestingUser);
 		boolean providedPassword = toPasswordData != null;
 		
+		String domain = SettingsManager.getClientSettings(affectedCustomer, "user.domain");
+		String topLevelDomain = DomainUtils.getTopLevelDomain(domain);
+		
 		String isGlobalReset =  ri.getOptionalParameterAsString("globalReset");
 		String isRefreshSettings =  ri.getOptionalParameterAsString("refreshSettings");
 		if ((isSuperAdmin || isDomainAdmin || isForSameUser) && providedPassword) {
@@ -86,28 +90,26 @@ public class ResetUserOperation extends UserOperation {
 			String subject = "Password Reset";
 			String body =  sysSettings.getSetting("password-reset-success") + sysSettings.getSetting("password-reset-footer");
 			
-			sendEmail(affectedCustomer, "support@" + (affectedCustomer.equals(adminCustomerId)? "tend.ag": affectedCustomer), affectedUser, subject, body);
-
+			sendEmail(affectedCustomer, "support@"+ topLevelDomain, affectedUser, subject, body);
 			newToken(affectedCustomer, affectedUser, newPassword, true);
 			// MAKE SURE OLD TOKEN FROM RESET GETS REMOVED -- THIS HAPPENS WITH ONLY 1 TOKEN
 		} else if (requestingCustomer.equals(affectedCustomer)) {
 			String newPassword = new BigInteger(130, random).toString(32);
-			StringData newToken = newToken(affectedCustomer, affectedUser, newPassword);
-			String link = SettingsManager.getClientSettings(requestingCustomer, "reset-pwd.password-reset-link");
-      String topLevelDomain = SettingsManager.getClientSettings(affectedCustomer, "reset-pwd.top-level-domain");
-
+			StringData newToken = newToken(affectedCustomer, affectedUser, newPassword, true);
+			String resetLink = String.format("https://%s/account.html?", DomainUtils.getRealDomain(domain));
+			
 			if (isGlobalReset != null && isGlobalReset.equals("true")){
-				link = String.format(sysSettings.getSetting("password-reset-link"), affectedCustomer);
+				resetLink = String.format(sysSettings.getSetting("password-reset-link"), affectedCustomer);
 			}
 			String newTokenEncoded = URLEncoder.encode(newToken.toRawString(), "UTF-8");
-			link += "username=" + affectedUser + "&token=" + newTokenEncoded + "&reset=true";
+			resetLink += "username=" + affectedUser + "&token=" + newTokenEncoded + "&reset=true";
 			String subject = "Password Reset Request";
-			String body = String.format(sysSettings.getSetting("password-reset-request"), link) + sysSettings.getSetting("password-reset-footer");
+			String body = String.format(sysSettings.getSetting("password-reset-request"), resetLink) + sysSettings.getSetting("password-reset-footer");
+		
 			sendEmail(affectedCustomer, "support@"+ topLevelDomain, affectedUser, subject, body);
 		} else {
 			return MessageData.INVALID_PERMISSIONS;
-		}
-		
+		}		
 		return MessageData.success();
 	}
 	
@@ -116,15 +118,15 @@ public class ResetUserOperation extends UserOperation {
 			Properties props = new Properties();
 			props.put("mail.transport.protocol", "smtp");
 			
-			String smtpHost = SettingsManager.getClientSettings(customerId, "reset-pwd.email-smtp-host");
-			String smtpPort = SettingsManager.getClientSettings(customerId, "reset-pwd.email-smtp-port");
+			String smtpHost = SettingsManager.getClientSettings(customerId, "user.email-smtp-host");
+			String smtpPort = SettingsManager.getClientSettings(customerId, "user.email-smtp-port");
 
 			props.put("mail.smtp.host", smtpHost);
 			props.put("mail.smtp.port", smtpPort);
 			props.put("mail.smtp.auth", "true");
 
-			String username = SettingsManager.getClientSettings(customerId, "reset-pwd.email-username");
-			String password = SettingsManager.getClientSettings(customerId, "reset-pwd.email-password");
+			String username = SettingsManager.getClientSettings(customerId, "user.email-username");
+			String password = SettingsManager.getClientSettings(customerId, "user.email-password");
 			Authenticator auth = new SMTPAuthenticator(username, password);
 			
 			Session mailSession = Session.getDefaultInstance(props, auth);
@@ -137,7 +139,6 @@ public class ResetUserOperation extends UserOperation {
 			BodyPart part1 = new MimeBodyPart();
 			part1.setText(body); // NOT HTML
 
-			//String bodyHtmlDecoded = WutDecoder.html(body);
 			String bodyHtmlDecoded = StringEscapeUtils.unescapeHtml4(body);
 			
 			BodyPart part2 = new MimeBodyPart();

@@ -10,7 +10,6 @@ import com.wut.model.map.MappedData;
 import com.wut.model.map.MessageData;
 import com.wut.model.scalar.StringData;
 import com.wut.support.ErrorHandler;
-import com.wut.support.domain.DomainUtils;
 
 public class SettingsManager {
 	private static final String APPLICATION = "core";
@@ -29,37 +28,37 @@ public class SettingsManager {
 		return setting;
 	}
 
-	public static Boolean initClientSettings(String domain) {
+	public static Boolean initClientSettings(String customerId) {
 		try {
+			// template
+			if (ADMIN_DOMAIN.contains(customerId)) {
+				setClientSettings(customerId, "template.git.repository", getSystemSetting("default.git.repository.admin"));
+			} else {
+				setClientSettings(customerId, "template.git.repository", getSystemSetting("default.git.repository.theme"));
+			}
+			
 			// payment
-			setClientSettings(domain, "payment-processor", "braintree");
+			setClientSettings(customerId, "payment.payment-processor", "braintree");
 
 			// email
-			setClientSettings(domain, "top-level-domain", DomainUtils.getTopLevelDomain(domain));
-			setClientSettings(domain, "email-domain", domain);
-			setClientSettings(domain, "email-from-address", "support@" + DomainUtils.getTopLevelDomain(domain));
-			setClientSettings(domain, "email-smtp-host", getSystemSetting("default.email-smtp-host"));
-			setClientSettings(domain, "email-smtp-port", getSystemSetting("default.email-smtp-port"));
-			setClientSettings(domain, "email-username", getSystemSetting("default.email-username"));
-			setClientSettings(domain, "email-password", getSystemSetting("default.email-password"));
-			setClientSettings(domain, "password-reset-link",
-					String.format("https://%s/account.html?", DomainUtils.getRealDomain(domain)));
-
-			// template
-			setClientSettings(domain, "git.branch", domain);
-			if (ADMIN_DOMAIN.contains(domain)) {
-				setClientSettings(domain, "git.repository", getSystemSetting("default.git.repository.admin"));
-			} else {
-				setClientSettings(domain, "git.repository", getSystemSetting("default.git.repository.theme"));
-			}
-			setClientSettings(domain, "client.code.dir", getSystemSetting("code.dir") + domain);
-			setClientSettings(domain, "client.site.dir", getSystemSetting("site.dir") + domain);
-
-			// analytic
-			setClientSettings(domain, "google-analytics-view", getSystemSetting("default.google-analytics-view"));
-
-			// cdn
-			setClientSettings(domain, "domain", domain);
+			setClientSettings(customerId, "email.email-smtp-host", getSystemSetting("default.email-smtp-host"));
+			setClientSettings(customerId, "email.email-smtp-port", getSystemSetting("default.email-smtp-port"));
+			setClientSettings(customerId, "email.email-username", getSystemSetting("default.email-username"));
+			setClientSettings(customerId, "email.email-password", getSystemSetting("default.email-password"));
+			
+			// user
+			setClientSettings(customerId, "user.email-smtp-host", getSystemSetting("default.email-smtp-host"));
+			setClientSettings(customerId, "user.email-smtp-port", getSystemSetting("default.email-smtp-port"));
+			setClientSettings(customerId, "user.email-username", getSystemSetting("default.email-username"));
+			setClientSettings(customerId, "user.email-password", getSystemSetting("default.email-password"));
+			
+			// init domain setting
+			setClientSettings(customerId, "template.domain", customerId);
+			setClientSettings(customerId, "email.domain", customerId);
+			setClientSettings(customerId, "user.domain", customerId);
+			setClientSettings(customerId, "dns.domain", customerId);
+			setClientSettings(customerId, "cdn.domain", customerId);
+			setClientSettings(customerId, "file.domain", customerId);
 		} catch (Exception e) {
 			ErrorHandler.systemError("init Clientsetting fail", e);
 			return false;
@@ -67,28 +66,24 @@ public class SettingsManager {
 		return true;
 	}
 
-	public static String getClientSettings(String customer, String settingName) {
-		return getClientSettings(customer, settingName, false);
-	}
-
-	/*
-	 * get from local storage only when setting field existed and client doesn't
-	 * require refreshSettings
+	/**
+	 * get from local storage only when setting field existed and client doesn't require refreshSettings
+	 * @param customer
+	 * @param settingName
+	 * @return
 	 */
-
-	public static String getClientSettings(String customer, String settingName, boolean refreshSettings) {
-		try {		
+	public static String getClientSettings(String customer, String settingName) {
+		try {	
 			MappedData clientSettings = clientSettingsMap.get(customer);
-			if (clientSettings != null && !refreshSettings) {
-				Data settingsData = clientSettings.get(settingName);
-				if (settingsData != null)
-					return ((StringData) settingsData).toString();
+			if ((clientSettings != null) && (clientSettings.get(settingName)!=null) ) {
+					return ((StringData) clientSettings.get(settingName)).toString();
 			}
 	
 			Data settingsData = settingsStore.read(customer, APPLICATION, settingName);
 			if (settingsData.equals(MessageData.NO_DATA_FOUND))
 				return "";
 	
+			// Update Map
 			if (clientSettings == null)
 				clientSettings = new MappedData();
 			clientSettings.put(settingName, settingsData);
@@ -100,11 +95,12 @@ public class SettingsManager {
 		}
 	}
 
+
 	public static synchronized Boolean setClientSettings(String customer, String settingName, String settingValue) {
 		try {
-			MappedData userData = new MappedData();
-			userData.put("value", new StringData(settingValue));
-			Map<String, String> settingDataPojo = userData.getMapAsPojo();
+			MappedData settingData = new MappedData();
+			settingData.put("value", new StringData(settingValue));
+			Map<String, String> settingDataPojo = settingData.getMapAsPojo();
 			Data result = settingsStore.update(customer, APPLICATION, settingName, settingDataPojo);
 			if (MessageData.SUCCESS.equals(result)) {
 				MappedData clientSettings = clientSettingsMap.get(customer);
@@ -223,11 +219,4 @@ public class SettingsManager {
 		toolExe.append(toolName); // tool executable
 		return toolExe.toString();
 	}
-
-	// /*
-	// * client = customer = domain
-	// */
-	// public static boolean isClientLoaded(String client) {
-	// return customers.contains(client);
-	// }
 }
