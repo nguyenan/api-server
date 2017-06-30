@@ -74,6 +74,11 @@ public class UsersResource extends CrudResource {
 	}
 	
 	@Override
+	public DeleteUserOperation getDeleteOperation() {
+		return new DeleteUserOperation(getSource());
+	}
+	
+	@Override
 	public ReadUserOperation getReadOperation() {
 		return new ReadUserOperation(getSource());
 	}
@@ -83,6 +88,7 @@ public class UsersResource extends CrudResource {
 		ArrayList<WutOperation> operationList = new ArrayList<WutOperation>();
 		operationList.add(getReadOperation());
 		operationList.add(getUpdateOperation());
+		operationList.add(getDeleteOperation());
 		operationList.add(new ResetPasswordOperation(getSource()));
 		operationList.add(getAuthenticateOperation());
 		operationList.add(getValidateTokenOperation());
