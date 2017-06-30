@@ -60,6 +60,8 @@ public class CFUtils {
 		JsonObject postData = new JsonObject();
 		postData.add("targets", targetsArr);
 		postData.add("actions", actionsArr);
+		if (rule.getPriority() > 0)
+		postData.addProperty("priority", rule.getPriority());
 		postData.addProperty("status", "active");
 		return postData;
 	}
@@ -76,7 +78,7 @@ public class CFUtils {
 		return String.format("%s/%s", API_ENDPOINT, zoneId);
 	}
 	public static String listRecordEndpoint(String zoneId) {
-		return String.format("%s/%s/dns_records?type=CNAME", API_ENDPOINT, zoneId);
+		return String.format("%s/%s/dns_records?per_page=100&type=CNAME", API_ENDPOINT, zoneId);
 	}
 
 	public static String detailRecordEndpoint(String zoneId, String recordId) {

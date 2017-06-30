@@ -12,6 +12,13 @@ public class PageRule {
 		this.urlPattern = urlPattern;
 		this.actions = actions;
 	}
+	public PageRule(String urlPattern, Action[] actions, Integer priority) {
+		super();
+		this.urlPattern = urlPattern;
+		this.actions = actions;
+		this.priority = 1;
+	}
+	 
 
 	String urlPattern;
 
@@ -21,6 +28,16 @@ public class PageRule {
 
 	public void setUrlPattern(String urlPattern) {
 		this.urlPattern = urlPattern;
+	}
+	
+	Integer priority = 0;
+
+	public Integer getPriority() {
+		return priority;
+	}
+
+	public void setPriority(Integer priority) {
+		this.priority = priority;
 	}
 
 	Action[] actions;
