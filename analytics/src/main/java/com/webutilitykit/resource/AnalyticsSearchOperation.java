@@ -27,7 +27,7 @@ public class AnalyticsSearchOperation extends AbstractOperation {
 	@Override
 	public Data perform(WutRequest request) throws Exception {
 		String customer = request.getCustomer();
-		StringData analyticsView = new StringData(SettingsManager.getCustomerSettings(customer, "google-analytics-view"));
+		StringData analyticsView = new StringData(SettingsManager.getClientSettings(customer, "google-analytics-view"));
 		ListData dimensions = request.getParameter("dimensions");
 		ListData metrics = request.getParameter("metrics");
 		StringData start = request.getParameter("start");

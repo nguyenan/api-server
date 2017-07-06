@@ -21,7 +21,7 @@ public class PurgeAllOperation extends ParameteredOperation {
 
 	@Override
 	public Data perform(WutRequest ri) throws Exception {
-		String customerDomain = SettingsManager.getCustomerSettings(ri.getCustomer(), "domain");
+		String customerDomain = SettingsManager.getClientSettings(ri.getCustomer(), "cdn.domain");
 		MessageData result = provider.purgeAll(customerDomain);
 		return result;
 	}

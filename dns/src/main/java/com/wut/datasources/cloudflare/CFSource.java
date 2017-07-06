@@ -9,13 +9,9 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
-import java.io.BufferedReader;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -25,7 +21,6 @@ import com.wut.model.map.MappedData;
 import com.wut.model.map.MessageData;
 import com.wut.model.message.ErrorData;
 import com.wut.model.scalar.IntegerData;
-import com.wut.model.scalar.ScalarData;
 import com.wut.model.scalar.StringData;
 import com.wut.support.domain.DomainUtils;
 import com.wut.support.settings.SettingsManager;
@@ -46,7 +41,15 @@ public class CFSource {
 	}
 
 	public Data createZone(String customerDomain) {
-		JsonArray nsArray = new JsonArray();
+		JsonArray nsArray = getZoneNameServer(DomainUtils.getTopLevelDomain(customerDomain));
+		if (nsArray != null && nsArray.size() == 2) { // already added
+			MappedData ret = new MappedData();
+			ret.put("ns1", nsArray.get(0).getAsString());
+			ret.put("ns2", nsArray.get(1).getAsString());
+			return ret;
+		}
+
+		// Create new zone
 		HttpPost postReq = new HttpPost(CFUtils.createZoneEndpoint());
 		CFUtils.setCFHeader(postReq, cloudflareAuth);
 
@@ -65,25 +68,12 @@ public class CFSource {
 
 		if (cfResponse.isSuccess()) {
 			JsonObject cfResult = (JsonObject) cfResponse.getCFReturn().get("result");
-			nsArray = (JsonArray) cfResult.get("name_servers");
 			zoneIds.put(DomainUtils.getTopLevelDomain(customerDomain), cfResult.get("id").getAsString());
 			updateSSL(customerDomain, "flexible");
-		} else {
-			JsonObject cfError = cfResponse.getError();
-			int errorCode = cfError.get("code").getAsInt();
-			switch (errorCode) {
-			case 1049: // this domain is not a registered domain
-				return ErrorData.INVALID_DOMAIN;
-			case 1061: // domain already exists
-			case 90: // already exists but CF mark as temporarily banned
-						// (perhaps because we tried to add too many times)
-				nsArray = getZoneNameServer(DomainUtils.getTopLevelDomain(customerDomain));
-			default:
-				break;
-			}
-		}
-		if (nsArray != null && nsArray.size() == 2) {
+
 			MappedData ret = new MappedData();
+			nsArray = null;
+			nsArray = (JsonArray) cfResult.get("name_servers");
 			ret.put("ns1", nsArray.get(0).getAsString());
 			ret.put("ns2", nsArray.get(1).getAsString());
 			return ret;
@@ -361,7 +351,6 @@ public class CFSource {
 			CFUtils.setCFHeader(postReq, cloudflareAuth);
 
 			JsonObject postData = CFUtils.setPageRulesData(rule);
-			System.out.println(postData.toString());
 			CFUtils.setBody(postReq, postData);
 
 			CFResponse cfResponse;
@@ -387,29 +376,37 @@ public class CFSource {
 
 	private List<PageRule> defaultPagerules(String customerDomain) {
 		List<PageRule> pagerules = new ArrayList<PageRule>();
-		
+		String topLevelDomain = DomainUtils.getTopLevelDomain(customerDomain);
 		// #1. Apply https
+		String URLPatternFrom1 = String.format("http://*%s/*", topLevelDomain);
+		String URLPatternTo1 = String.format("https://$1%s/$2", topLevelDomain);
+
 		MappedData fwToHttps = new MappedData();
-		fwToHttps.put("url", String.format("https://%s/$1", customerDomain));
+		fwToHttps.put("url", URLPatternTo1);
 		fwToHttps.put("status_code", new IntegerData(301));
+
 		Action httpsAction = new Action("forwarding_url", fwToHttps);
-		String URLPatternFrom = String.format("http://%s/*", customerDomain);
-		pagerules.add(new PageRule(URLPatternFrom, new Action[] { httpsAction }));
+		Integer priority = 1;
+		pagerules.add(new PageRule(URLPatternFrom1, new Action[] { httpsAction }, priority));
 
 		// #2. Add www
-		if (customerDomain.startsWith("www.")){
+		if (customerDomain.startsWith("www.")) {
+			String URLPatternFrom2 = String.format("https://%s/*", topLevelDomain);
+			String URLPatternTo2 = String.format("https://%s/$1", customerDomain);
+
 			MappedData fwTowww = new MappedData();
-			fwTowww.put("url", String.format("https://%s/$1", customerDomain));
+			fwTowww.put("url", URLPatternTo2);
 			fwTowww.put("status_code", new IntegerData(301));
+
 			Action fwAction = new Action("forwarding_url", fwTowww);
-			String URLPatternFrom2 = String.format("http://%s/*", normalizeDomain(customerDomain));
 			pagerules.add(new PageRule(URLPatternFrom2, new Action[] { fwAction }));
-		}		
+		}
 
 		// #3. Apply cache
-		Action cacheAction1 = new Action("browser_cache_ttl", new IntegerData(60 * 60 * 4));// 4 hours
+		Action cacheAction1 = new Action("browser_cache_ttl", new IntegerData(60 * 60 * 4));// 4
+																							// hours
 		Action cacheAction2 = new Action("cache_level", new StringData("cache_everything"));
-		String cacheURLPattern = String.format("https://%s/*", customerDomain);
+		String cacheURLPattern = String.format("https://*%s/*", topLevelDomain);
 		pagerules.add(new PageRule(cacheURLPattern, new Action[] { cacheAction1, cacheAction2 }));
 
 		return pagerules;

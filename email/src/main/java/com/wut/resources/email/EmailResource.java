@@ -1,5 +1,8 @@
 package com.wut.resources.email;
 
+import java.util.Arrays;
+import java.util.List;
+
 import com.wut.datasources.email.MailException;
 import com.wut.datasources.email.SendGridEmailer;
 import com.wut.model.Data;
@@ -20,6 +23,16 @@ public class EmailResource extends CrudResource {
 	@Override
 	public String getName() {
 		return "email";
+	}
+	
+	@Override
+	public List<String> getReadableSettings() {
+		return Arrays.asList(new String[]{"email.domain", "email.email-smtp-host", "email.email-smtp-port", "email.email-username"});
+	}
+	
+	@Override
+	public List<String> getWriteableSettings() {
+		return Arrays.asList(new String[]{"email.domain", "email.email-smtp-host", "email.email-smtp-port", "email.email-username", "email.email-password"});
 	}
 	
 	@Override
@@ -59,5 +72,4 @@ public class EmailResource extends CrudResource {
 	public Data delete(WutRequest ri) {
 		return MessageData.NOT_IMPLEMENTED;
 	}
-
-}
+	}

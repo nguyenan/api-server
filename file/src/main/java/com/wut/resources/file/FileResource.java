@@ -1,5 +1,8 @@
 package com.wut.resources.file;
 
+import java.util.Arrays;
+import java.util.List;
+
 import com.wut.datasources.aws.S3FileSource;
 import com.wut.model.Data;
 import com.wut.model.map.MessageData;
@@ -15,6 +18,7 @@ import com.wut.resources.common.MissingParameterException;
 import com.wut.support.Defaults;
 import com.wut.support.Language;
 import com.wut.support.domain.DomainUtils;
+import com.wut.support.settings.SettingsManager;
 
 public class FileResource extends CrudResource {
 	
@@ -36,6 +40,16 @@ public class FileResource extends CrudResource {
 		return "file";
 	}
 
+	@Override
+	public List<String> getReadableSettings() {
+		return Arrays.asList(new String[]{"file.domain"});
+	}
+	
+	@Override
+	public List<String> getWriteableSettings() {
+		return Arrays.asList(new String[]{"file.domain"});
+	}
+	
 	// TODO not using scope properly (USERS SHARE DATA!!!!)
 
 	@Override
@@ -69,9 +83,9 @@ public class FileResource extends CrudResource {
 	}
 	
 	private IdData getBucket(WutRequest request) {
-		String client = request.getCustomer();
-		//String realDomain = DomainUtils.getRealDomain(client);
-		return new IdData(client);
+		String customerDomain = SettingsManager.getClientSettings(request.getCustomer(), "file.domain");
+		//String realDomain = DomainUtils.getRealDomain(customerDomain);
+		return new IdData(customerDomain);
 	}
 	
 	private IdData getFolder(WutRequest request) throws MissingParameterException {

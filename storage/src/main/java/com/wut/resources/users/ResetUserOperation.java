@@ -34,13 +34,15 @@ import com.wut.pipeline.UserStore;
 import com.wut.pipeline.WutRequest;
 import com.wut.pipeline.WutRequestBuilder;
 import com.wut.support.Language;
+import com.wut.support.domain.DomainUtils;
 import com.wut.support.settings.SettingsManager;
 import com.wut.support.settings.SystemSettings;
 
 @SuppressWarnings("unused")
 public class ResetUserOperation extends UserOperation {
+	private static SystemSettings sysSettings = SystemSettings.getInstance();
 	private SecureRandom random = new SecureRandom();
-	//private Emailer emailer = new SendGridEmailer();
+	private static String adminCustomerId = SystemSettings.getInstance().getSetting("admin.customerid"); 
 
 	public ResetUserOperation(CrudSource source) {
 		super(source);
@@ -78,43 +80,36 @@ public class ResetUserOperation extends UserOperation {
 		boolean isForSameUser = affectedCustomer.equals(requestingCustomer) && affectedUser.equals(requestingUser);
 		boolean providedPassword = toPasswordData != null;
 		
+		String domain = SettingsManager.getClientSettings(affectedCustomer, "user.domain");
+		String topLevelDomain = DomainUtils.getTopLevelDomain(domain);
+		
 		String isGlobalReset =  ri.getOptionalParameterAsString("globalReset");
 		String isRefreshSettings =  ri.getOptionalParameterAsString("refreshSettings");
 		if ((isSuperAdmin || isDomainAdmin || isForSameUser) && providedPassword) {
 			String newPassword = toPasswordData.toRawString();
 			String subject = "Password Reset";
-			String body = "You password has been reset.<br><br>";
+			String body =  sysSettings.getSetting("password-reset-success") + sysSettings.getSetting("password-reset-footer");
 			
-			sendEmail(affectedCustomer, "support@"+affectedCustomer, affectedUser, subject, body);
-
-			newToken(affectedCustomer, affectedUser, newPassword);
-			
+			sendEmail(affectedCustomer, "support@"+ topLevelDomain, affectedUser, subject, body);
+			newToken(affectedCustomer, affectedUser, newPassword, true);
 			// MAKE SURE OLD TOKEN FROM RESET GETS REMOVED -- THIS HAPPENS WITH ONLY 1 TOKEN
-			String token = ri.getAuthenticationToken();
-			removeToken(ri.getAuthenticationToken());
 		} else if (requestingCustomer.equals(affectedCustomer)) {
 			String newPassword = new BigInteger(130, random).toString(32);
-			StringData newToken = newToken(affectedCustomer, affectedUser, newPassword);
-			String link = "";
-			if (isRefreshSettings != null && isRefreshSettings.equals("true")){
-				link = SettingsManager.getCustomerSettings(requestingCustomer, "password-reset-link", true);
-			}
-			else {
-				link = SettingsManager.getCustomerSettings(requestingCustomer, "password-reset-link");	
-			}
+			StringData newToken = newToken(affectedCustomer, affectedUser, newPassword, true);
+			String resetLink = String.format("https://%s/account.html?", DomainUtils.getRealDomain(domain));
+			
 			if (isGlobalReset != null && isGlobalReset.equals("true")){
-				link = String.format(SystemSettings.getInstance().getSetting("password-reset-link"), affectedCustomer);
+				resetLink = String.format(sysSettings.getSetting("password-reset-link"), affectedCustomer);
 			}
 			String newTokenEncoded = URLEncoder.encode(newToken.toRawString(), "UTF-8");
-			link += "username=" + affectedUser + "&token=" + newTokenEncoded + "&reset=true";
+			resetLink += "username=" + affectedUser + "&token=" + newTokenEncoded + "&reset=true";
 			String subject = "Password Reset Request";
-			String body = "We have received a request for your password to be reset. Click <a href=\"" + link + "\">here</a> to set your new password. If this request was not made by you, please ignore this email.<br><br>";
-			
-			sendEmail(affectedCustomer, "support@"+affectedCustomer, affectedUser, subject, body);
+			String body = String.format(sysSettings.getSetting("password-reset-request"), resetLink) + sysSettings.getSetting("password-reset-footer");
+		
+			sendEmail(affectedCustomer, "support@"+ topLevelDomain, affectedUser, subject, body);
 		} else {
 			return MessageData.INVALID_PERMISSIONS;
-		}
-		
+		}		
 		return MessageData.success();
 	}
 	
@@ -123,18 +118,15 @@ public class ResetUserOperation extends UserOperation {
 			Properties props = new Properties();
 			props.put("mail.transport.protocol", "smtp");
 			
-			String smtpHost = SettingsManager.getCustomerSettings(customerId, "email-smtp-host");
-			String smtpPort = SettingsManager.getCustomerSettings(customerId, "email-smtp-port");
+			String smtpHost = SettingsManager.getClientSettings(customerId, "user.email-smtp-host");
+			String smtpPort = SettingsManager.getClientSettings(customerId, "user.email-smtp-port");
 
 			props.put("mail.smtp.host", smtpHost);
 			props.put("mail.smtp.port", smtpPort);
 			props.put("mail.smtp.auth", "true");
 
-			String username = SettingsManager.getCustomerSettings(customerId, "email-username");
-			String password = SettingsManager.getCustomerSettings(customerId, "email-password");
-			
-			String topLevelDomain = SettingsManager.getCustomerSettings(customerId, "top-level-domain");
-			
+			String username = SettingsManager.getClientSettings(customerId, "user.email-username");
+			String password = SettingsManager.getClientSettings(customerId, "user.email-password");
 			Authenticator auth = new SMTPAuthenticator(username, password);
 			
 			Session mailSession = Session.getDefaultInstance(props, auth);
@@ -147,7 +139,6 @@ public class ResetUserOperation extends UserOperation {
 			BodyPart part1 = new MimeBodyPart();
 			part1.setText(body); // NOT HTML
 
-			//String bodyHtmlDecoded = WutDecoder.html(body);
 			String bodyHtmlDecoded = StringEscapeUtils.unescapeHtml4(body);
 			
 			BodyPart part2 = new MimeBodyPart();
@@ -207,12 +198,6 @@ public class ResetUserOperation extends UserOperation {
 		
 		resetOp.perform(r);
 		
-	}
-	
-	//		boolean isAdmin = requestingUser.equals("admin");
-	//boolean isFromRetailKit = requestingCustomer.equals("izkit");
-	//boolean isSuperAdmin = isAdmin && isFromRetailKit;
-	//return isSuperAdmin;
-	
+	}	
 }
 

@@ -16,67 +16,57 @@ public class SettingResource extends CrudResource {
 
 	private static final long serialVersionUID = 1210271770140843757L;
 
-	private static final List<String> POSSIBLE_READ_SETTINGS = Arrays.asList(new String[] {
-			// braintree
-			"braintree-mechant-id", "braintree-public-key",
-
-			// email
-			"email-from-address", "email-domain", "email-smtp-host", "email-smtp-port", "email-username",
-			"password-reset-link", "domain", "top-level-domain",
-			"theme" });
-	
-	private static final List<String> POSSIBLE_UPDATE_SETTINGS = Arrays.asList(new String[] {
-			// braintree
-			"braintree-mechant-id", "braintree-public-key", "braintree-private-key",
-
-			// email
-			"email-from-address", "email-domain", "email-smtp-host", "email-smtp-port", "email-username",
-			"email-password",
-			"theme" });
-
-
 	public SettingResource() {
 		// TODO pass a provider in here
 		super("setting", null);
 	}
+	
+	@Override
+	public List<String> getReadableSettings() {
+		return Arrays.asList(new String[]{"theme"});
+	}
+	
+	@Override
+	public List<String> getWriteableSettings() {
+		return Arrays.asList(new String[]{"theme"});
+	}
 
 	@Override
 	public Data read(WutRequest request) throws MissingParameterException {
-		String setting = request.getParameter("id").toString();
-		if (!POSSIBLE_READ_SETTINGS.contains(setting))
-			return ErrorMessage.INVALID_SETTING;
-
-		setting = (setting.equals("theme")) ? "git.branch" : setting;
 		String customer = request.getCustomer();
-		String settingValue = SettingsManager.getCustomerSettings(customer, setting);
-		if (settingValue.isEmpty()) {
+		String setting = request.getParameter("id").toString();
+		List<String> readableSettings = getReadableSettings();
+		if (!readableSettings.contains(setting))
 			return ErrorMessage.INVALID_SETTING;
-		} else { 
-			return new StringData(settingValue);
-		}
+		setting = (setting.equals("theme")) ? "template.git.branch" : setting;
+		String clientSettings = SettingsManager.getClientSettings(customer, setting);
+		if (clientSettings.isEmpty())
+			return MessageData.NO_DATA_FOUND;
+		return new StringData(clientSettings);
 	}
 
 	@Override
 	public Data update(WutRequest request) throws MissingParameterException {
+		String customer = request.getCustomer();
 		String setting = request.getParameter("id").toString();
 		String value = request.getParameter("value").toString();
-		if (!POSSIBLE_UPDATE_SETTINGS.contains(setting))
+		List<String> writeableSettings = getWriteableSettings();
+		if (!writeableSettings.contains(setting))
 			return ErrorMessage.INVALID_SETTING;
-
-		setting = (setting.equals("theme")) ? "git.branch" : setting;
-		String customer = request.getCustomer();
-		Boolean wasSucessful = SettingsManager.updateCustomerSettings(customer, setting, value);
-		return MessageData.successOrFailure(wasSucessful);
+		
+		setting = (setting.equals("theme")) ? "template.git.branch" : setting;
+		Boolean updateCustomerSettings = SettingsManager.setClientSettings(customer, setting, value);
+		return MessageData.successOrFailure(updateCustomerSettings);
 	}
 	
 	@Override
 	public Data create(WutRequest request) throws MissingParameterException {
 		String customerDomain = request.getCustomer();
-		Boolean wasSucessful = SettingsManager.createCustomerSettings(customerDomain);
+		Boolean wasSucessful = SettingsManager.initClientSettings(customerDomain);
 		return MessageData.successOrFailure(wasSucessful);
 	}
 	@Override
 	public Data delete(WutRequest request) throws MissingParameterException {
-		return null;		
+		return ErrorMessage.NOT_IMPLEMENTED;	
 	} 
 }

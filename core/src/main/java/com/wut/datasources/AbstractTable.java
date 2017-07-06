@@ -60,7 +60,7 @@ public abstract class AbstractTable implements TableSource {
 //	}
 
 	public BooleanData updateRow(IdData customer, IdData application, IdData tableId, IdData rowId, MappedData data) {
-		System.out.println("TABLE UPDATE " + tableId);
+		//System.out.println("TABLE UPDATE " + tableId);
 
 		data.put("_deleted_", "false");
 

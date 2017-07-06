@@ -14,12 +14,8 @@ import com.wut.resources.common.MissingParameterException;
 import com.wut.support.Defaults;
 import com.wut.support.StringHelper;
 import com.wut.support.SystemHelper;
-import com.wut.support.binary.StringUtils;
 import com.wut.support.fileio.WutFile;
 import com.wut.support.settings.SettingsManager;
-//import com.wut.threading.WutProcess;
-//import com.wut.threading.WutProcessExecuter;
-//import com.wut.threading.WutSystemCommandProcess;
 
 public abstract class TemplateOperation extends AbstractOperation {
 	
@@ -35,23 +31,18 @@ public abstract class TemplateOperation extends AbstractOperation {
 	
 	
 	protected String getClientCodeDirectory(WutRequest request) {
-		String customer = request.getCustomer();
-		String clientCodeDirectory = SettingsManager.getCustomerSettings(customer, "client.code.dir");
-		return clientCodeDirectory;
+		String customerId = request.getCustomer();
+		String domain = SettingsManager.getClientSettings(customerId, "template.domain");
+		return SettingsManager.getSystemSetting("code.dir") + domain;
 	}
 	
-	protected String getClientCodeDirectory(WutRequest request, boolean forceReload) {
-		String customer = request.getCustomer();
-		String clientCodeDirectory = SettingsManager.getCustomerSettings(customer, "client.code.dir", forceReload);
-		return clientCodeDirectory;
+	protected String getClientSiteDirectory(String customerId) {
+		String domain = SettingsManager.getClientSettings(customerId, "template.domain");
+		return SettingsManager.getSystemSetting("site.dir") + domain;
 	}
 	
 	// TODO rename pull out common code with getOutputDirectory()
-	private String getInputDirectory(WutRequest request) throws MissingParameterException {
-//		String customer = request.getCustomer();
-//		String clientCodeDirectory = SettingsManager.getCustomerSettings(customer, "client.code.dir");
-//		return clientCodeDirectory;
-		
+	private String getInputDirectory(WutRequest request) throws MissingParameterException {		
 		StringBuilder inputFolder = new StringBuilder();
 		
 //		String customer = request.getCustomer();
@@ -84,15 +75,15 @@ public abstract class TemplateOperation extends AbstractOperation {
 	protected boolean gitClone(WutRequest request) {
 		try {
 			String customer = request.getCustomer();
-			String clientCodeDirectory = getClientCodeDirectory(request, true);
+			String clientCodeDirectory = getClientCodeDirectory(request);
 			File clientCodeDirectoryFile = new File(clientCodeDirectory);
 			
 			String gitPath = getGitPath();
-	
+			if (!clientCodeDirectoryFile.exists())
+				clientCodeDirectoryFile.mkdirs();
 			if (clientCodeDirectoryFile.listFiles().length <= 0) {
-				// git clone https://rpalmite@bitbucket.org/jeremyroberts0/generated.git
-				String gitUrl = SettingsManager.getCustomerSettings(customer, "git.repository", true);
-				String gitBranch = SettingsManager.getCustomerSettings(customer, "git.branch");
+				String gitUrl = SettingsManager.getClientSettings(customer, "template.git.repository");
+				String gitBranch = SettingsManager.getClientSettings(customer, "template.git.branch");
 				SystemHelper.runCommand(clientCodeDirectory, gitPath, new String[] { "clone", "-b", gitBranch, gitUrl, "."}, null);
 				return true;
 			}
@@ -120,8 +111,8 @@ public abstract class TemplateOperation extends AbstractOperation {
 	private String getOutputDirectory(WutRequest request) throws MissingParameterException {
 		StringBuilder outputFolder = new StringBuilder();
 		
-		String customer = request.getCustomer();
-		String siteFolder = SettingsManager.getCustomerSettings(customer, "client.site.dir");
+		String customerId = request.getCustomer();
+		String siteFolder = getClientSiteDirectory(customerId);
 		outputFolder.append(siteFolder);
 		outputFolder.append("/");
 		
@@ -186,94 +177,6 @@ public abstract class TemplateOperation extends AbstractOperation {
 		}
 		return arguments;
 	}
-//	
-//	protected int generate(WutRequest request) throws MissingParameterException {
-//		String renderJsLocation = getRenderJsPath();
-//		//String renderJsLocation = "/Users/russell/git/webutilitykit/WutTools/mac/osx64/phantomjs/render.js"; // SettingsManager.getSystemSetting("renderjs.location"); //"render.js";
-//		//String outputFolder = getOutputDirectory(request);
-//		
-//		//String sitesDir = "/Users/russell/git/data" + "/sites"; //SettingsManager.getSystemSetting("sites.dir");
-//		//String clientSitesDir = sitesDir + "/" + customer;
-//		
-//	}
-	
-	
-//	protected int render(WutRequest request) throws MissingParameterException {
-//		
-//	}
-//	
-	
-//	protected void copy(WutRequest request) throws MissingParameterException {
-//		String renderJsLocation = getRenderJsPath();
-//
-//		//String renderJsLocation = "/Users/russell/git/webutilitykit/WutTools/mac/osx64/phantomjs/render.js"; // SettingsManager.getSystemSetting("renderjs.location"); //"render.js";
-//		//String outputFolder = getOutputDirectory(request);
-//		
-//		//String sitesDir = "/Users/russell/git/data" + "/sites"; //SettingsManager.getSystemSetting("sites.dir");
-//		//String clientSitesDir = sitesDir + "/" + customer;
-//		String pageLocation = getOutputFilePath(request);
-//		File page = new File(pageLocation);
-//		PrintStream pageStream;
-//		try {
-//			pageStream = new PrintStream(page);
-//		} catch (FileNotFoundException e) {
-//			throw new RuntimeException("Unable to open destination file");
-//		}
-//		
-//		String templateLocation = getInputFilePath(request);
-//		boolean doesTemplateExist = WutFile.exists(templateLocation);
-//		if (!doesTemplateExist) {
-//			throw new RuntimeException("input folder not found");
-//		}
-//		String templateLocationWithParams = templateLocation + "?" + getUrlParametersString(request);
-//		String[] arguments = new String[] { renderJsLocation, templateLocationWithParams };
-//		
-//		String phantomJsLocation = getPhantomJsPath();
-//		SystemHelper.runCommand(null, phantomJsLocation, arguments, pageStream);
-//	}
-	
-	
-
-//	@Override
-//	public Data perform(WutRequest request) throws Exception {
-//		//String application = request.getApplication();
-//		
-//
-//		// 2. GENERATE TEMPLATES TO TEMP DIR
-//		// generate to clients live directory
-//		
-//		// generate into folder // data / sites / <client> / <application>
-//		String templateName = request.getStringParameter("input"); // input
-//		String pageName = request.getStringParameter("output"); // output
-//		String urlParametersString = getUrlParametersString(request);
-//		
-//		//String templateLocation = clientTemplateDirectory + "/" + templateName + ".template";
-//		
-//		String templateLocation = clientCodeDirectory + "/" + templateName + "?" + urlParametersString;
-//		
-//		String renderJsLocation = getRenderJsPath();
-//
-//		//String renderJsLocation = "/Users/russell/git/webutilitykit/WutTools/mac/osx64/phantomjs/render.js"; // SettingsManager.getSystemSetting("renderjs.location"); //"render.js";
-//		String outputFolder = getOutputDirectory(request);
-//		
-//		//String sitesDir = "/Users/russell/git/data" + "/sites"; //SettingsManager.getSystemSetting("sites.dir");
-//		//String clientSitesDir = sitesDir + "/" + customer;
-//		String pageLocation = outputFolder + "/" + pageName ;
-//		File page = new File(pageLocation);
-//		PrintStream pageStream = new PrintStream(page);
-//		
-//		String[] arguments = new String[] { renderJsLocation, templateLocation };
-//		
-//		String phantomJsLocation = getPhantomJsPath();
-//		SystemHelper.runCommand(null, phantomJsLocation, arguments, pageStream);
-//		
-//		// 3. UPLOAD TEMPLATES TO APPROPRIATE LOCATIONS (Web Server & CDN)
-//		
-//		return MessageData.success();
-//		
-//		// when jetty loads, it will get client's storefront folder from
-//		// data / sites / <client> / storefront
-//	}
 
 	protected String getUrlParametersString(WutRequest request)
 			throws MissingParameterException {

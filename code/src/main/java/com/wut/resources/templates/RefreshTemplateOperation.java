@@ -6,10 +6,11 @@ import com.wut.model.Data;
 import com.wut.model.map.MessageData;
 import com.wut.pipeline.WutRequest;
 import com.wut.support.SystemHelper;
+import com.wut.support.logging.WutLogger;
 import com.wut.support.settings.SettingsManager;
 
 public class RefreshTemplateOperation extends TemplateOperation {
-
+	private static WutLogger logger = WutLogger.create(RefreshTemplateOperation.class);
 	@Override
 	public String getName() {
 		return "refresh";
@@ -20,13 +21,13 @@ public class RefreshTemplateOperation extends TemplateOperation {
 		//String application = request.getApplication();
 		String customer = request.getCustomer();
 		
-		String clientCodeDirectory = SettingsManager.getCustomerSettings(customer, "client.code.dir", true);
+		String clientCodeDirectory = getClientCodeDirectory(request);
 		
-		System.out.println("refreshing directory " + clientCodeDirectory);
+		logger.info("refreshing directory " + clientCodeDirectory);
 		File clientCodeDirectoryFile = new File(clientCodeDirectory);
 		
 		if (clientCodeDirectoryFile.listFiles() == null || clientCodeDirectoryFile.listFiles().length <= 0) {
-			return MessageData.error("client tempaltes not initialized " + clientCodeDirectory);
+			return MessageData.error("client templates not initialized " + clientCodeDirectory);
 		}
 		
 		String gitPath = SettingsManager.getSystemSetting("git.path");

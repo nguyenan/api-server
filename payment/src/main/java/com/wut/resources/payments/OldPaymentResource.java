@@ -110,7 +110,7 @@ public class OldPaymentResource extends ObsoleteCrudResource {
 	}
 
 	protected static PaymentProvider getPaymentProvider(String customer) {
-		String paymentProviderStr = SettingsManager.getCustomerSettings(
+		String paymentProviderStr = SettingsManager.getClientSettings(
 				customer, "payment-processor");
 		PaymentManager paymentManager = new PaymentManager();
 		PaymentProvider paymentProvider = paymentManager.getPaymentProcessor(

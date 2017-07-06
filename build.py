@@ -35,7 +35,7 @@ if (args.server is not None and args.server != ""):
 
 # NOTE: core must come first
 
-projects = ["core","email","storage","file","analytics","image","misc","help","search","payment","code","services","dns"]
+projects = ["core","email","storage","file","analytics","image","misc","help","search","payment","code","services","dns","cdn","user"]
 
 if (args.project is not None and args.project != ""):
 	projects = [args.project]
@@ -107,7 +107,7 @@ if (args.build):
 	#		warLocation = project+"/target/"+project+".war"
 
 	# docker build
-	call(["docker", "build", "-t", "rpalmite/webutilitykit", "build"])	
+	call(["docker", "build", "-t", "tendsell/api7", "build"])	
        	
 	print "removing war files..." 
 	call(["rm", "-rf", "build/webapps/*"])
@@ -118,12 +118,12 @@ if (args.build):
 
 if (args.deploy):
 	print "deploying docker container to dockerhub..."
-	containerId = subprocess.Popen(["docker", "images", "-q", "rpalmite/webutilitykit"], stdout=subprocess.PIPE).communicate()[0].rstrip()
+	containerId = subprocess.Popen(["docker", "images", "-q", "tendsell/api7"], stdout=subprocess.PIPE).communicate()[0].rstrip()
 	#//containerId = subprocess.Popen(["docker", "ps", "-l", "-q"], stdout=subprocess.PIPE).communicate()[0]
 	call(["echo", "running " + containerId + "..."])
         call(["docker", "run", "-d", "-p", "80:8080", "-p", "443:8443", "--name", "api", containerId])
-	call(["docker", "commit", "api", "rpalmite/webutilitykit"])		
-        call(["docker", "push", "rpalmite/webutilitykit"])		
+	call(["docker", "commit", "api", "tendsell/api7"])		
+        call(["docker", "push", "tendsell/api7"])		
 	
 	# clean up # todo -- this can go after commit before push
 	call(["docker", "kill", "api"])

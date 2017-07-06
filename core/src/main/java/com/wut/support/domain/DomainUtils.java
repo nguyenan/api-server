@@ -10,6 +10,8 @@ public class DomainUtils {
 	}
 	
 	public static String getTopLevelDomain(String domain) {
+		if (domain.isEmpty())
+			return "";
 		if (domain.indexOf('.') == domain.lastIndexOf('.')) {
 			return domain;
 		} else {

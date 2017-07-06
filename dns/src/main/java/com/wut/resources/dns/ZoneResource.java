@@ -1,5 +1,8 @@
 package com.wut.resources.dns;
 
+import java.util.Arrays;
+import java.util.List;
+
 import com.wut.datasources.cloudflare.CFSource;
 import com.wut.model.Data;
 import com.wut.model.map.MessageData;
@@ -7,6 +10,7 @@ import com.wut.pipeline.WutRequest;
 import com.wut.provider.dns.DNSProvider;
 import com.wut.resources.common.CrudResource;
 import com.wut.resources.common.ResourceGroupAnnotation;
+import com.wut.support.settings.SettingsManager;
 
 @ResourceGroupAnnotation(name = "zone", group = "dns", desc = "add zone")
 public class ZoneResource extends CrudResource {
@@ -21,10 +25,24 @@ public class ZoneResource extends CrudResource {
 	public String getName() {
 		return "zone";
 	}
+	
+	@Override
+	public List<String> getReadableSettings() {
+		return Arrays.asList(new String[]{"dns.domain"});
+	}
+	
+	@Override
+	public List<String> getWriteableSettings() {
+		return Arrays.asList(new String[]{"dns.domain"});
+	}
+	
 
 	@Override
 	public Data create(WutRequest ri) {
-		String customerDomain = ri.getCustomer();
+		String customerId = ri.getCustomer();
+		String customerDomain = SettingsManager.getClientSettings(customerId, "dns.domain");
+		String domain = ri.getOptionalParameterAsString("domain");
+		customerDomain = (domain != null && !domain.isEmpty()) ? domain : customerDomain;
 		return provider.createZone(customerDomain);
 	}
 
@@ -41,7 +59,10 @@ public class ZoneResource extends CrudResource {
 
 	@Override
 	public Data delete(WutRequest ri) {
-		String customerDomain = ri.getCustomer();
+		String customerId = ri.getCustomer();
+		String customerDomain = SettingsManager.getClientSettings(customerId, "dns.domain");
+		String domain = ri.getOptionalParameterAsString("domain");
+		customerDomain = (domain != null && !domain.isEmpty()) ? domain : customerDomain;
 		return provider.deleteZone(customerDomain);
 	}
 

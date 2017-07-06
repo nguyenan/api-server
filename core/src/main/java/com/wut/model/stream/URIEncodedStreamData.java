@@ -1,17 +1,11 @@
 package com.wut.model.stream;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-
-import com.wut.model.scalar.UriEncodedData;
-import com.wut.support.binary.Base64;
 
 public class URIEncodedStreamData extends com.wut.model.stream.StreamData {
 	private InputStream is;

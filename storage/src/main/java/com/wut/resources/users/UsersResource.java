@@ -1,8 +1,10 @@
 package com.wut.resources.users;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.wut.pipeline.Authenticator;
@@ -18,6 +20,16 @@ public class UsersResource extends CrudResource {
 
 	public UsersResource() {
 		super("user", userStore);
+	}
+	
+	@Override
+	public List<String> getReadableSettings() {
+		return Arrays.asList(new String[]{"user.email-smtp-host", "user.email-smtp-port", "user.email-username", "user.domain"});
+	}
+	
+	@Override
+	public List<String> getWriteableSettings() {
+		return Arrays.asList(new String[]{"user.email-smtp-host", "user.email-smtp-port", "user.email-username", "user.email-password", "user.domain"});
 	}
 
 	@Override
@@ -46,11 +58,7 @@ public class UsersResource extends CrudResource {
 				newUser.put("username", userId);
 				newUser.put("password", password);
 				newUser.put("token", token);
-				String key = Authenticator.getUserId(customer, userId);
-				
-				//AuthenticationHelper helper;
-				//Authenticator.update(user);
-				//userStore.update(key, newUser);
+				String key = Authenticator.getUserId(customer, userId);				
 			} catch (Exception e) {
 				ErrorHandler.systemError(e, "failed to initialize default user " + userId);
 			}
@@ -77,6 +85,11 @@ public class UsersResource extends CrudResource {
 	}
 	
 	@Override
+	public DeleteUserOperation getDeleteOperation() {
+		return new DeleteUserOperation(getSource());
+	}
+	
+	@Override
 	public ReadUserOperation getReadOperation() {
 		return new ReadUserOperation(getSource());
 	}
@@ -86,9 +99,13 @@ public class UsersResource extends CrudResource {
 		ArrayList<WutOperation> operationList = new ArrayList<WutOperation>();
 		operationList.add(getReadOperation());
 		operationList.add(getUpdateOperation());
+		operationList.add(getDeleteOperation());
 		operationList.add(new ResetUserOperation(getSource()));
+		operationList.add(new UpdateListCustomerOperation(getSource()));
 		operationList.add(getAuthenticateOperation());
 		operationList.add(getValidateTokenOperation());
+		operationList.add(new GetSettingOperation());
+		operationList.add(new SetSettingOperation());
 		operationList.add(getPingOperation());
 		return operationList;
 	}
