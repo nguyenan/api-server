@@ -22,11 +22,12 @@ public abstract class TemplateOperation extends AbstractOperation {
 	public TemplateOperation() {
 		super("override getName()");
 	}
-
-	protected boolean isClientInputDirectoryInitialized(WutRequest request) {
+	
+	protected boolean isClientInputDirectoryNotInitialized(WutRequest request) {
 		String clientCodeDirectory = getClientCodeDirectory(request);
 		File clientCodeDirectoryFile = new File(clientCodeDirectory);
-		return clientCodeDirectoryFile.listFiles() != null && clientCodeDirectoryFile.listFiles().length <= 0;
+		return (!clientCodeDirectoryFile.exists());
+		//return clientCodeDirectoryFile.listFiles() != null && clientCodeDirectoryFile.listFiles().length <= 0;
 	}
 	
 	
@@ -45,7 +46,6 @@ public abstract class TemplateOperation extends AbstractOperation {
 	private String getInputDirectory(WutRequest request) throws MissingParameterException {		
 		StringBuilder inputFolder = new StringBuilder();
 		
-//		String customer = request.getCustomer();
 		String clientCodeDirectory = getClientCodeDirectory(request);
 		inputFolder.append(clientCodeDirectory);
 		inputFolder.append("/");

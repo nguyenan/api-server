@@ -16,7 +16,7 @@ public class CopyTemplateOperation extends TemplateOperation {
 	@Override
 	public Data perform(WutRequest request) throws Exception {
 		
-		if (isClientInputDirectoryInitialized(request)) {
+		if (isClientInputDirectoryNotInitialized(request)) {
 			return ErrorData.NOT_INITIALIZED;
 		}
 		

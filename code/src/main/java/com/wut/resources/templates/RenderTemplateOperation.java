@@ -26,10 +26,13 @@ public class RenderTemplateOperation extends TemplateOperation {
 //		ProtectionDomain protectionDomain = Start.class.getProtectionDomain();
 //	    URL location = protectionDomain.getCodeSource().getLocation();
 //	    context.setWar(location.toExternalForm());
+		if (isClientInputDirectoryNotInitialized(request)) {
+			gitClone(request);
+		}
 		
-		if (isClientInputDirectoryInitialized(request)) {
+		if (isClientInputDirectoryNotInitialized(request)) {
 			//return new StringData(getRenderJsPath() + " == " + getPhantomJsPath());
-			return MessageData.error("client tempaltes not initialized. " + "render:"+getRenderJsPath() + " phantom:" + getPhantomJsPath());
+			return MessageData.error("client templates not initialized. " + "render:"+getRenderJsPath() + " phantom:" + getPhantomJsPath());
 		}
 		
 		String renderJsLocation = getRenderJsPath();
