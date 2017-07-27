@@ -13,7 +13,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.wut.model.map.MessageData;
 
-public class CFUtils {
+public class CloudFlareUtils {
 	public static String API_ENDPOINT = "https://api.cloudflare.com/client/v4/zones";
 
 	public static JsonObject setCreateZoneData(String domain) {
@@ -66,8 +66,8 @@ public class CFUtils {
 		return postData;
 	}
 
-	public static String listZoneEndpoint() {
-		return String.format("%s?per_page=200", API_ENDPOINT);
+	public static String listZoneEndpoint(int page) {
+		return String.format("%s?per_page=50&page=%d", API_ENDPOINT, page);
 	}
 
 	public static String createZoneEndpoint() {
@@ -77,8 +77,8 @@ public class CFUtils {
 	public static String deleteZoneEndpoint(String zoneId) {
 		return String.format("%s/%s", API_ENDPOINT, zoneId);
 	}
-	public static String listRecordEndpoint(String zoneId) {
-		return String.format("%s/%s/dns_records?per_page=100&type=CNAME", API_ENDPOINT, zoneId);
+	public static String listRecordEndpoint(String zoneId, int page) {
+		return String.format("%s/%s/dns_records?per_page=100&page=%d&type=CNAME", API_ENDPOINT, zoneId, page);
 	}
 
 	public static String detailRecordEndpoint(String zoneId, String recordId) {
@@ -101,7 +101,7 @@ public class CFUtils {
 		return String.format("%s/%s/pagerules", API_ENDPOINT, zoneId);
 	}
 
-	public static void setCFHeader(HttpRequestBase req, CFAuth cloudflareAuth) {
+	public static void setCFHeader(HttpRequestBase req, CloudFlareAuth cloudflareAuth) {
 		req.setHeader("X-Auth-Email", cloudflareAuth.getEmail());
 		req.setHeader("X-Auth-Key", cloudflareAuth.getKey());
 		req.setHeader("Content-Type", "application/json");

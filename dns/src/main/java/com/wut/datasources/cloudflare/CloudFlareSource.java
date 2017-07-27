@@ -23,26 +23,28 @@ import com.wut.model.message.ErrorData;
 import com.wut.model.scalar.IntegerData;
 import com.wut.model.scalar.StringData;
 import com.wut.support.domain.DomainUtils;
+import com.wut.support.logging.WutLogger;
 import com.wut.support.settings.SettingsManager;
 
-public class CFSource {
-	private static CFAuth cloudflareAuth;
+public class CloudFlareSource {
+	private static CloudFlareAuth cloudflareAuth;
 
 	private static final String CF_KEY = SettingsManager.getSystemSetting("cloudflare.api.secretkey");
 	private static final String CF_EMAIL = SettingsManager.getSystemSetting("cloudflare.api.email");
+	private static WutLogger logger = WutLogger.create(CloudFlareSource.class);
 	private Map<String, String> zoneIds = new HashMap<String, String>();
 
-	public CFSource() {
-		cloudflareAuth = new CFAuth(CF_KEY, CF_EMAIL);
+	public CloudFlareSource() {
+		cloudflareAuth = new CloudFlareAuth(CF_KEY, CF_EMAIL);
 	}
 
-	public CFSource(String key, String email) {
-		cloudflareAuth = new CFAuth(key, email);
+	public CloudFlareSource(String key, String email) {
+		cloudflareAuth = new CloudFlareAuth(key, email);
 	}
 
 	public Data createZone(String customerDomain) {
-		JsonArray nsArray = getZoneNameServer(DomainUtils.getTopLevelDomain(customerDomain));
-		if (nsArray != null && nsArray.size() == 2) { // already added
+		JsonArray nsArray = getZoneNameServer(customerDomain);
+		if (nsArray != null && nsArray.size() == 2) { // zone was created
 			MappedData ret = new MappedData();
 			ret.put("ns1", nsArray.get(0).getAsString());
 			ret.put("ns2", nsArray.get(1).getAsString());
@@ -50,50 +52,49 @@ public class CFSource {
 		}
 
 		// Create new zone
-		HttpPost postReq = new HttpPost(CFUtils.createZoneEndpoint());
-		CFUtils.setCFHeader(postReq, cloudflareAuth);
+		HttpPost postReq = new HttpPost(CloudFlareUtils.createZoneEndpoint());
+		JsonObject postData = CloudFlareUtils.setCreateZoneData(DomainUtils.getTopLevelDomain(customerDomain));
+		CloudFlareUtils.setCFHeader(postReq, cloudflareAuth);
+		CloudFlareUtils.setBody(postReq, postData);
 
-		JsonObject postData = CFUtils.setCreateZoneData(DomainUtils.getTopLevelDomain(customerDomain));
-		CFUtils.setBody(postReq, postData);
-
-		CFResponse cfResponse;
+		CloudFlareResponse cfResponse;
 		try {
 			CloseableHttpClient client = HttpClients.createDefault();
 			CloseableHttpResponse response = client.execute(postReq);
-			cfResponse = new CFResponse(response);
+			cfResponse = new CloudFlareResponse(response);
 		} catch (IOException e) {
 			e.printStackTrace();
 			return MessageData.error(e);
 		}
 
-		if (cfResponse.isSuccess()) {
-			JsonObject cfResult = (JsonObject) cfResponse.getCFReturn().get("result");
-			zoneIds.put(DomainUtils.getTopLevelDomain(customerDomain), cfResult.get("id").getAsString());
-			updateSSL(customerDomain, "flexible");
-
-			MappedData ret = new MappedData();
-			nsArray = null;
-			nsArray = (JsonArray) cfResult.get("name_servers");
-			ret.put("ns1", nsArray.get(0).getAsString());
-			ret.put("ns2", nsArray.get(1).getAsString());
-			return ret;
-		} else {
+		if (!cfResponse.isSuccess()) {
 			JsonObject cfError = cfResponse.getError();
-			return CFUtils.returnCFMessage(cfError);
+			return CloudFlareUtils.returnCFMessage(cfError);
 		}
+		JsonObject cfResult = (JsonObject) cfResponse.getResult().get("result");
+		zoneIds.put(DomainUtils.getTopLevelDomain(customerDomain), cfResult.get("id").getAsString());
+		updateSSL(customerDomain, "flexible");
+
+		MappedData ret = new MappedData();
+		nsArray = null;
+		nsArray = (JsonArray) cfResult.get("name_servers");
+		ret.put("ns1", nsArray.get(0).getAsString());
+		ret.put("ns2", nsArray.get(1).getAsString());
+		return ret;
+
 	}
 
 	public Data deleteZone(String customerDomain) {
 		String zoneId = getZoneId(customerDomain);
 
-		HttpDeleteWithBody deleteReq = new HttpDeleteWithBody(CFUtils.deleteZoneEndpoint(zoneId));
-		CFUtils.setCFHeader(deleteReq, cloudflareAuth);
+		HttpDeleteWithBody deleteReq = new HttpDeleteWithBody(CloudFlareUtils.deleteZoneEndpoint(zoneId));
+		CloudFlareUtils.setCFHeader(deleteReq, cloudflareAuth);
 
-		CFResponse cfResponse;
+		CloudFlareResponse cfResponse;
 		try {
 			CloseableHttpClient client = HttpClients.createDefault();
 			CloseableHttpResponse response = client.execute(deleteReq);
-			cfResponse = new CFResponse(response);
+			cfResponse = new CloudFlareResponse(response);
 		} catch (IOException e) {
 			e.printStackTrace();
 			return MessageData.error(e);
@@ -103,93 +104,102 @@ public class CFSource {
 			return MessageData.success();
 		} else {
 			JsonObject cfError = cfResponse.getError();
-			return CFUtils.returnCFMessage(cfError);
+			return CloudFlareUtils.returnCFMessage(cfError);
 		}
+	}
+
+	public JsonObject getZone(String customerDomain) {
+		String topLevelDomain = DomainUtils.getTopLevelDomain(customerDomain);
+		int currentPage = 0;
+		int totalPages = 0;
+		do {
+			currentPage++;
+			HttpGet getReq = new HttpGet(CloudFlareUtils.listZoneEndpoint(currentPage));
+			CloudFlareUtils.setCFHeader(getReq, cloudflareAuth);
+
+			CloudFlareResponse cfResponse;
+			try {
+				CloseableHttpClient client = HttpClients.createDefault();
+				CloseableHttpResponse response = client.execute(getReq);
+				cfResponse = new CloudFlareResponse(response);
+			} catch (IOException e) {
+				e.printStackTrace();
+				return null;
+			}
+
+			if (!cfResponse.isSuccess()) {
+				logger.error(cfResponse.getError().toString());
+				return null;
+			}
+
+			JsonArray cfResult = (JsonArray) cfResponse.getResult().get("result");
+			for (Object zone : cfResult) {
+				if (zone instanceof JsonObject) {
+					JsonObject item = (JsonObject) zone;
+					// System.out.println(item.get("name").getAsString());
+					if (topLevelDomain.equals(item.get("name").getAsString())) {
+						return item;
+					}
+				}
+			}
+			JsonObject cfResultInfo = (JsonObject) cfResponse.getResult().get("result_info");
+			totalPages = getInt(cfResultInfo, "total_pages");
+		} while (currentPage < totalPages);
+
+		return null;
+	}
+
+	public Integer getInt(JsonObject obj, String key) {
+		JsonElement jsonElement = obj.get("total_pages");
+		if (jsonElement != null)
+			return Integer.parseInt(jsonElement.toString());
+		return -1;
 	}
 
 	public JsonArray getZoneNameServer(String customerDomain) {
-		HttpGet getReq = new HttpGet(CFUtils.listZoneEndpoint());
-		CFUtils.setCFHeader(getReq, cloudflareAuth);
-
-		CFResponse cfResponse;
-		try {
-			CloseableHttpClient client = HttpClients.createDefault();
-			CloseableHttpResponse response = client.execute(getReq);
-			cfResponse = new CFResponse(response);
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
-		}
-
-		if (cfResponse.isSuccess()) {
-			JsonArray cfResult = (JsonArray) cfResponse.getCFReturn().get("result");
-			for (Object zone : cfResult) {
-				if (zone instanceof JsonObject) {
-					JsonObject item = (JsonObject) zone;
-					if (DomainUtils.getTopLevelDomain(customerDomain).equals(item.get("name").getAsString())) {
-						return (JsonArray) item.get("name_servers");
-					}
-				}
-			}
-			return null;
-		} else {
-			System.out.println(cfResponse.getError().toString());
-			return null;
-		}
+		JsonObject zone = getZone(customerDomain);
+		if (zone != null)
+			return (JsonArray) zone.get("name_servers");
+		return null;
 	}
 
 	public String getZoneId(String customerDomain) {
-		if (zoneIds.containsKey(DomainUtils.getTopLevelDomain(customerDomain))) {
-			System.out.println("existed");
-			return zoneIds.get(DomainUtils.getTopLevelDomain(customerDomain));
+		String topLevelDomain = DomainUtils.getTopLevelDomain(customerDomain);
+		if (zoneIds.containsKey(topLevelDomain)) {
+			return zoneIds.get(topLevelDomain);
 		}
-		HttpGet getReq = new HttpGet(CFUtils.listZoneEndpoint());
-		CFUtils.setCFHeader(getReq, cloudflareAuth);
-
-		CFResponse cfResponse;
-		try {
-			CloseableHttpClient client = HttpClients.createDefault();
-			CloseableHttpResponse response = client.execute(getReq);
-			cfResponse = new CFResponse(response);
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
+		JsonObject zone = getZone(customerDomain);
+		if (zone != null) {
+			zoneIds.put(topLevelDomain, zone.get("id").getAsString());
+			return zone.get("id").getAsString();
 		}
-
-		if (cfResponse.isSuccess()) {
-			JsonArray cfResult = (JsonArray) cfResponse.getCFReturn().get("result");
-			for (Object zone : cfResult) {
-				if (zone instanceof JsonObject) {
-					JsonObject item = (JsonObject) zone;
-					if (DomainUtils.getTopLevelDomain(customerDomain).equals(item.get("name").getAsString())) {
-						zoneIds.put(DomainUtils.getTopLevelDomain(customerDomain), item.get("id").getAsString());
-						return item.get("id").getAsString();
-					}
-				}
-			}
-			return null;
-		} else {
-			System.out.println(cfResponse.getError().toString());
-			return null;
-		}
+		return null;
 	}
 
 	public String getRecordId(String zoneID, String customerDomain, String recordName) {
-		HttpGet getReq = new HttpGet(CFUtils.listRecordEndpoint(zoneID));
-		CFUtils.setCFHeader(getReq, cloudflareAuth);
+		int currentPage = 0;
+		int totalPages = 0;
+		do {
+			currentPage++;
+			HttpGet getReq = new HttpGet(CloudFlareUtils.listRecordEndpoint(zoneID, currentPage));
+			CloudFlareUtils.setCFHeader(getReq, cloudflareAuth);
 
-		CFResponse cfResponse;
-		try {
-			CloseableHttpClient client = HttpClients.createDefault();
-			CloseableHttpResponse response = client.execute(getReq);
-			cfResponse = new CFResponse(response);
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
-		}
+			CloudFlareResponse cfResponse;
+			System.out.println(getReq.toString());
+			try {
+				CloseableHttpClient client = HttpClients.createDefault();
+				CloseableHttpResponse response = client.execute(getReq);
+				cfResponse = new CloudFlareResponse(response);
+			} catch (IOException e) {
+				e.printStackTrace();
+				return null;
+			}
 
-		if (cfResponse.isSuccess()) {
-			JsonArray cfResult = (JsonArray) cfResponse.getCFReturn().get("result");
+			if (!cfResponse.isSuccess()) {
+				logger.error(cfResponse.getError().toString());
+				return null;
+			}
+			JsonArray cfResult = (JsonArray) cfResponse.getResult().get("result");
 			for (Object zone : cfResult) {
 				if (zone instanceof JsonObject) {
 					JsonObject item = (JsonObject) zone;
@@ -199,59 +209,63 @@ public class CFSource {
 					}
 				}
 			}
-			return null;
-		} else {
-			System.out.println(cfResponse.getError().toString());
-			return null;
-		}
+			JsonObject cfResultInfo = (JsonObject) cfResponse.getResult().get("result_info");
+			totalPages = getInt(cfResultInfo, "total_pages");
+		} while (currentPage < totalPages);
+
+		return null;
 	}
 
 	public Data getRecordDetails(String customerDomain, String recordName) {
 		String zoneId = getZoneId(customerDomain);
+		if (zoneId == null)
+			return ErrorData.ZONE_NOT_FOUND;
+
 		String recordId = getRecordId(zoneId, customerDomain, recordName);
+		if (recordId == null)
+			return ErrorData.RECORD_NOT_FOUND;
 
-		HttpGet getReq = new HttpGet(CFUtils.detailRecordEndpoint(zoneId, recordId));
-		CFUtils.setCFHeader(getReq, cloudflareAuth);
+		HttpGet getReq = new HttpGet(CloudFlareUtils.detailRecordEndpoint(zoneId, recordId));
+		CloudFlareUtils.setCFHeader(getReq, cloudflareAuth);
 
-		CFResponse cfResponse;
+		CloudFlareResponse cfResponse;
 		try {
 			CloseableHttpClient client = HttpClients.createDefault();
 			CloseableHttpResponse response = client.execute(getReq);
-			cfResponse = new CFResponse(response);
+			cfResponse = new CloudFlareResponse(response);
 		} catch (IOException e) {
 			e.printStackTrace();
 			return MessageData.error(e);
 		}
 
-		if (cfResponse.isSuccess()) {
-			MappedData ret = new MappedData();
-			JsonObject cfResult = (JsonObject) cfResponse.getCFReturn().get("result");
-			for (Entry<String, JsonElement> entry : cfResult.entrySet()) {
-				if (!entry.getValue().isJsonObject()) {
-					ret.put(entry.getKey().toString(), entry.getValue().getAsString());
-				}
-			}
-			return ret;
-		} else {
+		if (!cfResponse.isSuccess()) {
 			JsonObject cfError = cfResponse.getError();
-			return CFUtils.returnCFMessage(cfError);
+			return CloudFlareUtils.returnCFMessage(cfError);
 		}
+		MappedData ret = new MappedData();
+		JsonObject cfResult = (JsonObject) cfResponse.getResult().get("result");
+		for (Entry<String, JsonElement> entry : cfResult.entrySet()) {
+			if (!entry.getValue().isJsonObject()) {
+				ret.put(entry.getKey().toString(), entry.getValue().getAsString());
+			}
+		}
+		return ret;
 	}
 
 	public Data createRecord(String customerDomain, String recordName, String content) {
 		String zoneId = getZoneId(customerDomain);
 
-		HttpPost postReq = new HttpPost(CFUtils.createRecordEndpoint(zoneId));
-		CFUtils.setCFHeader(postReq, cloudflareAuth);
+		HttpPost postReq = new HttpPost(CloudFlareUtils.createRecordEndpoint(zoneId));
+		CloudFlareUtils.setCFHeader(postReq, cloudflareAuth);
 
-		JsonObject postData = CFUtils.setRecordData(recordName, content);
-		CFUtils.setBody(postReq, postData);
+		JsonObject postData = CloudFlareUtils.setRecordData(recordName, content);
+		CloudFlareUtils.setBody(postReq, postData);
 
-		CFResponse cfResponse;
+		CloudFlareResponse cfResponse;
 		try {
 			CloseableHttpClient client = HttpClients.createDefault();
 			CloseableHttpResponse response = client.execute(postReq);
-			cfResponse = new CFResponse(response);
+			cfResponse = new CloudFlareResponse(response);
 		} catch (IOException e) {
 			e.printStackTrace();
 			return MessageData.error(e);
@@ -276,25 +290,30 @@ public class CFSource {
 		case 1004:
 			return ErrorData.RECORD_INVALID;
 		default:
-			return CFUtils.returnCFMessage(cfError);
+			return CloudFlareUtils.returnCFMessage(cfError);
 		}
 	}
 
 	public Data updateRecord(String customerDomain, String recordName, String content) {
 		String zoneId = getZoneId(customerDomain);
+		if (zoneId == null)
+			return ErrorData.ZONE_NOT_FOUND;
+
 		String recordId = getRecordId(zoneId, customerDomain, recordName);
+		if (recordId == null)
+			return ErrorData.RECORD_NOT_FOUND;
 
-		HttpPutWithBody putReq = new HttpPutWithBody(CFUtils.updateRecordEndpoint(zoneId, recordId));
-		CFUtils.setCFHeader(putReq, cloudflareAuth);
+		HttpPutWithBody putReq = new HttpPutWithBody(CloudFlareUtils.updateRecordEndpoint(zoneId, recordId));
+		CloudFlareUtils.setCFHeader(putReq, cloudflareAuth);
 
-		JsonObject postData = CFUtils.setRecordData(recordName, content);
-		CFUtils.setBody(putReq, postData);
+		JsonObject postData = CloudFlareUtils.setRecordData(recordName, content);
+		CloudFlareUtils.setBody(putReq, postData);
 
-		CFResponse cfResponse;
+		CloudFlareResponse cfResponse;
 		try {
 			CloseableHttpClient client = HttpClients.createDefault();
 			CloseableHttpResponse response = client.execute(putReq);
-			cfResponse = new CFResponse(response);
+			cfResponse = new CloudFlareResponse(response);
 		} catch (IOException e) {
 			e.printStackTrace();
 			return MessageData.error(e);
@@ -310,7 +329,7 @@ public class CFSource {
 			return MessageData.success();
 		} else {
 			JsonObject cfError = cfResponse.getError();
-			return CFUtils.returnCFMessage(cfError);
+			return CloudFlareUtils.returnCFMessage(cfError);
 		}
 	}
 
@@ -318,17 +337,17 @@ public class CFSource {
 		try {
 			String zoneId = getZoneId(customerDomain);
 
-			HttpPatchWithBody patchReq = new HttpPatchWithBody(CFUtils.updateSSL(zoneId));
-			CFUtils.setCFHeader(patchReq, cloudflareAuth);
+			HttpPatchWithBody patchReq = new HttpPatchWithBody(CloudFlareUtils.updateSSL(zoneId));
+			CloudFlareUtils.setCFHeader(patchReq, cloudflareAuth);
 
-			JsonObject postData = CFUtils.setSSLData(sslValue);
-			CFUtils.setBody(patchReq, postData);
+			JsonObject postData = CloudFlareUtils.setSSLData(sslValue);
+			CloudFlareUtils.setBody(patchReq, postData);
 
-			CFResponse cfResponse;
+			CloudFlareResponse cfResponse;
 			try {
 				CloseableHttpClient client = HttpClients.createDefault();
 				CloseableHttpResponse response = client.execute(patchReq);
-				cfResponse = new CFResponse(response);
+				cfResponse = new CloudFlareResponse(response);
 			} catch (IOException e) {
 				e.printStackTrace();
 				return MessageData.error(e);
@@ -338,7 +357,7 @@ public class CFSource {
 				return MessageData.success();
 			} else {
 				JsonObject cfError = cfResponse.getError();
-				return CFUtils.returnCFMessage(cfError);
+				return CloudFlareUtils.returnCFMessage(cfError);
 			}
 		} catch (Exception e) {
 			return null;
@@ -347,24 +366,24 @@ public class CFSource {
 
 	public String createPagerule(String customerDomain, String zoneId, PageRule rule) {
 		try {
-			HttpPost postReq = new HttpPost(CFUtils.createPageRuleEndpoint(zoneId));
-			CFUtils.setCFHeader(postReq, cloudflareAuth);
+			HttpPost postReq = new HttpPost(CloudFlareUtils.createPageRuleEndpoint(zoneId));
+			CloudFlareUtils.setCFHeader(postReq, cloudflareAuth);
 
-			JsonObject postData = CFUtils.setPageRulesData(rule);
-			CFUtils.setBody(postReq, postData);
+			JsonObject postData = CloudFlareUtils.setPageRulesData(rule);
+			CloudFlareUtils.setBody(postReq, postData);
 
-			CFResponse cfResponse;
+			CloudFlareResponse cfResponse;
 			try {
 				CloseableHttpClient client = HttpClients.createDefault();
 				CloseableHttpResponse response = client.execute(postReq);
-				cfResponse = new CFResponse(response);
+				cfResponse = new CloudFlareResponse(response);
 			} catch (IOException e) {
 				e.printStackTrace();
 				return null;
 			}
 
 			if (cfResponse.isSuccess()) {
-				JsonObject cfResult = (JsonObject) cfResponse.getCFReturn().get("result");
+				JsonObject cfResult = (JsonObject) cfResponse.getResult().get("result");
 				return cfResult.get("id").toString();
 			} else {
 				return null;
