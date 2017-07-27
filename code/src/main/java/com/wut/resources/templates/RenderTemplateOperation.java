@@ -21,20 +21,9 @@ public class RenderTemplateOperation extends TemplateOperation {
 
 	@Override
 	public Data perform(WutRequest request) throws Exception {
-		//RenderTemplateOperation.class.getResource("RenderTemplateOperation").getFile();
-		
-//		ProtectionDomain protectionDomain = Start.class.getProtectionDomain();
-//	    URL location = protectionDomain.getCodeSource().getLocation();
-//	    context.setWar(location.toExternalForm());
 		if (isClientInputDirectoryNotInitialized(request)) {
 			gitClone(request);
 		}
-		
-		if (isClientInputDirectoryNotInitialized(request)) {
-			//return new StringData(getRenderJsPath() + " == " + getPhantomJsPath());
-			return MessageData.error("client templates not initialized. " + "render:"+getRenderJsPath() + " phantom:" + getPhantomJsPath());
-		}
-		
 		String renderJsLocation = getRenderJsPath();
 		int returnCode = 0;
 		OutputStreamAdapter output = new OutputStreamAdapter(new ByteStreamData());
