@@ -1,10 +1,10 @@
 package com.wut.datasources.cloudflare;
 
-public class CFAuth {
+public class CloudFlareAuth {
 	private String key;
 	private String email;
 
-	public CFAuth(String key, String email) {
+	public CloudFlareAuth(String key, String email) {
 		this.key = key;
 		this.email = email;
 	}

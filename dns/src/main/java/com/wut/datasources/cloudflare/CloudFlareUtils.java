@@ -13,7 +13,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.wut.model.map.MessageData;
 
-public class CFUtils {
+public class CloudFlareUtils {
 	public static String API_ENDPOINT = "https://api.cloudflare.com/client/v4/zones";
 
 	public static JsonObject setCreateZoneData(String domain) {
@@ -101,7 +101,7 @@ public class CFUtils {
 		return String.format("%s/%s/pagerules", API_ENDPOINT, zoneId);
 	}
 
-	public static void setCFHeader(HttpRequestBase req, CFAuth cloudflareAuth) {
+	public static void setCFHeader(HttpRequestBase req, CloudFlareAuth cloudflareAuth) {
 		req.setHeader("X-Auth-Email", cloudflareAuth.getEmail());
 		req.setHeader("X-Auth-Key", cloudflareAuth.getKey());
 		req.setHeader("Content-Type", "application/json");

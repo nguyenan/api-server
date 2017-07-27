@@ -1,13 +1,13 @@
 package com.wut.provider.dns;
 
-import com.wut.datasources.cloudflare.CFSource;
+import com.wut.datasources.cloudflare.CloudFlareSource;
 import com.wut.model.Data;
 import com.wut.provider.Provider;
 
 public class DNSProvider implements Provider {
-	private CFSource cfSource;
+	private CloudFlareSource cfSource;
 
-	public DNSProvider(CFSource pcfSource) {
+	public DNSProvider(CloudFlareSource pcfSource) {
 		this.cfSource = pcfSource;
 	}
 
