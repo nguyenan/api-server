@@ -66,8 +66,8 @@ public class CFUtils {
 		return postData;
 	}
 
-	public static String listZoneEndpoint() {
-		return String.format("%s?per_page=200", API_ENDPOINT);
+	public static String listZoneEndpoint(int page) {
+		return String.format("%s?per_page=50&page=%d", API_ENDPOINT, page);
 	}
 
 	public static String createZoneEndpoint() {
@@ -77,8 +77,8 @@ public class CFUtils {
 	public static String deleteZoneEndpoint(String zoneId) {
 		return String.format("%s/%s", API_ENDPOINT, zoneId);
 	}
-	public static String listRecordEndpoint(String zoneId) {
-		return String.format("%s/%s/dns_records?per_page=100&type=CNAME", API_ENDPOINT, zoneId);
+	public static String listRecordEndpoint(String zoneId, int page) {
+		return String.format("%s/%s/dns_records?per_page=100&page=%d&type=CNAME", API_ENDPOINT, zoneId, page);
 	}
 
 	public static String detailRecordEndpoint(String zoneId, String recordId) {

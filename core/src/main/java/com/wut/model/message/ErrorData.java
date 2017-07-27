@@ -50,8 +50,11 @@ public class ErrorData extends MessageData {
     public static final Data CF_ERROR = new ErrorData(6001, "Cloudflare internal error");
     public static final Data DOMAIN_EXISTED = new ErrorData(6011, "domain already exists");
     public static final Data DOMAIN_NOT_REGISTERED = new ErrorData(6012, "not a registered domain");
+    public static final Data ZONE_NOT_FOUND = new ErrorData(6013, "DNS Zone not found");
+    public static final Data DOMAIN_EMPTY = new ErrorData(6014, "Domain setting is empty");
     public static final Data RECORD_EXISTED = new ErrorData(6021, "record already exists");
     public static final Data RECORD_INVALID = new ErrorData(6022, "invalid DNS record");
+    public static final Data RECORD_NOT_FOUND = new ErrorData(6023, "DNS Record not found");
     
 
     // user
