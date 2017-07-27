@@ -6,6 +6,7 @@ import java.io.PrintStream;
 
 import com.wut.model.Data;
 import com.wut.model.map.MessageData;
+import com.wut.model.message.ErrorData;
 import com.wut.pipeline.WutRequest;
 import com.wut.threading.WutProcessExecuter;
 import com.wut.threading.WutSystemCommandProcess;
@@ -19,8 +20,8 @@ public class GenerateTemplateOperation extends TemplateOperation {
 
 	@Override
 	public Data perform(WutRequest request) throws Exception {
-		if (isClientInputDirectoryInitialized(request)) {
-			return MessageData.error("client tempaltes not initialized");
+		if (isClientInputDirectoryNotInitialized(request)) {
+			return ErrorData.NOT_INITIALIZED;
 		}
 		
 		String pageLocation = getOutputFilePath(request);
