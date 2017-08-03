@@ -30,7 +30,7 @@ import com.wut.model.scalar.BooleanData;
 import com.wut.model.scalar.IdData;
 import com.wut.model.scalar.StringData;
 
-public class ProductDevTools {
+public class EventMigration {
 	private static CassandraSource cassSource = new CassandraSource();
 	private static final String applicationStr = "core";
 	private static final IdData application = new IdData(applicationStr);
@@ -38,7 +38,7 @@ public class ProductDevTools {
 	private static Logger logger = Logger.getLogger("ProductDevTools");
 	private static FileHandler fh;
 	private static Map<String, String> eventMap = new HashMap<String, String>();
-	private static Map<String, String> sellableMapProduct = new HashMap<String, String>();
+	private static Map<String, String> sellableMapFromProduct = new HashMap<String, String>();
 
 	private static Map<String, String> sellableMap = new HashMap<String, String>();
 	private static Map<String, String> sellableInventoryMap = new HashMap<String, String>();
@@ -46,9 +46,9 @@ public class ProductDevTools {
 
 	public static void main(String[] agrs) throws InterruptedException, SecurityException, IOException {
 		setLogFormat();
-		buildFieldMap();
+		buildMapFields();
 
-		migrateToEvent("beta.tend.ag");
+		// migrateToEvent("beta.tend.ag");
 		// migrateToEvent("test.farmer.guide");
 		// migrateToEvent("dev1.tend.ag");
 
@@ -98,6 +98,7 @@ public class ProductDevTools {
 
 			// 2. add Merchandise
 			String merchandiseId = addMerchandise(customerId, sellables, productInfo);
+
 			List<String> merchandiseIds = new ArrayList<String>();
 			merchandiseIds.add(merchandiseId);
 			Gson gson2 = new Gson();
@@ -112,18 +113,13 @@ public class ProductDevTools {
 		}
 	}
 
-	public static boolean isEvent(String customerId, MappedData productOption) {
-		if (productOption == null)
-			return false;
-		StringData start = (StringData) productOption.get("start");
-		StringData end = (StringData) productOption.get("end");
-		return (start != null && end != null);
-	}
-
 	public static BooleanData addEvent(String customerId, String productId, MappedData productInfo,
 			List<Long> startEndTime, String merchandiseId) {
+		// Obtain tableId and new RowId
 		String table = getTableName(customerId, "event");
 		IdData rowId = getRowIdData(table, productId);
+
+		// Migrate data
 		MappedData data = new MappedData();
 		data.put("id", rowId.toString());
 		data.put("table", table);
@@ -140,7 +136,10 @@ public class ProductDevTools {
 	}
 
 	public static String addMerchandise(String customerId, String sellableIds, MappedData productInfo) {
+		// Obtain tableId
 		String table = getTableName(customerId, "merchandise");
+
+		// Migrate data
 		MappedData data = new MappedData();
 		data.put("table", table);
 		data.put("sellable", sellableIds);
@@ -158,20 +157,24 @@ public class ProductDevTools {
 	}
 
 	public static String addSellable(String customerId, MappedData productOptionInfo, MappedData productInfo) {
+		// Obtain tableId and new RowId
 		String table = getTableName(customerId, "sellable");
 		String oldId = productOptionInfo.get("id").toString();
 		String sellableId = oldId.substring(oldId.lastIndexOf(":") + 1, oldId.length());
 		String newId = getRowId(table, sellableId);
 
+		// Add sellableInventoryId
 		String sellableInventoryId = addSellableInventory(customerId, productOptionInfo);
 		List<String> sellableInventoryIds = new ArrayList<String>();
 		sellableInventoryIds.add(sellableInventoryId);
 		Gson gson = new Gson();
-		String sellableInventory = gson.toJson(sellableInventoryIds).toString().replace("\"", "\\\"");
+		String sellableInventories = gson.toJson(sellableInventoryIds).toString().replace("\"", "\\\"");
+
+		// Migrate data
 		MappedData data = new MappedData();
 		data.put("id", newId);
 		data.put("table", table);
-		data.put("sellableInventory", sellableInventory);
+		data.put("sellableInventory", sellableInventories);
 		data.put("url", String.format("/event/%s.html", sellableId));
 
 		for (Map.Entry<String, String> entry : sellableMap.entrySet()) {
@@ -179,7 +182,7 @@ public class ProductDevTools {
 				data.put(entry.getValue(), productOptionInfo.get(entry.getKey()));
 		}
 
-		for (Map.Entry<String, String> entry : sellableMapProduct.entrySet()) {
+		for (Map.Entry<String, String> entry : sellableMapFromProduct.entrySet()) {
 			if (productInfo.get(entry.getKey()) != null)
 				data.put(entry.getValue(), productInfo.get(entry.getKey()));
 		}
@@ -193,7 +196,10 @@ public class ProductDevTools {
 	}
 
 	public static String addSellableInventory(String customerId, MappedData productOptionInfo) {
+		// Obtain tableId
 		String table = getTableName(customerId, "sellableInventory");
+
+		// Migrate data
 		MappedData data = new MappedData();
 		data.put("table", table);
 		data.put("location", "On Farm");
@@ -206,6 +212,14 @@ public class ProductDevTools {
 		data.put("id", newId.toString());
 		cassSource.updateRow(new IdData(customerId), application, tableId, newId, data);
 		return sellableInventoryId.toString();
+	}
+
+	public static boolean isEvent(String customerId, MappedData productOption) {
+		if (productOption == null)
+			return false;
+		StringData start = (StringData) productOption.get("start");
+		StringData end = (StringData) productOption.get("end");
+		return (start != null && end != null);
 	}
 
 	public static ListData getListProduct(String customerId) {
@@ -223,23 +237,17 @@ public class ProductDevTools {
 		return cassSource.getRow(customer, application, tableId, rowId);
 	}
 
-	public static List<String> getAllCustomers(String parentCustomerId) {
-		List<String> customers = new ArrayList<String>();
-		MappedData filter = new MappedData();
-		String table = getTableName(parentCustomerId, "site");
-		filter.put("table", new IdData(table));
-
-		ListData rowsWithFilter = cassSource.getRowsWithFilter(new IdData(parentCustomerId), application, tableId,
-				filter);
-		logger.info(rowsWithFilter.size() + " customers");
-		String customerId = "";
-		for (Object obj : rowsWithFilter) {
-			MappedData row = (MappedData) obj;
-			customerId = row.get("id").toString().replaceAll(table + ":", "");
-			customers.add(customerId);
-			break;
+	public static BooleanData backupAndDeleteProduct(String customerId, MappedData productInfo) throws IOException {
+		IdData rowId = new IdData(productInfo.get("id").toString());
+		try {
+			String filename = getBackupFile(customerId);
+			FileWriter fw = new FileWriter(filename, true);
+			fw.write(productInfo.toString() + "\n");
+			fw.close();
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
 		}
-		return customers;
+		return cassSource.deleteRow(new IdData(customerId), application, tableId, rowId);
 	}
 
 	public static BooleanData restoreProduct(String customerId) throws FileNotFoundException, IOException {
@@ -260,29 +268,16 @@ public class ProductDevTools {
 		return BooleanData.TRUE;
 	}
 
-	public static BooleanData backupAndDeleteProduct(String customerId, MappedData productInfo) throws IOException {
-		IdData rowId = new IdData(productInfo.get("id").toString());
-		try {
-			String filename = getBackupFile(customerId);
-			FileWriter fw = new FileWriter(filename, true);
-			fw.write(productInfo.toString() + "\n");
-			fw.close();
-		} catch (IOException ioe) {
-			ioe.printStackTrace();
-		}
-		return cassSource.deleteRow(new IdData(customerId), application, tableId, rowId);
-	}
-
-	private static void buildFieldMap() {
+	private static void buildMapFields() {
 		eventMap.put("inventory", "maxSubscribers");
 		eventMap.put("reservationInterval", "reservationInterval");
 		eventMap.put("availability", "availability");
 		// eventMap.put("url", "url");
 
-		sellableMapProduct.put("updated", "updated");
-		sellableMapProduct.put("notTaxed", "notTaxed");
-		sellableMapProduct.put("customizations", "customizations");
-		sellableMapProduct.put("enabled", "enabled");
+		sellableMapFromProduct.put("updated", "updated");
+		sellableMapFromProduct.put("notTaxed", "notTaxed");
+		sellableMapFromProduct.put("customizations", "customizations");
+		sellableMapFromProduct.put("enabled", "enabled");
 
 		sellableMap.put("default", "default");
 		sellableMap.put("price", "price");
