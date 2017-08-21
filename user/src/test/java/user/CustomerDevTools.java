@@ -22,10 +22,11 @@ public class CustomerDevTools {
 	private static FileHandler fh;
 
 	public static void main(String[] agrs) throws InterruptedException, SecurityException, IOException {
-		fh = new FileHandler("/data/devlog/customer_" + System.currentTimeMillis());
+		fh = new FileHandler("/data/scripts/devlog/customer_" + System.currentTimeMillis());
 		logger.addHandler(fh);
 		fh.setFormatter(new LogFormatter());
-
+		System.out.println(getCustomerInfo("admin.tend.ag", "l1s164482d418d494b9f92a0e789be905dd6"));
+		getRowFrontendMapResourceTable("l1s164482d418d494b9f92a0e789be905dd6", logger);
 		System.exit(0);
 	}
 

@@ -89,4 +89,18 @@ public class UserStore implements CrudSource {
 		Data d = table.deleteRow(IdData.create(customer), IdData.create(application), usersTable, new IdData(id));
 		return d;
 	}
+	/**
+	 * Read User Information (without secure data: password and token)
+	 * @param customer
+	 * @param application
+	 * @param id UserId
+	 */
+	
+	public Data readRows(String customer, String application) {
+		Data d = table.getRows(IdData.create(customer), IdData.create(application), usersTable);
+		if (d == null) {
+			return MessageData.NO_DATA_FOUND;
+		} 
+		return d;
+	}
 }
