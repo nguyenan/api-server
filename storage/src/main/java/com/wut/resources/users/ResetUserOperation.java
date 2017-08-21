@@ -70,10 +70,10 @@ public class ResetUserOperation extends UserOperation {
 	@Override
 	public Data perform(WutRequest ri) throws Exception {
 		String affectedCustomer = ri.getStringParameter("customer");
-		String affectedUser = ri.getStringParameter("username");
+		String affectedUser = ri.getStringParameter("username").toLowerCase();
 		StringData toPasswordData = ri.getParameter("password", true);
 		String requestingCustomer = ri.getCustomer();
-		String requestingUser = ri.getUserId();
+		String requestingUser = ri.getUserId().toLowerCase();
 		
 		boolean isSuperAdmin = isSuperAdmin(requestingCustomer, requestingUser);
 		boolean isDomainAdmin = isDomainAdmin(requestingCustomer, requestingUser, affectedCustomer, affectedUser);
