@@ -15,7 +15,7 @@ import com.wut.model.scalar.BooleanData;
 import com.wut.model.scalar.IdData;
 import com.wut.model.scalar.StringData;
 
-public class EventMigration extends MigrationModel {
+public class CropMigration extends MigrationModel {
 	private static CassandraSource cassSource = new CassandraSource();
 	private static final String applicationStr = "core";
 	private static final IdData application = new IdData(applicationStr);
@@ -26,37 +26,45 @@ public class EventMigration extends MigrationModel {
 		setLogFormat();
 		buildMapFields();
 
-		migrateToEvent("beta.tend.ag");
+		migrateToCrop("beta.tend.ag");
 		// migrateToEvent("test.farmer.guide");
 		// migrateToEvent("dev1.tend.ag");
 
 		System.exit(0);
 	}
 
-	public static void migrateToEvent(String customerId) throws IOException {
+	public static void migrateToCrop(String customerId) throws IOException {
 		ListData listProduct = getListProduct(customerId);
 		String productId = "";
 		StringData options = new StringData("");
 
 		loopProduct: for (Object obj : listProduct) {
 			MappedData productInfo = (MappedData) obj;
+			if (isShare(productInfo))
+				// if product isn't share => continue
+				continue loopProduct;
+
 			options = (StringData) productInfo.get("options");
 			if (options == null)
 				continue;
 
 			JsonArray productOptionIds = parseProductOptions(options);
 			List<MappedData> productOptions = new ArrayList<MappedData>();
+			boolean isEvent = true;
 			for (JsonElement option : productOptionIds) {
 				String productOptionId = option.toString().replaceAll("\\\"", "");
 				MappedData productOption = getProductOption(customerId, productOptionId);
 
-				if (!isEvent(customerId, productOption))
-					// if product isn't event => continue
-					continue loopProduct;
 				productOptions.add(productOption);
+				if (!isEvent(customerId, productOption)) {
+					isEvent = false;
+					break;
+				}
 			}
+			if (isEvent)
+				continue loopProduct;
 
-			// if product is event => migrate
+			// if product is crop => migrate
 			String rowId = productInfo.get("id").toString();
 			productId = rowId.substring(rowId.lastIndexOf(":") + 1, rowId.length());
 
@@ -72,15 +80,15 @@ public class EventMigration extends MigrationModel {
 				// Create Sellable
 				createSellable(customerId, productId, productOptionId, productOption, productInfo, sellableInventories);
 
-				// Create sellableIds
+				// Create metadata
 				sellableIds.add(productOptionId);
 			}
 
-			// 2. create Event
-			createEvent(customerId, productId, productInfo, sellableIds);
+			// 2. create Crop
+			createCrop(customerId, productId, productInfo, sellableIds);
 
 			// 3. create Merchandise
-			createMerchandise("event", customerId, productId, productInfo);
+			createMerchandise("crop", customerId, productId, productInfo);
 
 			logger.info(customerId + "\t Migrated " + productId);
 			// Backup and Delete Product Data
@@ -88,10 +96,10 @@ public class EventMigration extends MigrationModel {
 		}
 	}
 
-	public static BooleanData createEvent(String customerId, String productId, MappedData productInfo,
+	public static BooleanData createCrop(String customerId, String productId, MappedData productInfo,
 			List<String> sellableIds) {
 		// Obtain tableId and new RowId
-		String table = getTableName(customerId, "event");
+		String table = getTableName(customerId, "crop");
 		IdData rowId = getRowIdData(table, productId);
 
 		// Migrate data
@@ -112,10 +120,26 @@ public class EventMigration extends MigrationModel {
 		return cassSource.updateRow(new IdData(customerId), application, tableId, rowId, data);
 	}
 
+	public static boolean isEvent(String customerId, MappedData productOption) {
+		if (productOption == null)
+			return false;
+		StringData start = (StringData) productOption.get("start");
+		StringData end = (StringData) productOption.get("end");
+		return (start != null && end != null);
+	}
+
 	private static void buildMapFields() {
 		// event
 		metadataFromProductOpts.put("start", "start");
 		metadataFromProductOpts.put("end", "end");
+
+		metadataFromProductOpts.put("images", "images");
+		metadataFromProductOpts.put("manufacturerCode", "manufacturerCode");
+		metadataFromProductOpts.put("upc", "upc");
+		metadataFromProductOpts.put("cost", "cost");
+		metadataFromProductOpts.put("weight", "weight");
+		metadataFromProductOpts.put("default", "default");
+		metadataFromProductOpts.put("priceUnit", "unit");
 
 		// merchandise
 		merchandiseFromProduct.put("update", "update");
@@ -134,8 +158,6 @@ public class EventMigration extends MigrationModel {
 
 		sellableFromProductOpts.put("update", "update");
 		sellableFromProductOpts.put("price", "price");
-		sellableFromProductOpts.put("unit", "unit");
-		sellableFromProductOpts.put("weight", "weight");
 		sellableFromProductOpts.put("choices", "choices");
 
 		// sellable Inventory

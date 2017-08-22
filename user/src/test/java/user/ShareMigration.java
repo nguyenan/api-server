@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.wut.datasources.cassandra.CassandraSource;
 import com.wut.model.list.ListData;
 import com.wut.model.map.MappedData;
@@ -15,7 +13,7 @@ import com.wut.model.scalar.BooleanData;
 import com.wut.model.scalar.IdData;
 import com.wut.model.scalar.StringData;
 
-public class EventMigration extends MigrationModel {
+public class ShareMigration extends MigrationModel {
 	private static CassandraSource cassSource = new CassandraSource();
 	private static final String applicationStr = "core";
 	private static final IdData application = new IdData(applicationStr);
@@ -26,72 +24,52 @@ public class EventMigration extends MigrationModel {
 		setLogFormat();
 		buildMapFields();
 
-		migrateToEvent("beta.tend.ag");
-		// migrateToEvent("test.farmer.guide");
-		// migrateToEvent("dev1.tend.ag");
+		migrateToShare("beta.tend.ag");
 
 		System.exit(0);
 	}
 
-	public static void migrateToEvent(String customerId) throws IOException {
+	public static void migrateToShare(String customerId) throws IOException {
 		ListData listProduct = getListProduct(customerId);
 		String productId = "";
-		StringData options = new StringData("");
 
 		loopProduct: for (Object obj : listProduct) {
 			MappedData productInfo = (MappedData) obj;
-			options = (StringData) productInfo.get("options");
-			if (options == null)
-				continue;
+			if (!isShare(productInfo))
+				// if product isn't share => continue
+				continue loopProduct;
 
-			JsonArray productOptionIds = parseProductOptions(options);
-			List<MappedData> productOptions = new ArrayList<MappedData>();
-			for (JsonElement option : productOptionIds) {
-				String productOptionId = option.toString().replaceAll("\\\"", "");
-				MappedData productOption = getProductOption(customerId, productOptionId);
-
-				if (!isEvent(customerId, productOption))
-					// if product isn't event => continue
-					continue loopProduct;
-				productOptions.add(productOption);
-			}
-
-			// if product is event => migrate
+			// if product is share => migrate
 			String rowId = productInfo.get("id").toString();
 			productId = rowId.substring(rowId.lastIndexOf(":") + 1, rowId.length());
 
 			// 1. Create SellableInventory, Sellable, metadata
 
+			MappedData productOption = new MappedData();
 			List<String> sellableIds = new ArrayList<String>();
-			for (MappedData productOption : productOptions) {
-				String oldId = productOption.get("id").toString();
-				String productOptionId = oldId.substring(oldId.lastIndexOf(":") + 1, oldId.length());
-				// Create sellableInventoryId
-				String sellableInventories = createSellableInventory(customerId, productInfo, productOption);
+			// Create sellableInventoryId
+			String sellableInventories = createSellableInventory(customerId, productInfo, productOption);
 
-				// Create Sellable
-				createSellable(customerId, productId, productOptionId, productOption, productInfo, sellableInventories);
+			// Create Sellable
+			String sellableId = createSellable(customerId, productId, productOption, productInfo, sellableInventories);
 
-				// Create sellableIds
-				sellableIds.add(productOptionId);
-			}
+			// Create metadata
+			sellableIds.add(sellableId);
 
-			// 2. create Event
-			createEvent(customerId, productId, productInfo, sellableIds);
+			// 2. create Share
+			createShare(customerId, productId, productInfo, sellableIds);
 
 			// 3. create Merchandise
-			createMerchandise("event", customerId, productId, productInfo);
+			createMerchandise("share", customerId, productId, productInfo);
 
 			logger.info(customerId + "\t Migrated " + productId);
-			// Backup and Delete Product Data
-			// backupAndDeleteProduct(customerId, productInfo);
 		}
 	}
 
-	public static BooleanData createEvent(String customerId, String productId, MappedData productInfo,
+	public static BooleanData createShare(String customerId, String productId, MappedData productInfo,
 			List<String> sellableIds) {
 		// Obtain tableId and new RowId
-		String table = getTableName(customerId, "event");
+		String table = getTableName(customerId, "share");
 		IdData rowId = getRowIdData(table, productId);
 
 		// Migrate data
@@ -113,9 +91,8 @@ public class EventMigration extends MigrationModel {
 	}
 
 	private static void buildMapFields() {
-		// event
-		metadataFromProductOpts.put("start", "start");
-		metadataFromProductOpts.put("end", "end");
+		// share
+		metadataFromProduct.put("goalValue", "goalValue");
 
 		// merchandise
 		merchandiseFromProduct.put("update", "update");
@@ -131,6 +108,7 @@ public class EventMigration extends MigrationModel {
 
 		// sellable
 		sellableFromProduct.put("notTaxed", "taxable");
+		sellableFromProduct.put("price", "price");
 
 		sellableFromProductOpts.put("update", "update");
 		sellableFromProductOpts.put("price", "price");
@@ -139,6 +117,6 @@ public class EventMigration extends MigrationModel {
 		sellableFromProductOpts.put("choices", "choices");
 
 		// sellable Inventory
-		sellableIFromProductOpts.put("inventory", "quantity");
+		sellableIFromProduct.put("inventory", "quantity");
 	}
 }

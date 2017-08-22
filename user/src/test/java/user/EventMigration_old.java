@@ -5,7 +5,11 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,29 +30,25 @@ import com.wut.model.scalar.BooleanData;
 import com.wut.model.scalar.IdData;
 import com.wut.model.scalar.StringData;
 
-public class EventMigration2 {
+public class EventMigration {
 	private static CassandraSource cassSource = new CassandraSource();
 	private static final String applicationStr = "core";
 	private static final IdData application = new IdData(applicationStr);
 	private static final IdData tableId = IdData.create("flat2");
 	private static Logger logger = Logger.getLogger("ProductDevTools");
 	private static FileHandler fh;
+	private static Map<String, String> eventMap = new HashMap<String, String>();
+	private static Map<String, String> sellableMapFromProduct = new HashMap<String, String>();
 
-	private static Map<String, String> merchandiseFromProduct = new HashMap<String, String>();
-
-	private static Map<String, String> eventFromProduct = new HashMap<String, String>();
-	private static Map<String, String> metadataFromProductOpts = new HashMap<String, String>();
-
-	private static Map<String, String> sellableFromProduct = new HashMap<String, String>();
-	private static Map<String, String> sellableFromProductOpts = new HashMap<String, String>();
-
+	private static Map<String, String> sellableMap = new HashMap<String, String>();
 	private static Map<String, String> sellableInventoryMap = new HashMap<String, String>();
+	private static Map<String, String> merchandiseMap = new HashMap<String, String>();
 
 	public static void main(String[] agrs) throws InterruptedException, SecurityException, IOException {
 		setLogFormat();
 		buildMapFields();
 
-		migrateToEvent("beta.tend.ag");
+		// migrateToEvent("beta.tend.ag");
 		// migrateToEvent("test.farmer.guide");
 		// migrateToEvent("dev1.tend.ag");
 
@@ -58,18 +58,20 @@ public class EventMigration2 {
 	public static void migrateToEvent(String customerId) throws IOException {
 		ListData listProduct = getListProduct(customerId);
 		String productId = "";
+		String productOptionId = "";
 		StringData options = new StringData("");
 
 		loopProduct: for (Object obj : listProduct) {
 			MappedData productInfo = (MappedData) obj;
 			options = (StringData) productInfo.get("options");
+
 			if (options == null)
 				continue;
 
 			JsonArray productOptionIds = parseProductOptions(options);
 			List<MappedData> productOptions = new ArrayList<MappedData>();
 			for (JsonElement option : productOptionIds) {
-				String productOptionId = option.toString().replaceAll("\\\"", "");
+				productOptionId = option.toString().replaceAll("\\\"", "");
 				MappedData productOption = getProductOption(customerId, productOptionId);
 
 				if (!isEvent(customerId, productOption))
@@ -82,113 +84,118 @@ public class EventMigration2 {
 			String rowId = productInfo.get("id").toString();
 			productId = rowId.substring(rowId.lastIndexOf(":") + 1, rowId.length());
 
-			// 1. Create SellableInventory, Sellable, metadata
-			List<MappedData> metadatas = new ArrayList<MappedData>();
+			// 1. Add Sellable
+			List<Long> startEndTime = new ArrayList<Long>();
+			List<String> sellableIds = new ArrayList<String>();
 			for (MappedData productOption : productOptions) {
-				String oldId = productOption.get("id").toString();
-				String productOptionId = oldId.substring(oldId.lastIndexOf(":") + 1, oldId.length());
-				// Create sellableInventoryId
-				String sellableInventories = createSellableInventory(customerId, productOption);
-
-				// Create Sellable
-				createSellable(customerId, productId, productOptionId, productOption, productInfo, sellableInventories);
-
-				// Create metadata
-				MappedData metadata = createMetadata(productOption, productOptionId);
-				metadatas.add(metadata);
+				startEndTime.add(dateToLong(productOption.get("start").toString()));
+				startEndTime.add(dateToLong(productOption.get("end").toString()));
+				String sellableId = addSellable(customerId, productOption, productInfo);
+				sellableIds.add(sellableId);
 			}
+			Gson gson = new Gson();
+			String sellables = gson.toJson(sellableIds).toString().replace("\"", "\\\"");
 
-			// 2. create Event
-			createEvent(customerId, productId, productInfo, metadatas);
+			// 2. add Merchandise
+			String merchandiseId = addMerchandise(customerId, sellables, productInfo);
 
-			// 3. create Merchandise
-			createMerchandise(customerId, productId, productInfo);
+			List<String> merchandiseIds = new ArrayList<String>();
+			merchandiseIds.add(merchandiseId);
+			Gson gson2 = new Gson();
+			String merchandises = gson2.toJson(merchandiseIds).toString().replace("\"", "\\\"");
 
-			logger.info(customerId + "\t Migrated " + productId);
+			// 3. add Event
+
+			addEvent(customerId, productId, productInfo, startEndTime, merchandises);
+
 			// Backup and Delete Product Data
 			// backupAndDeleteProduct(customerId, productInfo);
 		}
 	}
 
-	public static BooleanData createEvent(String customerId, String productId, MappedData productInfo,
-			List<MappedData> metadatas) {
+	public static BooleanData addEvent(String customerId, String productId, MappedData productInfo,
+			List<Long> startEndTime, String merchandiseId) {
 		// Obtain tableId and new RowId
 		String table = getTableName(customerId, "event");
 		IdData rowId = getRowIdData(table, productId);
 
 		// Migrate data
 		MappedData data = new MappedData();
-		data.put("table", table);
 		data.put("id", rowId.toString());
-		Gson gson = new Gson();
-		data.put("metadata", metadatas.toString().replace("\"", "\\\""));
-		System.out.println(data.toString());
-		return cassSource.updateRow(new IdData(customerId), application, tableId, rowId, data);
-	}
-
-	public static BooleanData createMerchandise(String customerId, String productId, MappedData productInfo) {
-		// Obtain tableId
-		String table = getTableName(customerId, "merchandise");
-		IdData rowId = getRowIdData(table, productId);
-
-		// Migrate data
-		MappedData data = new MappedData();
 		data.put("table", table);
-		data.put("id", rowId.toString());
-		for (Map.Entry<String, String> entry : merchandiseFromProduct.entrySet()) {
+		data.put("merchandise", merchandiseId);
+		data.put("start", getStart(startEndTime));
+		data.put("end", getEnd(startEndTime));
+		for (Map.Entry<String, String> entry : eventMap.entrySet()) {
 			if (productInfo.get(entry.getKey()) != null)
 				data.put(entry.getValue(), productInfo.get(entry.getKey()));
 		}
-		System.out.println(data.toString());
+
+		logger.info(customerId + "\t Migrated " + data.get("id"));
 		return cassSource.updateRow(new IdData(customerId), application, tableId, rowId, data);
-
 	}
 
-	public static MappedData createMetadata(MappedData productOption, String productOptionId) {
-		MappedData metadata = new MappedData();
-		
-		List<String> sellableIds = new ArrayList<String>();
-		sellableIds.add(productOptionId);
-		Gson gson2 = new Gson();
-		String sellables = gson2.toJson(sellableIds).toString().replace("\"", "\\\"");
-		
-		metadata.put("sellable", sellables);
-		for (Map.Entry<String, String> entry : metadataFromProductOpts.entrySet()) {
-			if (productOption.get(entry.getKey()) != null)
-				metadata.put(entry.getValue(), productOption.get(entry.getKey()));
-		}
-		System.out.println(metadata);
-		return metadata;
-	}
-
-	public static BooleanData createSellable(String customerId, String productId, String productOptionId,
-			MappedData productOptionInfo, MappedData productInfo, String sellableInventories) {
-		// Obtain tableId and new RowId
-		String table = getTableName(customerId, "sellable");
-		IdData rowId = getRowIdData(table, productOptionId);
+	public static String addMerchandise(String customerId, String sellableIds, MappedData productInfo) {
+		// Obtain tableId
+		String table = getTableName(customerId, "merchandise");
 
 		// Migrate data
 		MappedData data = new MappedData();
 		data.put("table", table);
-		data.put("id", rowId.toString());
-		data.put("merchandise", productId);
-		data.put("sellableInventory", sellableInventories);
+		data.put("sellable", sellableIds);
+		for (Map.Entry<String, String> entry : merchandiseMap.entrySet()) {
+			if (productInfo.get(entry.getKey()) != null)
+				data.put(entry.getValue(), productInfo.get(entry.getKey()));
+		}
 
-		for (Map.Entry<String, String> entry : sellableFromProductOpts.entrySet()) {
+		IdData merchandiseId = cassSource.insertRow(new IdData(customerId), application, tableId, data);
+		IdData newId = getRowIdData(table, merchandiseId.toString());
+		data.put("id", newId.toString());
+		cassSource.updateRow(new IdData(customerId), application, tableId, newId, data);
+		return merchandiseId.toString();
+
+	}
+
+	public static String addSellable(String customerId, MappedData productOptionInfo, MappedData productInfo) {
+		// Obtain tableId and new RowId
+		String table = getTableName(customerId, "sellable");
+		String oldId = productOptionInfo.get("id").toString();
+		String sellableId = oldId.substring(oldId.lastIndexOf(":") + 1, oldId.length());
+		String newId = getRowId(table, sellableId);
+
+		// Add sellableInventoryId
+		String sellableInventoryId = addSellableInventory(customerId, productOptionInfo);
+		List<String> sellableInventoryIds = new ArrayList<String>();
+		sellableInventoryIds.add(sellableInventoryId);
+		Gson gson = new Gson();
+		String sellableInventories = gson.toJson(sellableInventoryIds).toString().replace("\"", "\\\"");
+
+		// Migrate data
+		MappedData data = new MappedData();
+		data.put("id", newId);
+		data.put("table", table);
+		data.put("sellableInventory", sellableInventories);
+		data.put("url", String.format("/event/%s.html", sellableId));
+
+		for (Map.Entry<String, String> entry : sellableMap.entrySet()) {
 			if (productOptionInfo.get(entry.getKey()) != null)
 				data.put(entry.getValue(), productOptionInfo.get(entry.getKey()));
 		}
 
-		for (Map.Entry<String, String> entry : sellableFromProduct.entrySet()) {
+		for (Map.Entry<String, String> entry : sellableMapFromProduct.entrySet()) {
 			if (productInfo.get(entry.getKey()) != null)
 				data.put(entry.getValue(), productInfo.get(entry.getKey()));
 		}
 
-		System.out.println(data.toString());
-		return cassSource.updateRow(new IdData(customerId), application, tableId, rowId, data);
+		if (cassSource.updateRow(new IdData(customerId), application, tableId, new IdData(newId), data)
+				.equals(BooleanData.TRUE))
+			return sellableId;
+		else
+			return null;
+
 	}
 
-	public static String createSellableInventory(String customerId, MappedData productOptionInfo) {
+	public static String addSellableInventory(String customerId, MappedData productOptionInfo) {
 		// Obtain tableId
 		String table = getTableName(customerId, "sellableInventory");
 
@@ -200,17 +207,11 @@ public class EventMigration2 {
 			if (productOptionInfo.get(entry.getKey()) != null)
 				data.put(entry.getValue(), productOptionInfo.get(entry.getKey()));
 		}
-		System.out.println(data.toString());
 		IdData sellableInventoryId = cassSource.insertRow(new IdData(customerId), application, tableId, data);
 		IdData newId = getRowIdData(table, sellableInventoryId.toString());
 		data.put("id", newId.toString());
 		cassSource.updateRow(new IdData(customerId), application, tableId, newId, data);
-
-		List<String> sellableInventoryIds = new ArrayList<String>();
-		sellableInventoryIds.add(sellableInventoryId.toString());
-		Gson gson = new Gson();
-		String sellableInventories = gson.toJson(sellableInventoryIds).toString().replace("\"", "\\\"");
-		return sellableInventories;
+		return sellableInventoryId.toString();
 	}
 
 	public static boolean isEvent(String customerId, MappedData productOption) {
@@ -268,40 +269,33 @@ public class EventMigration2 {
 	}
 
 	private static void buildMapFields() {
-		// merchandise
-		merchandiseFromProduct.put("update", "update");
-		merchandiseFromProduct.put("metaDescription", "metaDescription");
-		merchandiseFromProduct.put("images", "images");
-		merchandiseFromProduct.put("description", "description");
-		merchandiseFromProduct.put("tags", "tags");
-		merchandiseFromProduct.put("shortDescription", "shortDescription");
-		merchandiseFromProduct.put("name", "name");
-		merchandiseFromProduct.put("type", "type");
-		merchandiseFromProduct.put("url", "url");
-		merchandiseFromProduct.put("enabled", "enabled");
-		// merchandiseFromProduct.put("id", "id");
+		eventMap.put("inventory", "maxSubscribers");
+		eventMap.put("reservationInterval", "reservationInterval");
+		eventMap.put("availability", "availability");
+		// eventMap.put("url", "url");
 
-		// event
-		// eventFromProduct.put("id", "id");
+		sellableMapFromProduct.put("updated", "updated");
+		sellableMapFromProduct.put("notTaxed", "notTaxed");
+		sellableMapFromProduct.put("customizations", "customizations");
+		sellableMapFromProduct.put("enabled", "enabled");
 
-		metadataFromProductOpts.put("start", "start");
-		metadataFromProductOpts.put("end", "end");
-		metadataFromProductOpts.put("choices", "choices");
-		// metadataFromProductOpts.put("id", "sellable");
+		sellableMap.put("default", "default");
+		sellableMap.put("price", "price");
+		sellableMap.put("unit", "unit");
+		sellableMap.put("weight", "weight");
+		sellableMap.put("choices", "choices");
+		sellableMap.put("discounts", "discounts");
+		sellableMap.put("start", "start");
+		sellableMap.put("end", "end");
 
-		// sellable
-		// sellableFromProduct.put("id", "merchandise");
-		sellableFromProduct.put("notTaxed", "taxable");
-		sellableFromProduct.put("customizations", "customizations");
-
-		// sellableFromProductOpts.put("id", "id");
-		sellableFromProductOpts.put("update", "update");
-		sellableFromProductOpts.put("price", "price");
-		sellableFromProductOpts.put("unit", "unit");
-		sellableFromProductOpts.put("weight", "weight");
-
-		// sellable Inventory
 		sellableInventoryMap.put("inventory", "quantity");
+
+		merchandiseMap.put("name", "name");
+		merchandiseMap.put("tags", "tags");
+		merchandiseMap.put("metaDescription", "metaDescription");
+		merchandiseMap.put("description", "description");
+		merchandiseMap.put("shortDescription", "shortDescription");
+		merchandiseMap.put("allImages", "allImages");
 	}
 
 	private static JsonArray parseProductOptions(StringData options) {
@@ -314,6 +308,10 @@ public class EventMigration2 {
 		return String.format("core:%s:public:%s", customerId, resource);
 	}
 
+	private static String getRowId(String tableName, String row) {
+		return String.format("%s:%s", tableName, row);
+	}
+
 	private static IdData getRowIdData(String tableName, String row) {
 		return new IdData(String.format("%s:%s", tableName, row));
 	}
@@ -322,8 +320,38 @@ public class EventMigration2 {
 		return String.format("/data/backup/product_%s", customerId);
 	}
 
+	private static String getStart(List<Long> startEndTime) {
+		Collections.sort(startEndTime);
+		return longToDate(startEndTime.get(0));
+	}
+
+	private static String getEnd(List<Long> startEndTime) {
+		Collections.sort(startEndTime);
+		return longToDate(startEndTime.get(startEndTime.size() - 1));
+	}
+
+	private static long dateToLong(String date) {
+		SimpleDateFormat f = new SimpleDateFormat("MM/dd/yyyy, hh:mm:ss aa");
+		try {
+			Date d = f.parse(date);
+			long milliseconds = d.getTime();
+			return milliseconds;
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+
+		return -1L;
+	}
+
+	private static String longToDate(long val) {
+		Date date = new Date(val);
+		SimpleDateFormat df2 = new SimpleDateFormat("MM/dd/yyyy, hh:mm:ss aa");
+		String dateText = df2.format(date);
+		return dateText;
+	}
+
 	private static void setLogFormat() throws SecurityException, IOException {
-		fh = new FileHandler("/data/scripts/devlog/product_" + System.currentTimeMillis());
+		fh = new FileHandler("/data/devlog/product_" + System.currentTimeMillis());
 		logger.addHandler(fh);
 		fh.setFormatter(new LogFormatter());
 	}
