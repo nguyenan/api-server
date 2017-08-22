@@ -30,7 +30,7 @@ import com.wut.model.scalar.BooleanData;
 import com.wut.model.scalar.IdData;
 import com.wut.model.scalar.StringData;
 
-public class EventMigration {
+public class EventMigration_old {
 	private static CassandraSource cassSource = new CassandraSource();
 	private static final String applicationStr = "core";
 	private static final IdData application = new IdData(applicationStr);
