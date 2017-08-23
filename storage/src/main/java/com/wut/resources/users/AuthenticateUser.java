@@ -28,7 +28,7 @@ public class AuthenticateUser extends UserOperation {
 	@Override
 	public Data perform(WutRequest ri) throws Exception {
 		String customer = ri.getStringParameter("customer");
-		String username = ri.getStringParameter("username");
+		String username = ri.getStringParameter("username").toLowerCase();
 		String userId = Authenticator.getUserId(adminCustId, username);
 		String requestPassword = ri.getStringParameter("password");
 		String application = ri.getApplication();

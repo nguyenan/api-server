@@ -22,23 +22,14 @@ public class UpdateUserOperation extends UserOperation {
 	@Override
 	public Data perform(WutRequest ri) throws Exception {
 		String customer = ri.getStringParameter("customer");
-		String username = ri.getStringParameter("username");
+		String username = ri.getStringParameter("username").toLowerCase();
 		String password = ri.getStringParameter("password");
 		String id = Authenticator.getUserId(customer, username);
-		
-		// only admin users are allowed to create new users
-		// TODO bring this back!!!
-//		if (!ri.getUser().getUsername().equals("admin")) {
-//			return MessageData.INVALID_PERMISSIONS;
-//		}
+	
 		
 		String application = ri.getApplication();
 		
-		// only the retailkit admin is allowed to create new customers
-		if (!ri.getUser().getCustomer().equals("retailkit.com")) {
-			// TODO instead just fail if customer != ri.getUser().getCustomer()
-			customer = ri.getUser().getCustomer();
-		}
+		customer = ri.getUser().getCustomer();
 		
 		MappedData credentials = (MappedData) source.readSecureInformation(customer, application, id);
 		
