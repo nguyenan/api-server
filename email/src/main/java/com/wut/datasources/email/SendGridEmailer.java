@@ -89,7 +89,7 @@ public class SendGridEmailer implements Emailer {
 			
 			Authenticator auth = new SMTPAuthenticator(username, password);
 			
-			Session mailSession = Session.getDefaultInstance(props, auth);
+			Session mailSession = Session.getInstance(props, auth);
 			// uncomment for debugging infos to stdout
 			// mailSession.setDebug(true);
 			Transport transport = mailSession.getTransport();
