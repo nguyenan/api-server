@@ -12,4 +12,6 @@ public interface FileSource extends DataSource {
 	
 	public boolean deleteBucket(String bucket);
 	
+	public boolean copyBucket(String source, String destination);
+	
 }

@@ -17,23 +17,17 @@ import com.wut.resources.common.CrudResource;
 import com.wut.resources.common.MissingParameterException;
 import com.wut.support.Defaults;
 import com.wut.support.Language;
-import com.wut.support.domain.DomainUtils;
 import com.wut.support.settings.SettingsManager;
 
 public class FileResource extends CrudResource {
 	
 	public FileResource() {
-		super("file", null); // TODO fix null here -- use a provider!
+		super("file", null); 
 	}
 
-	private static final long serialVersionUID = -1678486712182811729L;
-//	private DataSourceManager dsm = DataSourceManager.create();
-//	private ScalarSource store = dsm.getScalarSource();
-	//private static final String TABLE = "_scalars_";
+	private static final long serialVersionUID = -1678486712182811729L; 
 	private static FileProvider provider = new DefaultFileProvider(new S3FileSource());
-	
-	// TODO change resource name to table and attribute table to type (or
-	// schema)
+	 
 
 	@Override
 	public String getName() {
@@ -48,10 +42,7 @@ public class FileResource extends CrudResource {
 	@Override
 	public List<String> getWriteableSettings() {
 		return Arrays.asList(new String[]{"file.domain"});
-	}
-	
-	// TODO not using scope properly (USERS SHARE DATA!!!!)
-
+	} 
 	@Override
 	public Data read(WutRequest request) throws MissingParameterException {
 		Data d = provider.read(getBucket(request), getFolder(request), getFile(request)); 

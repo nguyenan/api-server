@@ -59,6 +59,7 @@ public class SettingsManager {
 			setClientSettings(customerId, "dns.domain", customerId);
 			setClientSettings(customerId, "cdn.domain", customerId);
 			setClientSettings(customerId, "file.domain", customerId);
+			
 		} catch (Exception e) {
 			ErrorHandler.systemError("init Clientsetting fail", e);
 			return false;
