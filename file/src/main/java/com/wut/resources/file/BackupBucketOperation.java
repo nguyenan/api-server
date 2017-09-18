@@ -21,7 +21,10 @@ public class BackupBucketOperation extends BucketOperation {
 	@Override
 	public Data perform(WutRequest request) throws Exception {
 		String customerId = request.getCustomer();
-		BooleanData wasSucessful = provider.copyBucket(getBucket(request), new IdData(BACKUP_BUCKET + "/" + customerId));
+		BooleanData wasSucessful = provider.copyBucket(getBucket(request),
+				new IdData(BACKUP_BUCKET + "/" + customerId));
+		if (BooleanData.TRUE.equals(wasSucessful))
+			provider.deleteBucket(getBucket(request));
 		return MessageData.successOrFailure(wasSucessful);
 	}
 }
