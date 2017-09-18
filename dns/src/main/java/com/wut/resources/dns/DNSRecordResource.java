@@ -2,13 +2,13 @@ package com.wut.resources.dns;
 
 import com.wut.datasources.cloudflare.CloudFlareSource;
 import com.wut.model.Data;
-import com.wut.model.map.MessageData;
 import com.wut.model.message.ErrorData;
 import com.wut.pipeline.WutRequest;
 import com.wut.provider.dns.DNSProvider;
 import com.wut.resources.common.CrudResource;
 import com.wut.resources.common.MissingParameterException;
 import com.wut.resources.common.ResourceGroupAnnotation;
+import com.wut.support.settings.SettingsManager;
 
 @ResourceGroupAnnotation(name = "record", group = "dns", desc = "manage record")
 public class DNSRecordResource extends CrudResource {
@@ -27,10 +27,11 @@ public class DNSRecordResource extends CrudResource {
 	@Override
 	public Data create(WutRequest ri) throws MissingParameterException {
 		String customerId = ri.getCustomer();
+		String customerDomain = SettingsManager.getClientSettings(customerId, "dns.domain");
 		String name = ri.getStringParameter("name");
 		String content = ri.getStringParameter("content");
 		String domain = ri.getOptionalParameterAsString("domain");
-		String customerDomain = (domain != null && !domain.isEmpty()) ? domain : customerId;
+		customerDomain = (domain != null && !domain.isEmpty()) ? domain : customerDomain;
 		if (customerDomain.isEmpty())
 			return ErrorData.DOMAIN_EMPTY;
 		return provider.createRecord(customerDomain, name, content);
@@ -39,9 +40,10 @@ public class DNSRecordResource extends CrudResource {
 	@Override
 	public Data read(WutRequest ri) throws MissingParameterException {
 		String customerId = ri.getCustomer();
+		String customerDomain = SettingsManager.getClientSettings(customerId, "dns.domain");
 		String name = ri.getStringParameter("name");
 		String domain = ri.getOptionalParameterAsString("domain");
-		String customerDomain = (domain != null && !domain.isEmpty()) ? domain : customerId;
+		customerDomain = (domain != null && !domain.isEmpty()) ? domain : customerDomain;
 		if (customerDomain.isEmpty())
 			return ErrorData.DOMAIN_EMPTY;
 		return provider.getRecordDetails(customerDomain, name);
@@ -50,18 +52,26 @@ public class DNSRecordResource extends CrudResource {
 	@Override
 	public Data update(WutRequest ri) throws MissingParameterException {
 		String customerId = ri.getCustomer();
+		String customerDomain = SettingsManager.getClientSettings(customerId, "dns.domain");
 		String name = ri.getStringParameter("name");
 		String content = ri.getStringParameter("content");
 		String domain = ri.getOptionalParameterAsString("domain");
-		String customerDomain = (domain != null && !domain.isEmpty()) ? domain : customerId;
+		customerDomain = (domain != null && !domain.isEmpty()) ? domain : customerDomain;
 		if (customerDomain.isEmpty())
 			return ErrorData.DOMAIN_EMPTY;
 		return provider.updateRecord(customerDomain, name, content);
 	}
 
 	@Override
-	public Data delete(WutRequest ri) {
-		return MessageData.NOT_IMPLEMENTED;
+	public Data delete(WutRequest ri) throws MissingParameterException {
+		String customerId = ri.getCustomer();
+		String customerDomain = SettingsManager.getClientSettings(customerId, "dns.domain");
+		String name = ri.getStringParameter("name"); 
+		String domain = ri.getOptionalParameterAsString("domain");
+		customerDomain = (domain != null && !domain.isEmpty()) ? domain : customerDomain;
+		if (customerDomain.isEmpty())
+			return ErrorData.DOMAIN_EMPTY;
+		return provider.deleteRecord(customerDomain, name);
 	}
 
 }
