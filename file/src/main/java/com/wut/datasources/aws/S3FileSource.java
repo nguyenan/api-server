@@ -242,11 +242,9 @@ public class S3FileSource implements FileSource {
 					copyRequest.withCannedAccessControlList(CannedAccessControlList.PublicRead);
 
 					s3client.copyObject(copyRequest);
-					//System.out.println(String.format("%s\t%s",  summary.getKey(), newKey));
 				}
 				isNextBatch = true;
 			} while (filesInBucket.isTruncated());
-
 			return true;
 		} catch (AmazonServiceException e) {
 			ErrorHandler.userError("Error when clonning " + source + " to " + destination + ": " + e.getErrorCode());
