@@ -57,15 +57,15 @@ public class UserDevTools {
 		 * getUserInfo(adminCustId,"qavn16Dec2016@tendtest.com");
 		 */
 
-		List<String> users = new ArrayList<>();
-		// users.add("BETENFARMS@GMAIL.COM");
-		users.add("Tlriedl@gmail.com");
-		users.add("Trietbeta_test@tend.com");
-		users.add("qavn16Dec2016@tendtest.com");
-
-		for (String user : users) {
-			getUserInfo(adminCustId, user);
-		}
+//		List<String> users = new ArrayList<>();
+//		// users.add("BETENFARMS@GMAIL.COM");
+//		users.add("Tlriedl@gmail.com");
+//		users.add("Trietbeta_test@tend.com");
+//		users.add("qavn16Dec2016@tendtest.com");
+//
+//		for (String user : users) {
+//			getUserInfo(adminCustId, user);
+//		}
 
 		// System.out.println(getListAdminUsersWithContact("www.lincolnhillsfarm.com"));
 		/*
@@ -82,6 +82,7 @@ public class UserDevTools {
 		 * System.out.println(permissionStore.read(adminCustId, applicationStr,
 		 * adminUserId));
 		 */
+		resetPassword("admin.tend.ag", "dungweb@tend.ag", "9fc84e6bbd72113e294d5b655f7060c7");
 		System.exit(0);
 	}
 

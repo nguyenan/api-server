@@ -26,7 +26,7 @@ public class EventMigration extends MigrationModel {
 		setLogFormat();
 		buildMapFields();
 
-		migrateToEvent("beta.tend.ag");
+		migrateToEvent("l1s15ae1ebec25fc4e7e9ca22942335bc1c5");//nautic.farmer.events
 		// migrateToEvent("test.farmer.guide");
 		// migrateToEvent("dev1.tend.ag");
 

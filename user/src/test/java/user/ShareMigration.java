@@ -24,7 +24,7 @@ public class ShareMigration extends MigrationModel {
 		setLogFormat();
 		buildMapFields();
 
-		migrateToShare("beta.tend.ag");
+		migrateToShare("l1s15ae1ebec25fc4e7e9ca22942335bc1c5");
 
 		System.exit(0);
 	}

@@ -26,7 +26,7 @@ public class CropMigration extends MigrationModel {
 		setLogFormat();
 		buildMapFields();
 
-		migrateToCrop("beta.tend.ag");
+		migrateToCrop("l1s15ae1ebec25fc4e7e9ca22942335bc1c5");
 		// migrateToEvent("test.farmer.guide");
 		// migrateToEvent("dev1.tend.ag");
 
@@ -58,7 +58,6 @@ public class CropMigration extends MigrationModel {
 				productOptions.add(productOption);
 				if (!isEvent(customerId, productOption)) {
 					isEvent = false;
-					break;
 				}
 			}
 			if (isEvent)
