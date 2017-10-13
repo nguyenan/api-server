@@ -1,6 +1,7 @@
 package com.wut.resources.payments;
 
 import com.wut.provider.creditcard.PaymentProvider;
+import com.wut.provider.payment.BraintreeProvider;
 import com.wut.support.settings.SettingsManager;
 
 // TODO rename all "Managers" to "Factory" as that's the real name of this pattern

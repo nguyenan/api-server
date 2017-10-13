@@ -18,12 +18,22 @@ public class PaymentResource extends CrudResource {
 	 
 	@Override
 	public List<String> getReadableSettings() {
-		return Arrays.asList(new String[]{"payment.payment-processor", "payment.braintree-mechant-id", "payment.braintree-public-key"});
+		return Arrays.asList(new String[]{
+				"payment.payment-processor", 
+				"payment.braintree-mechant-id", 
+				"payment.braintree-public-key",
+				"payment.square.access-token"});
 	}
 	
 	@Override
 	public List<String> getWriteableSettings() {
-		return Arrays.asList(new String[]{"payment.payment-processor", "payment.braintree-mechant-id", "payment.braintree-public-key", "payment.braintree-private-key"});
+		return Arrays.asList(new String[]{
+				"payment.payment-processor", 
+				"payment.braintree-mechant-id", 
+				"payment.braintree-public-key", 
+				"payment.braintree-private-key",
+				"payment.square.authorization-code",
+				"payment.square.access-token"});
 	}
 
 	@Override
@@ -57,6 +67,10 @@ public class PaymentResource extends CrudResource {
 		return new StoreCardOperation();
 	}
 	
+	public ExchangeTokenOperation ExchangeTokenOperation() {
+		return new ExchangeTokenOperation();
+	}
+	
 	@Override
 	public VoidPaymentOperation getDeleteOperation() {
 		return new VoidPaymentOperation();
@@ -70,6 +84,7 @@ public class PaymentResource extends CrudResource {
 		operationListCopy.add(getRefundOperation());
 		operationListCopy.add(getSettleOperation());
 		operationListCopy.add(getStoreOperation());
+		operationListCopy.add(ExchangeTokenOperation());
 		operationListCopy.add(new GetSettingOperation());
 		operationListCopy.add(new SetSettingOperation());
 		return operationListCopy;
