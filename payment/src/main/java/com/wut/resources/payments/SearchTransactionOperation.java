@@ -1,10 +1,9 @@
-package com.wut.resources.payments.old;
+package com.wut.resources.payments;
 
 import com.wut.model.Data;
 import com.wut.pipeline.WutRequest;
 import com.wut.provider.creditcard.PaymentProvider;
 import com.wut.resources.operations.ReadOperation;
-import com.wut.resources.payments.PaymentOperationHelper;
 
 public class SearchTransactionOperation extends ReadOperation {
 	private PaymentOperationHelper paymentHelper = new PaymentOperationHelper();

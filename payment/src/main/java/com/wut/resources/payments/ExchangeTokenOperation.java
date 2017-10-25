@@ -33,6 +33,7 @@ public class ExchangeTokenOperation extends ParameteredOperation {
 			SettingsManager.setClientSettings(customer, SquareSource.AUTHORIZE_CODE_SETTING,
 					authorizationCode.toRawString());
 			SettingsManager.setClientSettings(customer, SquareSource.ACCESS_TOKEN_SETTING, accessToken);
+			SettingsManager.setClientSettings(customer, "payment.payment-processor", "square");
 
 			// put to job table
 			BackgroundJobResource.pushRenewTokenJob(customer, accessToken);

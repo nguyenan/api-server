@@ -39,7 +39,9 @@ public class SquareProvider implements PaymentProvider {
 
 	@Override
 	public PaymentResponseData charge(String cardNonce, CURRENCY currency, BigDecimal amount, String orderId) {
-		MappedData result = square.charge(accessToken, cardNonce, Integer.valueOf((amount.intValue())));
+		BigDecimal centsToDollars = new BigDecimal("100");
+		BigDecimal ammountInCents = amount.multiply(centsToDollars);
+		MappedData result = square.charge(accessToken, cardNonce, Integer.valueOf((ammountInCents.intValue())));
 		return verifyTransaction(result);
 	}
 

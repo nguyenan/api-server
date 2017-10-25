@@ -8,13 +8,6 @@ import java.util.List;
 import com.wut.datasources.square.SquareSource;
 import com.wut.resources.common.CrudResource;
 import com.wut.resources.common.WutOperation;
-import com.wut.resources.payments.old.ReadPaymentOperation;
-import com.wut.resources.payments.old.RefundPaymentOperation;
-import com.wut.resources.payments.old.SearchTransactionOperation;
-import com.wut.resources.payments.old.SettlePaymentOperation;
-import com.wut.resources.payments.old.StoreCardOperation;
-import com.wut.resources.payments.old.UpdatePaymentOperation;
-import com.wut.resources.payments.old.VoidPaymentOperation;
 
 public class PaymentResource extends CrudResource {
 
@@ -99,20 +92,21 @@ public class PaymentResource extends CrudResource {
 
 	@Override
 	public Collection<WutOperation> getOperations() {
-		// Collection<WutOperation> operationList = super.getOperations();
-		// ArrayList<WutOperation> operationListCopy = new
-		// ArrayList<WutOperation>(operationList);
-
-		ArrayList<WutOperation> operationListCopy = new ArrayList<WutOperation>();
-		// operationListCopy.add(getVoidOperation());
-		// operationListCopy.add(getRefundOperation());
-		// operationListCopy.add(getSettleOperation());
-		// operationListCopy.add(getStoreOperation());
+		 Collection<WutOperation> operationList = super.getOperations();
+		 ArrayList<WutOperation> operationListCopy = new ArrayList<WutOperation>(operationList);
+		 
+		operationListCopy.add(getVoidOperation());
+		operationListCopy.add(getRefundOperation());
+		operationListCopy.add(getSettleOperation());
+		operationListCopy.add(getStoreOperation());
+		operationListCopy.add(ExchangeTokenOperation());
+		operationListCopy.add(new GetSettingOperation());
+		operationListCopy.add(new SetSettingOperation());
+		
 		 operationListCopy.add(new GetSettingOperation());
 		 operationListCopy.add(new SetSettingOperation());
 
 		/* Square */
-		// operationListCopy.add(SearchTransactionOperation());
 		operationListCopy.add(ExchangeTokenOperation());
 		operationListCopy.add(ChargeOperation());
 		return operationListCopy;

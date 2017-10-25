@@ -1,4 +1,4 @@
-package com.wut.resources.payments.old;
+package com.wut.resources.payments;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;

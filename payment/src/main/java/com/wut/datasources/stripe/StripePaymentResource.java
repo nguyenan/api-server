@@ -12,7 +12,7 @@ import com.wut.model.scalar.StringData;
 import com.wut.pipeline.WutRequest;
 import com.wut.resources.common.MissingParameterException;
 import com.wut.resources.common.ObsoleteCrudResource;
-import com.wut.resources.payments.old.FakeSecurity;
+import com.wut.resources.payments.FakeSecurity;
 
 // test url:
 // http://localhost:8888/api/hybrid/payment?token='public'&id='payment'&customerId='public'&userId='public'&operation='update'&format='js'&visibility='owner'&callback=jQuery1708800740744918585_1350352847830&application='wut'&parameters='{%22firstName%22:%22Russell%22,%20%22lastName%22:%22Dude%22}'&_=1350352848295
