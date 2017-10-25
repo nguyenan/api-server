@@ -77,11 +77,6 @@ public class PaymentResource extends CrudResource {
 
 	/* Square */
 
-
-	public SearchTransactionOperation SearchTransactionOperation() {
-		return new SearchTransactionOperation();
-	}
-
 	public ExchangeTokenOperation ExchangeTokenOperation() {
 		return new ExchangeTokenOperation();
 	}

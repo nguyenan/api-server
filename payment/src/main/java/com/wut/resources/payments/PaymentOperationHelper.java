@@ -5,7 +5,7 @@ import com.wut.support.settings.SettingsManager;
 
 public class PaymentOperationHelper {
 
-	public PaymentProvider getPaymentProvider(String customer) {
+	protected PaymentProvider getPaymentProvider(String customer) {
 		String paymentProviderStr = SettingsManager.getClientSettings(customer, "payment.payment-processor");
 		PaymentManager paymentManager = new PaymentManager();
 		PaymentProvider paymentProvider = paymentManager.getPaymentProcessor(paymentProviderStr, customer);
