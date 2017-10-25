@@ -102,13 +102,17 @@ public class S3FileSource implements FileSource {
 			metadata.setContentType("text/cache-manifest");
 		}
 
-		InputStream base64decodedStream;
+		//InputStream base64decodedStream;
 
 		String streamAsString = StreamUtil.getStringFromInputStream(fileData);
 		byte[] base64encodedBytes = Base64.decodeBase64(streamAsString);
-		base64decodedStream = new ByteArrayInputStream(base64encodedBytes);
+		
+		metadata.setContentLength(base64encodedBytes.length);
+		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(base64encodedBytes);
+		
+		//base64decodedStream = new ByteArrayInputStream(base64encodedBytes);
 
-		PutObjectRequest putRequest = new PutObjectRequest(bucket, getObjectKey(folder, filename), base64decodedStream,
+		PutObjectRequest putRequest = new PutObjectRequest(bucket, getObjectKey(folder, filename), byteArrayInputStream,
 				metadata);
 		putRequest.withCannedAcl(CannedAccessControlList.PublicRead);
 
