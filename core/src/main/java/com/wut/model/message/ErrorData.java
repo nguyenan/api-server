@@ -56,6 +56,7 @@ public class ErrorData extends MessageData {
     public static final Data RECORD_INVALID = new ErrorData(6022, "invalid DNS record");
     public static final Data RECORD_NOT_FOUND = new ErrorData(6023, "DNS Record not found");
     
+    
 
     // user
     public static final Data INVALID_ACCESS = new ErrorData(7001, "account doesn't have permission to access any customer");

@@ -24,10 +24,8 @@ import javax.mail.internet.MimeMultipart;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 import com.wut.datasources.CrudSource;
-//import com.wut.datasources.email.Emailer;
-//import com.wut.datasources.email.SendGridEmailer;
 import com.wut.model.Data;
-//import com.wut.model.map.MappedData;
+import com.wut.model.map.MappedData;
 import com.wut.model.map.MessageData;
 import com.wut.model.scalar.StringData;
 import com.wut.pipeline.UserStore;
@@ -69,11 +67,12 @@ public class ResetUserOperation extends UserOperation {
 	
 	@Override
 	public Data perform(WutRequest ri) throws Exception {
+		String application = ri.getApplication();
 		String affectedCustomer = ri.getStringParameter("customer");
-		String affectedUser = ri.getStringParameter("username");
+		String affectedUser = ri.getStringParameter("username").toLowerCase();
 		StringData toPasswordData = ri.getParameter("password", true);
 		String requestingCustomer = ri.getCustomer();
-		String requestingUser = ri.getUserId();
+		String requestingUser = ri.getUserId().toLowerCase();
 		
 		boolean isSuperAdmin = isSuperAdmin(requestingCustomer, requestingUser);
 		boolean isDomainAdmin = isDomainAdmin(requestingCustomer, requestingUser, affectedCustomer, affectedUser);
@@ -94,6 +93,12 @@ public class ResetUserOperation extends UserOperation {
 			newToken(affectedCustomer, affectedUser, newPassword, true);
 			// MAKE SURE OLD TOKEN FROM RESET GETS REMOVED -- THIS HAPPENS WITH ONLY 1 TOKEN
 		} else if (requestingCustomer.equals(affectedCustomer)) {
+			String id = com.wut.pipeline.Authenticator.getUserId(affectedCustomer, affectedUser);
+			MappedData credentials = (MappedData) source.readSecureInformation(affectedCustomer, application, id);
+			
+			if (credentials == null || credentials.get("password") == null) {
+				return MessageData.UNKNOWN_USER;
+			}
 			String newPassword = new BigInteger(130, random).toString(32);
 			StringData newToken = newToken(affectedCustomer, affectedUser, newPassword, true);
 			String resetLink = String.format("https://%s/account.html?", DomainUtils.getRealDomain(domain));

@@ -1,7 +1,6 @@
 package com.wut.resources.payments;
 
 import com.wut.provider.creditcard.PaymentProvider;
-import com.wut.resources.common.WutOperation;
 import com.wut.support.settings.SettingsManager;
 
 public class PaymentOperationHelper {
@@ -14,4 +13,3 @@ public class PaymentOperationHelper {
 	}
 	
 }
-

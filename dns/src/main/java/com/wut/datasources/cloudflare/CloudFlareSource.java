@@ -332,6 +332,36 @@ public class CloudFlareSource {
 			return CloudFlareUtils.returnCFMessage(cfError);
 		}
 	}
+	
+	public Data deleteRecord(String customerDomain, String recordName) {
+		String zoneId = getZoneId(customerDomain);
+		if (zoneId == null)
+			return ErrorData.ZONE_NOT_FOUND;
+
+		String recordId = getRecordId(zoneId, customerDomain, recordName);
+		if (recordId == null)
+			return ErrorData.RECORD_NOT_FOUND;
+
+		HttpDeleteWithBody deleteReq = new HttpDeleteWithBody(CloudFlareUtils.deleteRecordEndpoint(zoneId, recordId));
+		CloudFlareUtils.setCFHeader(deleteReq, cloudflareAuth);
+
+		CloudFlareResponse cfResponse;
+		try {
+			CloseableHttpClient client = HttpClients.createDefault();
+			CloseableHttpResponse response = client.execute(deleteReq);
+			cfResponse = new CloudFlareResponse(response);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return MessageData.error(e);
+		}
+
+		if (cfResponse.isSuccess()) {
+			return MessageData.success();
+		} else {
+			JsonObject cfError = cfResponse.getError();
+			return CloudFlareUtils.returnCFMessage(cfError);
+		}
+	}
 
 	public Data updateSSL(String customerDomain, String sslValue) {
 		try {

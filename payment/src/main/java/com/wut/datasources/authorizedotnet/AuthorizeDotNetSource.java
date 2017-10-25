@@ -1,4 +1,4 @@
-package com.wut.resources.payments;
+package com.wut.datasources.authorizedotnet;
 /*
 import java.math.BigDecimal;
 

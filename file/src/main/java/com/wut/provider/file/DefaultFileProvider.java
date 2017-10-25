@@ -12,7 +12,7 @@ import com.wut.model.stream.StreamData;
 
 public class DefaultFileProvider implements FileProvider {
 	private FileSource source;
-	
+
 	public DefaultFileProvider(FileSource source) {
 		this.source = source;
 	}
@@ -26,7 +26,8 @@ public class DefaultFileProvider implements FileProvider {
 
 	public BooleanData update(IdData bucket, IdData folder, StringData filename, StreamData data) {
 		String folderStr = folder != null ? folder.toRawString() : null;
-		boolean wasSuccessful = source.updateFile(bucket.toRawString(), folderStr, filename.toRawString(), data.getRawStream());
+		boolean wasSuccessful = source.updateFile(bucket.toRawString(), folderStr, filename.toRawString(),
+				data.getRawStream());
 		return BooleanData.create(wasSuccessful);
 	}
 
@@ -38,6 +39,11 @@ public class DefaultFileProvider implements FileProvider {
 
 	public BooleanData deleteBucket(IdData bucket) {
 		boolean wasSuccessful = source.deleteBucket(bucket.toRawString());
+		return BooleanData.create(wasSuccessful);
+	}
+
+	public BooleanData copyBucket(IdData sourceBucket, IdData destination) {
+		boolean wasSuccessful = source.copyBucket(sourceBucket.toRawString(), destination.toRawString());
 		return BooleanData.create(wasSuccessful);
 	}
 }

@@ -30,4 +30,8 @@ public class DNSProvider implements Provider {
 	public Data getRecordDetails(String customerDomain, String name) {
 		return cfSource.getRecordDetails(customerDomain, name);
 	}
+	
+	public Data deleteRecord(String customerDomain, String name) {
+		return cfSource.deleteRecord(customerDomain, name);
+	}
 }

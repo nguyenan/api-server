@@ -1,6 +1,7 @@
 package com.wut.model.map;
 
 import com.wut.model.Data;
+import com.wut.model.message.ErrorData;
 import com.wut.model.scalar.BooleanData;
 import com.wut.model.scalar.IntegerData;
 import com.wut.model.scalar.ScalarData;
@@ -95,6 +96,7 @@ public class MessageData extends MappedData {
 	public static final MessageData TEMPLATE_NOT_INTIALIZED = new MessageData(600, "requires intialization", "client templates not initialized");
 	public static final MessageData CACHE_OUT_OF_DATE = new MessageData(700, "cache out of date", "well shucks, the cache is old so i better not return anything");
 	public static final MessageData CACHE_CDN_ERROR = new MessageData(701, "cdn error", "problem connecting to cdn");
+	public static final MessageData SQUARE_HTTP_ERROR = new MessageData(7001, "Square error", "There was a problem connecting to Square");
 
 	//@Deprecated
 	public static MessageData error(String string) {

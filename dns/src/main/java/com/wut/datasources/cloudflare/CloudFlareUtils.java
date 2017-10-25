@@ -84,6 +84,10 @@ public class CloudFlareUtils {
 	public static String detailRecordEndpoint(String zoneId, String recordId) {
 		return String.format("%s/%s/dns_records/%s?type=CNAME", API_ENDPOINT, zoneId, recordId);
 	}
+	
+	public static String deleteRecordEndpoint(String zoneId, String recordId) {
+		return String.format("%s/%s/dns_records/%s?type=CNAME", API_ENDPOINT, zoneId, recordId);
+	}
 
 	public static String createRecordEndpoint(String zoneId) {
 		return String.format("%s/%s/dns_records", API_ENDPOINT, zoneId);

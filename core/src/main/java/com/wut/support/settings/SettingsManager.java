@@ -59,6 +59,7 @@ public class SettingsManager {
 			setClientSettings(customerId, "dns.domain", customerId);
 			setClientSettings(customerId, "cdn.domain", customerId);
 			setClientSettings(customerId, "file.domain", customerId);
+			
 		} catch (Exception e) {
 			ErrorHandler.systemError("init Clientsetting fail", e);
 			return false;
@@ -76,6 +77,29 @@ public class SettingsManager {
 		try {	
 			MappedData clientSettings = clientSettingsMap.get(customer);
 			if ((clientSettings != null) && (clientSettings.get(settingName)!=null) ) {
+					return ((StringData) clientSettings.get(settingName)).toString();
+			}
+	
+			Data settingsData = settingsStore.read(customer, APPLICATION, settingName);
+			if (settingsData.equals(MessageData.NO_DATA_FOUND))
+				return "";
+	
+			// Update Map
+			if (clientSettings == null)
+				clientSettings = new MappedData();
+			clientSettings.put(settingName, settingsData);
+			clientSettingsMap.put(customer, clientSettings);
+			return ((StringData) settingsData).toString();			
+		} catch (Exception e) {
+			ErrorHandler.userError("get Clientsetting fail", e);
+			return "";
+		}
+	}
+	
+	public static String getClientSettings(String customer, String settingName, boolean forceRefresh) {
+		try {	
+			MappedData clientSettings = clientSettingsMap.get(customer);
+			if ((!forceRefresh) && (clientSettings != null) && (clientSettings.get(settingName)!=null) ) {
 					return ((StringData) clientSettings.get(settingName)).toString();
 			}
 	

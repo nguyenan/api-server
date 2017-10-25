@@ -1,4 +1,4 @@
-package com.wut.resources.payments;
+package com.wut.provider.payment;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
