@@ -1,42 +1,43 @@
-package com.wut.resources.payments;
+package com.wut.resources.payments.old;
 
 import java.math.BigDecimal;
 
 import com.wut.model.Data;
 import com.wut.model.map.MessageData;
 import com.wut.model.scalar.ScalarModel;
-import com.wut.model.scalar.StringData;
 import com.wut.pipeline.WutRequest;
 import com.wut.provider.creditcard.PaymentProvider;
 import com.wut.resources.OperationParameter;
 import com.wut.resources.operations.ParameteredOperation;
+import com.wut.resources.payments.PaymentOperationHelper;
 
-public class RefundPaymentOperation extends ParameteredOperation {
+public class SettlePaymentOperation extends ParameteredOperation {
 	private PaymentOperationHelper paymentHelper = new PaymentOperationHelper();
-
-	public RefundPaymentOperation() {
+	
+	public SettlePaymentOperation() {
 		addParameter(OperationParameter.create("payment", ScalarModel.create()));
 		addParameter(OperationParameter.create("amount", ScalarModel.create()));
 	}
-	
+
 	@Override
 	public String getName() {
-		return "refund";
+		return "settle";
 	}
 	
 	@Override
 	public Data perform(WutRequest ri) throws Exception {
 		
-		StringData paymentId = ri.getParameter("payment");
-		StringData amount = ri.getParameter("amount");
-		BigDecimal amountBigDec = new BigDecimal(amount.toRawString());
+		String paymentId = ri.getParameter("payment");
+		String amount = ri.getParameter("amount");
+		BigDecimal amountBigDec = new BigDecimal(Double.parseDouble(amount));
 		
 		String customer = ri.getCustomer();
 		PaymentProvider paymentProvider = paymentHelper.getPaymentProvider(customer);
-		boolean refundedSuccesfully = paymentProvider.refund(paymentId.toRawString(), amountBigDec);
+		paymentProvider.refund(paymentId, amountBigDec);
 		
-		return MessageData.successOrFailure(refundedSuccesfully);
+		return MessageData.success();
 	}
-
+	
+	
 }
 

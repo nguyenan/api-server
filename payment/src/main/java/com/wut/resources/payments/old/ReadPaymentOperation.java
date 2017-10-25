@@ -1,4 +1,4 @@
- package com.wut.resources.payments;
+ package com.wut.resources.payments.old;
 
 import com.wut.model.Data;
 import com.wut.model.list.ListData;
@@ -10,6 +10,7 @@ import com.wut.model.scalar.StringData;
 import com.wut.pipeline.WutRequest;
 import com.wut.provider.creditcard.PaymentProvider;
 import com.wut.resources.operations.ReadOperation;
+import com.wut.resources.payments.PaymentOperationHelper;
 import com.wut.support.settings.SettingsManager;
 
 public class ReadPaymentOperation extends ReadOperation {

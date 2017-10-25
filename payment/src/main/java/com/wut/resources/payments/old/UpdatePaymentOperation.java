@@ -1,4 +1,4 @@
-package com.wut.resources.payments;
+package com.wut.resources.payments.old;
 
 import java.math.BigDecimal;
 
@@ -9,6 +9,7 @@ import com.wut.pipeline.WutRequest;
 import com.wut.provider.creditcard.PaymentProvider;
 import com.wut.resources.OperationParameter;
 import com.wut.resources.operations.ParameteredOperation;
+import com.wut.resources.payments.PaymentOperationHelper;
 
 public class UpdatePaymentOperation extends ParameteredOperation {
 	private PaymentOperationHelper paymentHelper = new PaymentOperationHelper();

@@ -1,14 +1,19 @@
-package com.wut.resources.payments;
+package com.wut.resources.payments.old;
 
 import com.wut.model.Data;
 import com.wut.model.map.MessageData;
 import com.wut.pipeline.WutRequest;
 import com.wut.provider.creditcard.PaymentProvider;
+import com.wut.resources.OperationParameter;
 import com.wut.resources.operations.ParameteredOperation;
+import com.wut.resources.payments.PaymentOperationHelper;
 
-// TODO make a read operation (use parameter id)
-public class GetPaymentOperation extends ParameteredOperation {
+public class VoidPaymentOperation extends ParameteredOperation {
 	private PaymentOperationHelper paymentHelper = new PaymentOperationHelper();
+
+	public VoidPaymentOperation() {
+		addParameter(OperationParameter.id("payment"));
+	}
 
 	@Override
 	public String getName() {

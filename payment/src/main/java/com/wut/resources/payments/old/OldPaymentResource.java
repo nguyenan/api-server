@@ -1,4 +1,4 @@
-package com.wut.resources.payments;
+package com.wut.resources.payments.old;
 
 import java.math.BigDecimal;
 
@@ -10,6 +10,7 @@ import com.wut.provider.creditcard.PaymentProvider;
 import com.wut.provider.creditcard.PaymentProvider.RESPONSE;
 import com.wut.resources.common.MissingParameterException;
 import com.wut.resources.common.ObsoleteCrudResource;
+import com.wut.resources.payments.PaymentManager;
 import com.wut.support.settings.SettingsManager;
 
 public class OldPaymentResource extends ObsoleteCrudResource {

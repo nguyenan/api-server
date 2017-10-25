@@ -95,6 +95,29 @@ public class SettingsManager {
 			return "";
 		}
 	}
+	
+	public static String getClientSettings(String customer, String settingName, boolean forceRefresh) {
+		try {	
+			MappedData clientSettings = clientSettingsMap.get(customer);
+			if ((!forceRefresh) && (clientSettings != null) && (clientSettings.get(settingName)!=null) ) {
+					return ((StringData) clientSettings.get(settingName)).toString();
+			}
+	
+			Data settingsData = settingsStore.read(customer, APPLICATION, settingName);
+			if (settingsData.equals(MessageData.NO_DATA_FOUND))
+				return "";
+	
+			// Update Map
+			if (clientSettings == null)
+				clientSettings = new MappedData();
+			clientSettings.put(settingName, settingsData);
+			clientSettingsMap.put(customer, clientSettings);
+			return ((StringData) settingsData).toString();			
+		} catch (Exception e) {
+			ErrorHandler.userError("get Clientsetting fail", e);
+			return "";
+		}
+	}
 
 
 	public static synchronized Boolean setClientSettings(String customer, String settingName, String settingValue) {
