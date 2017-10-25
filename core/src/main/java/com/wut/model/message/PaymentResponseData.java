@@ -7,7 +7,7 @@ public class PaymentResponseData extends MessageData {
 	private MessageData error;
 	private String transactionId;
 
-	private PaymentResponseData(MessageData error) {
+	public PaymentResponseData(MessageData error) {
 		super(error);
 		this.error = error;
 		put("transaction", "error");
@@ -19,21 +19,6 @@ public class PaymentResponseData extends MessageData {
 		this.transactionId = transactionId;
 		put("transaction", transactionId);
 	}
-
-//	@Override
-//	public String toRawString() {
-//		return (error != null && error.equals(MessageData.SUCCESS)) ? transactionId : error.toString();
-//	}
-//
-//	@Override
-//	public void fromRawString(String str) {
-//		data = str;
-//	}
-	
-//	@Override
-//	public String toString() {
-//		return data;
-//	}
 	
 	public static PaymentResponseData success(String id) {
 		return new PaymentResponseData(id);
