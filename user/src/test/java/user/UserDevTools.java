@@ -82,7 +82,10 @@ public class UserDevTools {
 		 * System.out.println(permissionStore.read(adminCustId, applicationStr,
 		 * adminUserId));
 		 */
-		resetPassword("admin.tend.ag", "dungweb@tend.ag", "9fc84e6bbd72113e294d5b655f7060c7");
+		//resetPassword("admin.tend.ag", "dungweb@tend.ag", "9fc84e6bbd72113e294d5b655f7060c7");
+//		getUserInfo("admin.tend.ag", "rubujo@ouvaton.org");
+//		getUserPermission("admin.tend.ag", "rubujo@ouvaton.org");
+		getAllUserAuthen("l1s1485ed7b74eb94883b63bb1fff3a35880");
 		System.exit(0);
 	}
 

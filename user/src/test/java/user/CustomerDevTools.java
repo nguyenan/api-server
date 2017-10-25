@@ -25,8 +25,10 @@ public class CustomerDevTools {
 		fh = new FileHandler("/data/scripts/devlog/customer_" + System.currentTimeMillis());
 		logger.addHandler(fh);
 		fh.setFormatter(new LogFormatter());
-		System.out.println(getCustomerInfo("admin.tend.ag", "l1s164482d418d494b9f92a0e789be905dd6"));
-		getRowFrontendMapResourceTable("l1s164482d418d494b9f92a0e789be905dd6", logger);
+		//System.out.println(getCustomerInfo("www.tend.ag", "l1s164482d418d494b9f92a0e789be905dd6"));
+		//getRowFrontendMapResourceTable("l1s164482d418d494b9f92a0e789be905dd6", logger);
+		System.out.println(getCustomerInfo("www.tend.ag", "l1s1485ed7b74eb94883b63bb1fff3a35880"));
+		
 		System.exit(0);
 	}
 
