@@ -5,3 +5,4 @@
 build/server.xml
 build/tend.ag.keystore
 Servers/
+*/.settings
