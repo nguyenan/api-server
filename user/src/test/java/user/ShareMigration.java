@@ -5,31 +5,29 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-import com.google.gson.Gson;
-import com.wut.datasources.cassandra.CassandraSource;
 import com.wut.model.list.ListData;
 import com.wut.model.map.MappedData;
-import com.wut.model.scalar.BooleanData;
-import com.wut.model.scalar.IdData;
-import com.wut.model.scalar.StringData;
 
 public class ShareMigration extends MigrationModel {
-	private static CassandraSource cassSource = new CassandraSource();
-	private static final String applicationStr = "core";
-	private static final IdData application = new IdData(applicationStr);
-	private static final IdData tableId = IdData.create("flat2");
 	private static Logger logger = Logger.getLogger("ProductDevTools");
 
 	public static void main(String[] agrs) throws InterruptedException, SecurityException, IOException {
 		setLogFormat();
 		buildMapFields();
 
-		migrateToShare("l1s15ae1ebec25fc4e7e9ca22942335bc1c5");
+		String customerId = "l1s14378352140f344c8a43f8ed2d9a4f30f";// a-migrate.tendfarm.com
+		migrateToShare(customerId);
 
+		System.out.println(getListMigratedData(customerId, TABLE_EVENT));
+		System.out.println(getListMigratedData(customerId, TABLE_CROP));
+		System.out.println(getListMigratedData(customerId, TABLE_SHARE));
+		System.out.println(getListMigratedData(customerId, TABLE_MERCHANDISE));
+		System.out.println(getListMigratedData(customerId, TABLE_SELLABLE));
+		System.out.println(getListMigratedData(customerId, TABLE_SELLABLE_INVENTORY));
 		System.exit(0);
 	}
 
-	public static void migrateToShare(String customerId) throws IOException {
+	private static void migrateToShare(String customerId) throws IOException {
 		ListData listProduct = getListProduct(customerId);
 		String productId = "";
 
@@ -44,50 +42,20 @@ public class ShareMigration extends MigrationModel {
 			productId = rowId.substring(rowId.lastIndexOf(":") + 1, rowId.length());
 
 			// 1. Create SellableInventory, Sellable, metadata
-
 			MappedData productOption = new MappedData();
 			List<String> sellableIds = new ArrayList<String>();
-			// Create sellableInventoryId
-			String sellableInventories = createSellableInventory(customerId, productInfo, productOption);
-
-			// Create Sellable
-			String sellableId = createSellable(customerId, productId, productOption, productInfo, sellableInventories);
-
-			// Create metadata
-			sellableIds.add(sellableId);
+			String sellableId = "";
+			sellableIds = createGroupSellable(customerId, productId, sellableId, sellableIds, productOption,
+					productInfo);
 
 			// 2. create Share
-			createShare(customerId, productId, productInfo, sellableIds);
+			createNewProductType(customerId, productId, productInfo, sellableIds, TABLE_SHARE);
 
 			// 3. create Merchandise
-			createMerchandise("share", customerId, productId, productInfo);
+			createMerchandise(TABLE_SHARE, customerId, productId, productInfo);
 
 			logger.info(customerId + "\t Migrated " + productId);
 		}
-	}
-
-	public static BooleanData createShare(String customerId, String productId, MappedData productInfo,
-			List<String> sellableIds) {
-		// Obtain tableId and new RowId
-		String table = getTableName(customerId, "share");
-		IdData rowId = getRowIdData(table, productId);
-
-		// Migrate data
-		MappedData data = new MappedData();
-		data.put("table", table);
-		data.put("id", rowId.toString());
-
-		Gson gson = new Gson();
-		String sellables = gson.toJson(sellableIds).toString().replace("\"", "\\\"");
-		data.put("sellable", sellables);
-
-		List<String> merchandiseIds = new ArrayList<String>();
-		merchandiseIds.add(productId);
-		Gson gson2 = new Gson();
-		String merchandises = gson2.toJson(merchandiseIds).toString().replace("\"", "\\\"");
-		data.put("merchandise", merchandises);
-
-		return cassSource.updateRow(new IdData(customerId), application, tableId, rowId, data);
 	}
 
 	private static void buildMapFields() {
@@ -117,6 +85,7 @@ public class ShareMigration extends MigrationModel {
 		sellableFromProductOpts.put("choices", "choices");
 
 		// sellable Inventory
-		sellableIFromProduct.put("inventory", "quantity");
+		sellableInvenFromProductOpts.put("controlInventory", "controlInventory");
+		sellableInvenFromProduct.put("inventory", "quantity");
 	}
 }

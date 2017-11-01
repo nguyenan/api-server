@@ -29,10 +29,24 @@ public class MigrationModel {
 	private static CassandraSource cassSource = new CassandraSource();
 	private static final String applicationStr = "core";
 	private static final IdData application = new IdData(applicationStr);
-	private static final IdData tableId = IdData.create("flat2");
+	private static final IdData tableId = IdData.create("flat2");	
+
+	protected static final String TABLE_CROP = "crop";
+	protected static final String TABLE_SHARE = "share";
+	protected static final String TABLE_EVENT = "event";
+
+	protected static final String TABLE_SELLABLE = "sellable";
+	protected static final String TABLE_SELLABLE_INVENTORY = "sellableInventory";
+	protected static final String TABLE_MERCHANDISE = "merchandise";
+
+	protected static final String TABLE_PRODUCT = "product";
+	protected static final String TABLE_PRODUCT_OPTIONS = "productOption";
+
+
 	private static Logger logger = Logger.getLogger("ProductDevTools");
 	private static FileHandler fh;
 
+	// MAPPING FIELDS: old key => new key
 	public static Map<String, String> merchandiseFromProduct = new HashMap<String, String>();
 
 	public static Map<String, String> metadataFromProductOpts = new HashMap<String, String>();
@@ -41,13 +55,38 @@ public class MigrationModel {
 	public static Map<String, String> sellableFromProduct = new HashMap<String, String>();
 	public static Map<String, String> sellableFromProductOpts = new HashMap<String, String>();
 
-	public static Map<String, String> sellableIFromProductOpts = new HashMap<String, String>();
-	public static Map<String, String> sellableIFromProduct = new HashMap<String, String>();
+	public static Map<String, String> sellableInvenFromProductOpts = new HashMap<String, String>();
+	public static Map<String, String> sellableInvenFromProduct = new HashMap<String, String>();
+
+	// CREATE NEW DATA
+	public static BooleanData createNewProductType(String customerId, String productId, MappedData productInfo,
+			List<String> sellableIds, String tableName) {
+		// Obtain tableId and new RowId
+		String table = getTableName(customerId, tableName);
+		IdData rowId = getRowIdData(table, productId);
+
+		// Migrate data
+		MappedData data = new MappedData();
+		data.put("table", table);
+		data.put("id", rowId.toString());
+
+		Gson gson = new Gson();
+		String sellables = gson.toJson(sellableIds).toString().replace("\"", "\\\"");
+		data.put("sellable", sellables);
+
+		List<String> merchandiseIds = new ArrayList<String>();
+		merchandiseIds.add(productId);
+		Gson gson2 = new Gson();
+		String merchandises = gson2.toJson(merchandiseIds).toString().replace("\"", "\\\"");
+		data.put("merchandise", merchandises);
+
+		return cassSource.updateRow(new IdData(customerId), application, tableId, rowId, data);
+	}
 
 	public static BooleanData createMerchandise(String type, String customerId, String productId,
 			MappedData productInfo) {
-		// Obtain tableId
-		String table = getTableName(customerId, "merchandise");
+		// Obtain tableId and new RowId
+		String table = getTableName(customerId, TABLE_MERCHANDISE);
 		IdData rowId = getRowIdData(table, productId);
 
 		// Migrate data
@@ -66,13 +105,6 @@ public class MigrationModel {
 	public static MappedData createMetadata(MappedData product, MappedData productOption) {
 		MappedData metadata = new MappedData();
 
-		/*
-		 * List<String> sellableIds = new ArrayList<String>();
-		 * sellableIds.add(productOptionId); Gson gson2 = new Gson(); String
-		 * sellables = gson2.toJson(sellableIds).toString().replace("\"",
-		 * "\\\\\""); metadata.put("sellable", sellables);
-		 */
-
 		for (Map.Entry<String, String> entry : metadataFromProductOpts.entrySet()) {
 			if (productOption.get(entry.getKey()) != null)
 				metadata.put(entry.getValue(), productOption.get(entry.getKey()).toString().replace("\"", "\\\""));
@@ -84,11 +116,32 @@ public class MigrationModel {
 		return metadata;
 	}
 
-	public static BooleanData createSellable(String customerId, String productId, String productOptionId,
+	public static List<String> createGroupSellable(String customerId, String productId, String sellableId,
+			List<String> sellableIds, MappedData productOption, MappedData productInfo) {
+
+		// Create sellableInventoryId
+		String sellableInventories = createSellableInventory(customerId, productInfo, productOption);
+
+		// Create Sellable
+		sellableId = createSellable(customerId, productId, sellableId, productOption, productInfo, sellableInventories);
+
+		// Update list sellableIds
+		sellableIds.add(sellableId);
+
+		return sellableIds;
+	}
+
+	public static String createSellable(String customerId, String productId, String sellableId,
 			MappedData productOptionInfo, MappedData productInfo, String sellableInventories) {
 		// Obtain tableId and new RowId
-		String table = getTableName(customerId, "sellable");
-		IdData rowId = getRowIdData(table, productOptionId);
+		String table = getTableName(customerId, TABLE_SELLABLE);
+		if (sellableId == null || sellableId.isEmpty()) {
+			MappedData data = new MappedData();
+			data.put("table", table);
+			sellableId = cassSource.insertRow(new IdData(customerId), application, tableId, data).toRawString();
+		}
+
+		IdData rowId = getRowIdData(table, sellableId);
 
 		// Migrate data
 		MappedData data = new MappedData();
@@ -105,40 +158,31 @@ public class MigrationModel {
 			if (productInfo.get(entry.getKey()) != null)
 				data.put(entry.getValue(), productInfo.get(entry.getKey()));
 		}
+		
 		// Create metadata
 		MappedData metadata = createMetadata(productInfo, productOptionInfo);
 		List<MappedData> metadatas = new ArrayList<MappedData>();
 		metadatas.add(metadata);
 		data.put("metadata", metadatas.toString().replace("\"", "\\\""));
-		return cassSource.updateRow(new IdData(customerId), application, tableId, rowId, data);
-	}
+		cassSource.updateRow(new IdData(customerId), application, tableId, rowId, data);
 
-	public static String createSellable(String customerId, String productId, MappedData productOptionInfo,
-			MappedData productInfo, String sellableInventories) {
-		// Obtain tableId and new RowId
-		String table = getTableName(customerId, "sellable");
-		MappedData data = new MappedData();
-		data.put("table", table);
-		IdData sellableId = cassSource.insertRow(new IdData(customerId), application, tableId, data);
-		createSellable(customerId, productId, sellableId.toRawString(), productOptionInfo, productInfo,
-				sellableInventories);
-		return sellableId.toRawString();
+		return sellableId;
 	}
 
 	public static String createSellableInventory(String customerId, MappedData productInfo,
 			MappedData productOptionInfo) {
 		// Obtain tableId
-		String table = getTableName(customerId, "sellableInventory");
+		String table = getTableName(customerId, TABLE_SELLABLE_INVENTORY);
 
 		// Migrate data
 		MappedData data = new MappedData();
 		data.put("table", table);
 		data.put("location", "On Farm");
-		for (Map.Entry<String, String> entry : sellableIFromProductOpts.entrySet()) {
+		for (Map.Entry<String, String> entry : sellableInvenFromProductOpts.entrySet()) {
 			if (productOptionInfo.get(entry.getKey()) != null)
 				data.put(entry.getValue(), productOptionInfo.get(entry.getKey()));
 		}
-		for (Map.Entry<String, String> entry : sellableIFromProduct.entrySet()) {
+		for (Map.Entry<String, String> entry : sellableInvenFromProduct.entrySet()) {
 			if (productInfo.get(entry.getKey()) != null)
 				data.put(entry.getValue(), productInfo.get(entry.getKey()));
 		}
@@ -154,6 +198,7 @@ public class MigrationModel {
 		return sellableInventories;
 	}
 
+	// CHECK PRODUCT_TYPE
 	public static boolean isEvent(String customerId, MappedData productOption) {
 		if (productOption == null)
 			return false;
@@ -169,21 +214,31 @@ public class MigrationModel {
 		return (goalValue != null);
 	}
 
+	// LIST DATA
+	public static ListData getListMigratedData(String customerId, String tableName) {
+		IdData customer = new IdData(customerId);
+		MappedData filter = new MappedData();
+		String table = getTableName(customerId, tableName);
+		filter.put("table", new IdData(table));
+		return cassSource.getRowsWithFilter(customer, application, tableId, filter);
+	}
+
 	public static ListData getListProduct(String customerId) {
 		IdData customer = new IdData(customerId);
 		MappedData filter = new MappedData();
-		String table = getTableName(customerId, "product");
+		String table = getTableName(customerId, TABLE_PRODUCT);
 		filter.put("table", new IdData(table));
 		return cassSource.getRowsWithFilter(customer, application, tableId, filter);
 	}
 
 	public static MappedData getProductOption(String customerId, String productOptionId) {
 		IdData customer = new IdData(customerId);
-		String table = getTableName(customerId, "productOption");
+		String table = getTableName(customerId, TABLE_PRODUCT_OPTIONS);
 		IdData rowId = getRowIdData(table, productOptionId);
 		return cassSource.getRow(customer, application, tableId, rowId);
 	}
 
+	// BACKUP AND DELETE
 	public static BooleanData backupAndDeleteProduct(String customerId, MappedData productInfo) throws IOException {
 		IdData rowId = new IdData(productInfo.get("id").toString());
 		try {
@@ -221,6 +276,7 @@ public class MigrationModel {
 		return (JsonArray) parser.parse(rawString);
 	}
 
+	// UTIL FUNCTION
 	public static String getTableName(String customerId, String resource) {
 		return String.format("core:%s:public:%s", customerId, resource);
 	}
