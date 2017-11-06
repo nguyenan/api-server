@@ -17,22 +17,25 @@ public class EventMigration extends MigrationModel {
 	public static void main(String[] agrs) throws InterruptedException, SecurityException, IOException {
 		setLogFormat();
 		buildMapFields();
-		String customerId = "l1s14378352140f344c8a43f8ed2d9a4f30f";// a-migrate.tendfarm.com
-		migrateToEvent(customerId);
+		String customerId = "l1s114c74d3c3edd4c37abffe2a3ad42a2b5";// a-migrate.tendfarm.com
+		 
 
-		System.out.println(getListMigratedData(customerId, TABLE_EVENT));
-		System.out.println(getListMigratedData(customerId, TABLE_CROP));
-		System.out.println(getListMigratedData(customerId, TABLE_SHARE));
-		System.out.println(getListMigratedData(customerId, TABLE_MERCHANDISE));
-		System.out.println(getListMigratedData(customerId, TABLE_SELLABLE));
-		System.out.println(getListMigratedData(customerId, TABLE_SELLABLE_INVENTORY));
+		// migrateToEvent(customerId);
+		// System.out.println(getListMigratedData(customerId, TABLE_EVENT));
+		// System.out.println(getListMigratedData(customerId, TABLE_CROP));
+		// System.out.println(getListMigratedData(customerId, TABLE_SHARE));
+		// System.out.println(getListMigratedData(customerId,
+		// TABLE_MERCHANDISE));
+		// System.out.println(getListMigratedData(customerId, TABLE_SELLABLE));
+		// System.out.println(getListMigratedData(customerId,
+		// TABLE_SELLABLE_INVENTORY));
 
-		// ListData listProduct = getListProduct(customerId);
-		// for (Object obj : listProduct) {
-		// MappedData productInfo = (MappedData) obj;
-		// System.out.println(productInfo);
-		// }
-
+		 ListData listProduct = getListProduct(customerId);
+		 for (Object obj : listProduct) {
+		 MappedData productInfo = (MappedData) obj;
+		 System.out.println(productInfo);
+		 }
+		 
 		System.exit(0);
 	}
 
@@ -109,9 +112,9 @@ public class EventMigration extends MigrationModel {
 		sellableFromProductOpts.put("unit", "unit");
 		sellableFromProductOpts.put("weight", "weight");
 		sellableFromProductOpts.put("choices", "choices");
-
+		sellableFromProductOpts.put("controlInventory", "controlInventory");
 		// sellable Inventory
-		sellableInvenFromProductOpts.put("controlInventory", "controlInventory");
+
 		sellableInvenFromProductOpts.put("inventory", "quantity");
 	}
 }

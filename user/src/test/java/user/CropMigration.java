@@ -22,7 +22,7 @@ public class CropMigration extends MigrationModel {
 		// migrateToEvent("test.farmer.guide");
 		// migrateToEvent("dev1.tend.ag");
 		String customerId = "l1s1a607957b13e64302ade0359264434cd2";
-		migrateToCrop(customerId);
+		//migrateToCrop(customerId);
 		System.exit(0);
 	}
 
@@ -113,9 +113,9 @@ public class CropMigration extends MigrationModel {
 		sellableFromProductOpts.put("update", "update");
 		sellableFromProductOpts.put("price", "price");
 		sellableFromProductOpts.put("choices", "choices");
-
+		sellableFromProductOpts.put("controlInventory", "controlInventory");
+		
 		// sellable Inventory
-		sellableInvenFromProductOpts.put("controlInventory", "controlInventory");
 		sellableInvenFromProductOpts.put("inventory", "quantity");
 	}
 }

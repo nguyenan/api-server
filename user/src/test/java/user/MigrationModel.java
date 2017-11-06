@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.logging.FileHandler;
 import java.util.logging.Logger;
 
+import javax.lang.model.type.NullType;
+
 import org.apache.commons.lang3.StringEscapeUtils;
 
 import com.google.gson.Gson;
@@ -19,6 +21,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 import com.wut.datasources.cassandra.CassandraSource;
+import com.wut.model.Data;
 import com.wut.model.list.ListData;
 import com.wut.model.map.MappedData;
 import com.wut.model.scalar.BooleanData;
@@ -29,7 +32,7 @@ public class MigrationModel {
 	private static CassandraSource cassSource = new CassandraSource();
 	private static final String applicationStr = "core";
 	private static final IdData application = new IdData(applicationStr);
-	private static final IdData tableId = IdData.create("flat2");	
+	private static final IdData tableId = IdData.create("flat2");
 
 	protected static final String TABLE_CROP = "crop";
 	protected static final String TABLE_SHARE = "share";
@@ -41,7 +44,6 @@ public class MigrationModel {
 
 	protected static final String TABLE_PRODUCT = "product";
 	protected static final String TABLE_PRODUCT_OPTIONS = "productOption";
-
 
 	private static Logger logger = Logger.getLogger("ProductDevTools");
 	private static FileHandler fh;
@@ -57,6 +59,21 @@ public class MigrationModel {
 
 	public static Map<String, String> sellableInvenFromProductOpts = new HashMap<String, String>();
 	public static Map<String, String> sellableInvenFromProduct = new HashMap<String, String>();
+
+	public static Map<String, String> unitMapped = new HashMap<String, String>();
+
+	static {
+		unitMapped.put("basket", "basket");
+		unitMapped.put("bunch", "bunch");
+		unitMapped.put("case", "case");
+		unitMapped.put("unit", "each");
+		unitMapped.put("gallon", "gallon");
+		unitMapped.put("head", "head");
+		unitMapped.put("oz", "ounce");
+		unitMapped.put("pint", "pint");
+		unitMapped.put("lb", "pound");
+		unitMapped.put("plant", "stem");
+	}
 
 	// CREATE NEW DATA
 	public static BooleanData createNewProductType(String customerId, String productId, MappedData productInfo,
@@ -121,7 +138,6 @@ public class MigrationModel {
 
 		// Create sellableInventoryId
 		String sellableInventories = createSellableInventory(customerId, productInfo, productOption);
-
 		// Create Sellable
 		sellableId = createSellable(customerId, productId, sellableId, productOption, productInfo, sellableInventories);
 
@@ -150,7 +166,12 @@ public class MigrationModel {
 		data.put("sellableInventory", sellableInventories);
 
 		for (Map.Entry<String, String> entry : sellableFromProductOpts.entrySet()) {
-			if (productOptionInfo.get(entry.getKey()) != null)
+			if (productOptionInfo.get(entry.getKey()) == null)
+				break;
+			if (productOptionInfo.get(entry.getValue()).equals("unit")) {
+				String oldUnit = productOptionInfo.get(entry.getKey()).toString();
+				data.put("unit", unitMapped.get(oldUnit).toString());
+			} else
 				data.put(entry.getValue(), productOptionInfo.get(entry.getKey()));
 		}
 
@@ -158,7 +179,7 @@ public class MigrationModel {
 			if (productInfo.get(entry.getKey()) != null)
 				data.put(entry.getValue(), productInfo.get(entry.getKey()));
 		}
-		
+
 		// Create metadata
 		MappedData metadata = createMetadata(productInfo, productOptionInfo);
 		List<MappedData> metadatas = new ArrayList<MappedData>();
@@ -231,11 +252,55 @@ public class MigrationModel {
 		return cassSource.getRowsWithFilter(customer, application, tableId, filter);
 	}
 
+	public static ListData getListData(String customerId, String tableName) {
+		IdData customer = new IdData(customerId);
+		MappedData filter = new MappedData();
+		String table = getTableName(customerId, tableName);
+		filter.put("table", new IdData(table));
+		return cassSource.getRowsWithFilter(customer, application, tableId, filter);
+	}
+
+	public static BooleanData createNewData(String customerId, String tableName, String id, MappedData mappedData) {
+		// Obtain tableId and new RowId
+		String table = getTableName(customerId, tableName);
+		IdData rowId = getRowIdData(table, id);
+
+		mappedData.put("table", table);
+		mappedData.put("id", rowId.toString());
+
+		System.out.println(rowId);
+		System.out.println(mappedData);
+		cassSource.updateRow(new IdData(customerId), application, tableId, rowId, mappedData);
+		return new BooleanData(true);
+	}
+
+	public static MappedData getProduct(String customerId, String productId) {
+		IdData customer = new IdData(customerId);
+		String table = getTableName(customerId, TABLE_PRODUCT);
+		IdData rowId = getRowIdData(table, productId);
+		return cassSource.getRow(customer, application, tableId, rowId);
+	}
+
 	public static MappedData getProductOption(String customerId, String productOptionId) {
 		IdData customer = new IdData(customerId);
 		String table = getTableName(customerId, TABLE_PRODUCT_OPTIONS);
 		IdData rowId = getRowIdData(table, productOptionId);
 		return cassSource.getRow(customer, application, tableId, rowId);
+	}
+
+	public static BooleanData fixSellableUnit(String customerId) {
+		ListData listSellable = getListMigratedData(customerId, TABLE_SELLABLE);
+		for (Object obj : listSellable) {
+			MappedData sellableData = (MappedData) obj;
+			IdData rowId = new IdData(sellableData.get("id").toString());
+			if (sellableData.get("unit") == null)
+				continue;
+			String oldUnit = sellableData.get("unit").toString();
+			sellableData.put("unit", unitMapped.get(oldUnit).toString());
+			cassSource.updateRow(new IdData(customerId), application, tableId, rowId, sellableData);
+			logger.info(customerId + "\t Migrated " + rowId);
+		}
+		return new BooleanData(true);
 	}
 
 	// BACKUP AND DELETE
@@ -268,6 +333,35 @@ public class MigrationModel {
 			}
 		}
 		return BooleanData.TRUE;
+	}
+
+	public static BooleanData createNewProduct(String customerId, String productId, MappedData productInfo) {
+		// Obtain tableId and new RowId
+		String table = getTableName(customerId, TABLE_PRODUCT);
+		IdData rowId = getRowIdData(table, productId);
+
+		productInfo.put("table", table);
+		productInfo.put("id", rowId.toString());
+
+		System.out.println(rowId);
+		System.out.println(productInfo);
+		cassSource.updateRow(new IdData(customerId), application, tableId, rowId, productInfo);
+		return new BooleanData(true);
+	}
+
+	public static BooleanData createNewProductOptions(String customerId, String productOptionId,
+			MappedData productOptionInfo) {
+		// Obtain tableId and new RowId
+		String table = getTableName(customerId, TABLE_PRODUCT_OPTIONS);
+		IdData rowId = getRowIdData(table, productOptionId);
+
+		productOptionInfo.put("table", table);
+		productOptionInfo.put("id", rowId.toString());
+
+		System.out.println(rowId);
+		System.out.println(productOptionInfo);
+		cassSource.updateRow(new IdData(customerId), application, tableId, rowId, productOptionInfo);
+		return new BooleanData(true);
 	}
 
 	public static JsonArray parseProductOptions(StringData options) {

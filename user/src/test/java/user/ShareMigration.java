@@ -15,15 +15,14 @@ public class ShareMigration extends MigrationModel {
 		setLogFormat();
 		buildMapFields();
 
-		String customerId = "l1s14378352140f344c8a43f8ed2d9a4f30f";// a-migrate.tendfarm.com
-		migrateToShare(customerId);
-
-		System.out.println(getListMigratedData(customerId, TABLE_EVENT));
-		System.out.println(getListMigratedData(customerId, TABLE_CROP));
-		System.out.println(getListMigratedData(customerId, TABLE_SHARE));
-		System.out.println(getListMigratedData(customerId, TABLE_MERCHANDISE));
-		System.out.println(getListMigratedData(customerId, TABLE_SELLABLE));
-		System.out.println(getListMigratedData(customerId, TABLE_SELLABLE_INVENTORY));
+		String customerId = "l1s1a607957b13e64302ade0359264434cd2";// a-migrate.tendfarm.com
+//		migrateToShare(customerId);
+//		System.out.println(getListMigratedData(customerId, TABLE_EVENT));
+//		System.out.println(getListMigratedData(customerId, TABLE_CROP));
+//		System.out.println(getListMigratedData(customerId, TABLE_SHARE));
+//		System.out.println(getListMigratedData(customerId, TABLE_MERCHANDISE));
+//		System.out.println(getListMigratedData(customerId, TABLE_SELLABLE));
+//		System.out.println(getListMigratedData(customerId, TABLE_SELLABLE_INVENTORY));
 		System.exit(0);
 	}
 
@@ -83,9 +82,9 @@ public class ShareMigration extends MigrationModel {
 		sellableFromProductOpts.put("unit", "unit");
 		sellableFromProductOpts.put("weight", "weight");
 		sellableFromProductOpts.put("choices", "choices");
+		sellableFromProductOpts.put("controlInventory", "controlInventory");
 
 		// sellable Inventory
-		sellableInvenFromProductOpts.put("controlInventory", "controlInventory");
 		sellableInvenFromProduct.put("inventory", "quantity");
 	}
 }
