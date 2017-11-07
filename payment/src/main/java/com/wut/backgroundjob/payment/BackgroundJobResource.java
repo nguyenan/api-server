@@ -12,6 +12,7 @@ import com.wut.model.Data;
 public class BackgroundJobResource {
 
 	private final static String JOB_ID = "squaretoken_";
+	private final static Integer DAYS_OF_EXPIRE = 20;
 	private static BackgroundJobsStore bgJob = new BackgroundJobsStore();
 
 	public static void pushRenewTokenJob(String customerId, String accessToken) {
@@ -23,7 +24,7 @@ public class BackgroundJobResource {
 	}
 
 	public static void pushRenewTokenJob(Map<String, String> mappedData) {
-		String jobId = getNextJobId();
+		String jobId = getNextJobId(DAYS_OF_EXPIRE);
 		String accessToken = mappedData.get("id");
 
 		bgJob.add(jobId, accessToken, mappedData);
@@ -35,14 +36,13 @@ public class BackgroundJobResource {
 	}
 
 	public static Data getTodayJob() {
-		String jobId = getTodayJobId();
+		String jobId = getNextJobId(6);//getTodayJobId();
 		Data listJobs = bgJob.list(jobId);
 		return listJobs;
 	}
-	
 
 	public static Data getTodayJobWithToken(String token) {
-		String jobId = getNextJobId();
+		String jobId = getTodayJobId();
 		Data job = bgJob.read(jobId, token);
 		return job;
 	}
@@ -53,9 +53,14 @@ public class BackgroundJobResource {
 		return job;
 	}
 
-	
 	public static Data getNextJob() {
-		String jobId = getNextJobId();
+		String jobId = getNextJobId(DAYS_OF_EXPIRE);
+		Data listJobs = bgJob.list(jobId);
+		return listJobs;
+	}
+
+	public static Data getNextJob(int numOfDays) {
+		String jobId = getNextJobId(numOfDays);
 		Data listJobs = bgJob.list(jobId);
 		return listJobs;
 	}
@@ -68,12 +73,11 @@ public class BackgroundJobResource {
 		return jobId;
 	}
 
-	public static String getNextJobId() {
+	public static String getNextJobId(int numOfDays) {
 		SimpleDateFormat sdfDate = new SimpleDateFormat("yyyyMMdd");
 
 		Calendar cal = Calendar.getInstance();
-		//cal.add(Calendar.DATE, 20);
-		cal.add(Calendar.DATE, 20);
+		cal.add(Calendar.DATE, numOfDays);
 		Date nextTime = cal.getTime();
 
 		String strDate = sdfDate.format(nextTime);

@@ -3,7 +3,6 @@ package com.wut.datasources.square;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.math.BigDecimal;
 import java.util.UUID;
 
 import org.apache.http.HttpResponse;
@@ -14,13 +13,10 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.wut.model.map.MappedData;
 import com.wut.model.map.MessageData;
-import com.wut.model.message.ErrorData;
 import com.wut.model.scalar.IntegerData;
 import com.wut.model.scalar.StringData;
 import com.wut.support.logging.WutLogger;
@@ -28,15 +24,12 @@ import com.wut.support.settings.SettingsManager;
 
 public class SquareSource {
 	private static WutLogger logger = WutLogger.create(SquareSource.class);
-	private final static String getTokenURL = "https://connect.squareup.com/oauth2/token";
-	private final static String renewTokenURL = "https://connect.squareup.com/oauth2/clients/%s/access-token/renew"; // {client_id}
-	private final static String getLocationURL = "https://connect.squareup.com/v2/locations";
-	private final static String transactionURL = "https://connect.squareup.com/v2/locations/%s/transactions"; // {location}
-
-	private static final String SQUARE_CLIENT_SERECT = SettingsManager.getSystemSetting("square.client_secret");
-	private static final String SQUARE_APP_ID = SettingsManager.getSystemSetting("square.client_id");
-	// private final static String REDIRECT_URL =
-	// SettingsManager.getSystemSetting("square.redirect_url");
+	// private final static String BILLING_API =
+	// "http://billing-api.endpoints.practyce-gctesting.cloud.goog";
+	private final static String BILLING_API = "http://localhost:8084";
+	private final static String getTokenURL = BILLING_API + "/api/payment/getaccesstoken";
+	private final static String transactionURL = BILLING_API + "/api/payment/transaction";
+	private final static String renewTokenURL = BILLING_API + "/api/payment/renewaccesstoken";
 
 	public static final String ACCESS_TOKEN_SETTING = "payment.square.access-token";
 	public static final String AUTHORIZE_CODE_SETTING = "payment.square.authorization-code";
@@ -45,118 +38,75 @@ public class SquareSource {
 	}
 
 	public MappedData getAccessToken(String customer, StringData authorizationCode) {
-		HttpPostWithBody paymentReq = new HttpPostWithBody(getTokenURL);
-		paymentReq.setHeader("Content-Type", "application/json");
+		HttpPostWithBody authenticateReq = new HttpPostWithBody(getTokenURL);
+		authenticateReq = addBillingHeader(authenticateReq);
 
 		JsonObject postData = new JsonObject();
-		postData.addProperty("client_id", SQUARE_APP_ID);
-		postData.addProperty("client_secret", SQUARE_CLIENT_SERECT);
-		// postData.addProperty("redirect_uri", REDIRECT_URL);
-		postData.addProperty("code", authorizationCode.toRawString());
-		paymentReq.setEntity(new StringEntity(postData.toString(), "UTF-8"));
+		postData.addProperty("authorizateCode", authorizationCode.toRawString());
+		authenticateReq.setEntity(new StringEntity(postData.toString(), "UTF-8"));
 
-		JsonObject JSONResponse = makeRequest(paymentReq);
-		if (JSONResponse == null)
-			return ErrorData.SQUARE_HTTP_ERROR;
+		BillingResponse resp = makeRequest(authenticateReq);
+		if (!resp.isSuccess())
+			return MessageData.error(resp.getMeta().getMessage().replace("\"", "\\\""));
 
-		if (JSONResponse.get("access_token") == null)
-			return ErrorData.error(JSONResponse.get("message").getAsString());
-
-		JsonElement accessToken = JSONResponse.get("access_token");
-		MessageData result =  new MessageData(100, "success", "request successful");
-		result.put("access_token", accessToken.getAsString());
+		String accessToken = resp.getData().get("accessToken").getAsString();
+		MessageData result = new MessageData(100, "success", "request successful");
+		result.put("access_token", accessToken);
 		return result;
 
 	}
 
 	public MappedData renewAccessToken(String customer, String oldAccessToken) {
-		HttpPostWithBody paymentReq = new HttpPostWithBody(String.format(renewTokenURL, SQUARE_APP_ID));
-		paymentReq.setHeader("Accept", "application/json");
-		paymentReq.setHeader("Content-Type", "application/json");
-		paymentReq.setHeader("Authorization", "Client " + SQUARE_CLIENT_SERECT);
+		HttpPostWithBody renewTokenReq = new HttpPostWithBody(renewTokenURL);
+		renewTokenReq = addBillingHeader(renewTokenReq);
 
 		JsonObject postData = new JsonObject();
 		postData.addProperty("access_token", oldAccessToken);
-		paymentReq.setEntity(new StringEntity(postData.toString(), "UTF-8"));
+		renewTokenReq.setEntity(new StringEntity(postData.toString(), "UTF-8"));
 
-		JsonObject JSONResponse = makeRequest(paymentReq);
-		if (JSONResponse == null)
-			return ErrorData.SQUARE_HTTP_ERROR;
+		BillingResponse resp = makeRequest(renewTokenReq);
+		if (!resp.isSuccess())
+			return MessageData.error(resp.getMeta().getMessage().replace("\"", "\\\""));
 
-		if (JSONResponse.get("access_token") == null)
-			return ErrorData.error(JSONResponse.get("message").getAsString());
-
-		JsonElement accessToken = JSONResponse.get("access_token");
+		String accessToken = resp.getData().get("accessToken").toString();
 		MessageData result = new MessageData(100, "success", "request successful");
-		result.put("access_token", accessToken.getAsString());
+		result.put("access_token", accessToken);
 		return result;
 	}
 
 	public MappedData charge(String accessToken, String cardNonce, Integer amount) {
-		String lookupActiveLocation = lookupActiveLocation(accessToken);
-		HttpPostWithBody paymentReq = new HttpPostWithBody(String.format(transactionURL, lookupActiveLocation));
-		paymentReq = addHeader(paymentReq, accessToken);
+		HttpPostWithBody paymentReq = new HttpPostWithBody(transactionURL);
+		paymentReq = addBillingHeader(paymentReq);
 
 		JsonObject postData = new JsonObject();
-		postData.addProperty("card_nonce", cardNonce);
-		postData.addProperty("idempotency_key", UUID.randomUUID().toString());
-
-		JsonObject amountMoney = new JsonObject();
-		amountMoney.addProperty("amount", amount);
-		amountMoney.addProperty("currency", "USD");
-		postData.add("amount_money", amountMoney);
+		postData.addProperty("cardNonce", cardNonce);
+		postData.addProperty("amount", amount);
+		postData.addProperty("accessToken", accessToken);
 
 		paymentReq.setEntity(new StringEntity(postData.toString(), "UTF-8"));
 
-		JsonObject JSONResponse = makeRequest(paymentReq);
-		if (JSONResponse == null)
-			return MessageData.SQUARE_HTTP_ERROR;
-		if (JSONResponse.get("transaction") == null) {
-			JsonArray errors = JSONResponse.get("errors").getAsJsonArray();
-			return ErrorData.error(errors.get(0).toString().replace("\"", "\\\""));
-		} else {
-			MappedData result = new MappedData();
-			JsonObject transaction = JSONResponse.get("transaction").getAsJsonObject();
-			result.put("code", new IntegerData(MessageData.SUCCESS.getCode()));
-			result.put("id", transaction.get("id").getAsString());
-			return result;
-		}
+		BillingResponse resp = makeRequest(paymentReq);
+		if (!resp.isSuccess())
+			return MessageData.error(resp.getMeta().getMessage().replace("\"", "\\\""));
 
-	} 
+		MappedData result = new MappedData();
+		String paymentTransactionId = resp.getData().get("paymentTransactionId").getAsString();
+		result.put("code", new IntegerData(MessageData.SUCCESS.getCode()));
+		result.put("id", paymentTransactionId);
+		return result;
 
-	public String lookupActiveLocation(String accessToken) {
-		HttpGet paymentReq = new HttpGet(getLocationURL);
-		paymentReq = addHeader(paymentReq, accessToken);
-
-		JsonObject JSONResponse = makeRequest(paymentReq);
-		if (JSONResponse == null)
-			return "";
-		if (JSONResponse.get("locations") == null) {
-			logger.error(JSONResponse.get("errors").getAsString());
-			return "";
-		}
-
-		JsonArray asJsonArray = JSONResponse.get("locations").getAsJsonArray();
-		for (int i = 0; i < asJsonArray.size(); i++) {
-			JsonObject location = asJsonArray.get(i).getAsJsonObject();
-			String status = location.get("status").getAsString();
-			if (status.equals("ACTIVE"))
-				return location.get("id").getAsString();
-		}
-		return "";
 	}
 
-	public JsonObject makeRequest(HttpRequestBase req) {
+	public BillingResponse makeRequest(HttpRequestBase req) {
 		try {
 			CloseableHttpClient client = HttpClients.createDefault();
 			CloseableHttpResponse response = client.execute(req);
-			JsonObject jsonResponse = getResponse(response);
-			System.out.println(jsonResponse);
-			return jsonResponse;
-		} catch (IOException e) {
+			BillingResponse resp = getBillingResponse(response);
+			return resp;
+		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error(e.getMessage());
-			return null;
+			return BillingResponse.fail(e.getMessage());
 		}
 	}
 
@@ -167,14 +117,15 @@ public class SquareSource {
 		return req;
 	}
 
-	public HttpPostWithBody addHeader(HttpPostWithBody req, String accessToken) {
+	public HttpPostWithBody addBillingHeader(HttpPostWithBody req) {
 		req.setHeader("Accept", "application/json");
 		req.setHeader("Content-Type", "application/json");
-		req.setHeader("Authorization", "Bearer " + accessToken);
+		req.setHeader("X-Auth-Token", "Basic "
+				+ "aGEubmd1eWVuQHByYWN0eWNlLmNvbTp2cGxxbGt1aDhqcHBjaDBycTl6M3FqZGhiMDNzMndkNUY3OTJGQjVCRkNBOUM5QUJGN0IxRDUxNDk1MjQ5MzlDMTc4QjM1OEE2RkY3RDY3Njk3RDVBNjhENEU2RDBDODA6dXNlcg==");
 		return req;
 	}
 
-	public JsonObject getResponse(HttpResponse response) {
+	public BillingResponse getBillingResponse(HttpResponse response) {
 		StringBuilder responseString = new StringBuilder();
 		BufferedReader rd;
 		try {
@@ -184,11 +135,10 @@ public class SquareSource {
 				responseString.append(line);
 			}
 			JsonObject result = new JsonParser().parse(responseString.toString()).getAsJsonObject();
-			return result;
-		} catch (IOException e) {
-			JsonObject error = new JsonObject();
-			error.addProperty("msg", "Unable to get Square response");
-			return error;
+			BillingResponse billingResponse = new BillingResponse(result);
+			return billingResponse;
+		} catch (Exception e) {
+			return BillingResponse.fail("Unable to get Square response");
 		}
 
 	}

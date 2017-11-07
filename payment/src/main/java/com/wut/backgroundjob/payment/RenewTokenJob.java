@@ -26,25 +26,22 @@ public class RenewTokenJob implements Runnable {
 		while (it.hasNext()) {
 			MappedData job = (MappedData) it.next();
 			System.out.println("Processing: " + job);
-			String accessToken = job.get("id").toString();
+			String oldToken = job.get("id").toString();
 			String customerId = job.get("customerId").toString();
  
-			SquareSource square = new SquareSource();
-
-			MappedData result = square.renewAccessToken(customerId, accessToken);
-			System.out.println("Result: " + result.toString());
-			Integer code = ((IntegerData) result.get("code")).getInteger();
-			if (code.equals(MessageData.SUCCESS.getCode())) {
-				String newToken = result.get("access_token").toString();
-
-				// save settings
-				SettingsManager.setClientSettings(customerId, SquareSource.ACCESS_TOKEN_SETTING, newToken);
-
-				// put to job table
-				BackgroundJobResource.pushRenewTokenJob(customerId, newToken);
-				BackgroundJobResource.removeRenewTokenJob(accessToken);
-			} else
-				logger.error(result.toString());
+//			SquareSource square = new SquareSource();
+//			MappedData result = square.renewAccessToken(customerId, oldToken);
+//			System.out.println("Result: " + result.toString());
+//			Integer code = ((IntegerData) result.get("code")).getInteger();
+//			if (code.equals(MessageData.SUCCESS.getCode())) {
+//				String newToken = result.get("access_token").toString();
+//				// save settings
+//				SettingsManager.setClientSettings(customerId, SquareSource.ACCESS_TOKEN_SETTING, newToken);
+//				// put to job table
+//				BackgroundJobResource.pushRenewTokenJob(customerId, newToken);
+//				BackgroundJobResource.removeRenewTokenJob(oldToken);
+//			} else
+//				logger.error(result.toString());
 
 		}
 		System.out.println("End RenewTokenJob");
