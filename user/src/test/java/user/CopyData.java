@@ -3,13 +3,10 @@ package user;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.wut.model.list.ListData;
 import com.wut.model.map.MappedData;
-import com.wut.model.scalar.StringData;
 
-public class CopyLocation extends MigrationModel {
+public class CopyData extends MigrationModel {
 	private static Logger logger = Logger.getLogger("ProductDevTools");
 
 	public static void main(String[] agrs) throws InterruptedException, SecurityException, IOException {
@@ -17,12 +14,16 @@ public class CopyLocation extends MigrationModel {
 
 		String fromCustomerId = "www.cluckandtrowel.com";
 		String toCustomerId = "l1s181e18a2c1656476090b058256c409b6c";
-		//copyPickupLocation(fromCustomerId, toCustomerId);
+		// blog
+		// page
+		// userImage
+		// menu order category badge customer shipMethod contact email tag emailFrom contactList
+		copyData(fromCustomerId, toCustomerId, "lead"); 
 		System.exit(0);
 	}
 
-	private static void copyPickupLocation(String fromCustomerId, String toCustomerId) throws IOException {
-		String tablename = "pickupSchedule";
+	private static void copyData(String fromCustomerId, String toCustomerId, String tablename) throws IOException {
+
 		ListData listData = getListData(fromCustomerId, tablename);
 		for (Object obj : listData) {
 			MappedData mappedData = (MappedData) obj;

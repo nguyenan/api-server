@@ -45,7 +45,7 @@ public class ShareMigration extends MigrationModel {
 			List<String> sellableIds = new ArrayList<String>();
 			String sellableId = "";
 			sellableIds = createGroupSellable(customerId, productId, sellableId, sellableIds, productOption,
-					productInfo);
+					productInfo, TABLE_EVENT);
 
 			// 2. create Share
 			createNewProductType(customerId, productId, productInfo, sellableIds, TABLE_SHARE);

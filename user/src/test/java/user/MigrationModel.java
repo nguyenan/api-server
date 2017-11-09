@@ -12,8 +12,6 @@ import java.util.Map;
 import java.util.logging.FileHandler;
 import java.util.logging.Logger;
 
-import javax.lang.model.type.NullType;
-
 import org.apache.commons.lang3.StringEscapeUtils;
 
 import com.google.gson.Gson;
@@ -21,7 +19,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 import com.wut.datasources.cassandra.CassandraSource;
-import com.wut.model.Data;
 import com.wut.model.list.ListData;
 import com.wut.model.map.MappedData;
 import com.wut.model.scalar.BooleanData;
@@ -35,6 +32,7 @@ public class MigrationModel {
 	private static final IdData tableId = IdData.create("flat2");
 
 	protected static final String TABLE_CROP = "crop";
+	protected static final String TABLE_PRODUCE_PRODUCT = "produce";
 	protected static final String TABLE_SHARE = "share";
 	protected static final String TABLE_EVENT = "event";
 
@@ -49,6 +47,7 @@ public class MigrationModel {
 	private static FileHandler fh;
 
 	// MAPPING FIELDS: old key => new key
+	public static Map<String, String> productFromProduct = new HashMap<String, String>();
 	public static Map<String, String> merchandiseFromProduct = new HashMap<String, String>();
 
 	public static Map<String, String> metadataFromProductOpts = new HashMap<String, String>();
@@ -63,6 +62,7 @@ public class MigrationModel {
 	public static Map<String, String> unitMapped = new HashMap<String, String>();
 
 	static {
+		unitMapped.put("", "");
 		unitMapped.put("basket", "basket");
 		unitMapped.put("bunch", "bunch");
 		unitMapped.put("case", "case");
@@ -81,11 +81,22 @@ public class MigrationModel {
 		// Obtain tableId and new RowId
 		String table = getTableName(customerId, tableName);
 		IdData rowId = getRowIdData(table, productId);
-
 		// Migrate data
 		MappedData data = new MappedData();
 		data.put("table", table);
 		data.put("id", rowId.toString());
+
+		if (tableName.equals(TABLE_PRODUCE_PRODUCT)) {
+			data.put("cropType", "any");
+			data.put("harvestStage", "any");
+			data.put("variety", "any");
+			data.put("parentCrop", "114");
+		}
+
+		for (Map.Entry<String, String> entry : productFromProduct.entrySet()) {
+			if (productInfo.get(entry.getKey()) != null)
+				data.put(entry.getValue(), productInfo.get(entry.getKey()));
+		}
 
 		Gson gson = new Gson();
 		String sellables = gson.toJson(sellableIds).toString().replace("\"", "\\\"");
@@ -134,12 +145,14 @@ public class MigrationModel {
 	}
 
 	public static List<String> createGroupSellable(String customerId, String productId, String sellableId,
-			List<String> sellableIds, MappedData productOption, MappedData productInfo) {
+			List<String> sellableIds, MappedData productOption, MappedData productInfo, String productType) {
 
 		// Create sellableInventoryId
-		String sellableInventories = createSellableInventory(customerId, productInfo, productOption);
+		String sellableInventories = "";
+		sellableInventories = createSellableInventory(customerId, productInfo, productOption);
 		// Create Sellable
-		sellableId = createSellable(customerId, productId, sellableId, productOption, productInfo, sellableInventories);
+		sellableId = createSellable(customerId, productId, sellableId, productOption, productInfo, sellableInventories,
+				productType);
 
 		// Update list sellableIds
 		sellableIds.add(sellableId);
@@ -148,7 +161,7 @@ public class MigrationModel {
 	}
 
 	public static String createSellable(String customerId, String productId, String sellableId,
-			MappedData productOptionInfo, MappedData productInfo, String sellableInventories) {
+			MappedData productOptionInfo, MappedData productInfo, String sellableInventories, String productType) {
 		// Obtain tableId and new RowId
 		String table = getTableName(customerId, TABLE_SELLABLE);
 		if (sellableId == null || sellableId.isEmpty()) {
@@ -165,19 +178,39 @@ public class MigrationModel {
 		data.put("id", rowId.toString());
 		data.put("sellableInventory", sellableInventories);
 
+		if (productType.equals(TABLE_PRODUCE_PRODUCT)) {
+			data.put("opCropType", "any");
+			data.put("opHarvestStage", "any");
+			data.put("opVariety", "any");
+
+			String choices = ((StringData) productOptionInfo.get("choices")).toRawString();
+			if (choices.equals("[]"))
+				data.put("name", "Variety");
+			else {
+				String substring = choices.substring(choices.indexOf("\\\"value\\\":\\\"") + 12);
+				data.put("name", substring.substring(0, substring.indexOf("\"") - 1));
+			}
+		}
+
 		for (Map.Entry<String, String> entry : sellableFromProductOpts.entrySet()) {
-			if (productOptionInfo.get(entry.getKey()) == null)
-				break;
-			if (productOptionInfo.get(entry.getValue()).equals("unit")) {
-				String oldUnit = productOptionInfo.get(entry.getKey()).toString();
-				data.put("unit", unitMapped.get(oldUnit).toString());
-			} else
-				data.put(entry.getValue(), productOptionInfo.get(entry.getKey()));
+			if (productOptionInfo.get(entry.getKey()) != null) {
+				if (entry.getValue().equals("unit") || entry.getValue().equals("priceUnit")) {
+					String oldUnit = productOptionInfo.get(entry.getKey()).toString();
+					System.out.println(oldUnit);
+					data.put(entry.getValue(), unitMapped.get(oldUnit).toString());
+				} else
+					data.put(entry.getValue(), productOptionInfo.get(entry.getKey()));
+			}
 		}
 
 		for (Map.Entry<String, String> entry : sellableFromProduct.entrySet()) {
-			if (productInfo.get(entry.getKey()) != null)
-				data.put(entry.getValue(), productInfo.get(entry.getKey()));
+			if (productInfo.get(entry.getKey()) != null) {
+				if (entry.getValue().equals("unit") || entry.getValue().equals("priceUnit")) {
+					String oldUnit = productInfo.get(entry.getKey()).toString();
+					data.put(entry.getValue(), unitMapped.get(oldUnit).toString());
+				} else
+					data.put(entry.getValue(), productInfo.get(entry.getKey()));
+			}
 		}
 
 		// Create metadata
