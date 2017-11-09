@@ -39,7 +39,9 @@ public interface PaymentProvider {
 	
 	public PaymentResponseData charge(String cardId, CURRENCY currency, BigDecimal amount, String orderId);
 	
-	public boolean refund(String paymentId, BigDecimal amount); 
+	public boolean refund(String paymentId, BigDecimal amount);
+	
+	public PaymentResponseData refund(String paymentId, BigDecimal amount, String tenderId); 
 	
 	public boolean voidify(String paymentId); 
 	

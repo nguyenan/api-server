@@ -24,11 +24,11 @@ import com.wut.support.settings.SettingsManager;
 
 public class SquareSource {
 	private static WutLogger logger = WutLogger.create(SquareSource.class);
-	// private final static String BILLING_API =
-	// "http://billing-api.endpoints.practyce-gctesting.cloud.goog";
-	private final static String BILLING_API = "http://localhost:8084";
+	private final static String BILLING_API = "http://billing-api.endpoints.practyce-gctesting.cloud.goog";
+	// private final static String BILLING_API = "http://localhost:8084";
 	private final static String getTokenURL = BILLING_API + "/api/payment/getaccesstoken";
 	private final static String transactionURL = BILLING_API + "/api/payment/transaction";
+	private final static String refundURL = BILLING_API + "/api/payment/transaction/refund";
 	private final static String renewTokenURL = BILLING_API + "/api/payment/renewaccesstoken";
 
 	public static final String ACCESS_TOKEN_SETTING = "payment.square.access-token";
@@ -90,9 +90,34 @@ public class SquareSource {
 			return MessageData.error(resp.getMeta().getMessage().replace("\"", "\\\""));
 
 		MappedData result = new MappedData();
-		String paymentTransactionId = resp.getData().get("paymentTransactionId").getAsString();
 		result.put("code", new IntegerData(MessageData.SUCCESS.getCode()));
-		result.put("id", paymentTransactionId);
+		result.put("id", resp.getData().get("paymentTransactionId").getAsString());
+		result.put("status", resp.getData().get("status").getAsString());
+		result.put("tenderId", resp.getData().get("tenderId").getAsString());
+		return result;
+
+	}
+
+	public MappedData refund(String accessToken, String paymentTransactionId, String tenderId, Integer amount) {
+		HttpPostWithBody paymentReq = new HttpPostWithBody(refundURL);
+		paymentReq = addBillingHeader(paymentReq);
+
+		JsonObject postData = new JsonObject();
+		postData.addProperty("tenderId", tenderId);
+		postData.addProperty("paymentTransactionId", paymentTransactionId);
+		postData.addProperty("amount", amount);
+		postData.addProperty("accessToken", accessToken);
+
+		paymentReq.setEntity(new StringEntity(postData.toString(), "UTF-8"));
+
+		BillingResponse resp = makeRequest(paymentReq);
+		if (!resp.isSuccess())
+			return MessageData.error(resp.getMeta().getMessage().replace("\"", "\\\""));
+
+		MappedData result = new MappedData();
+		result.put("code", new IntegerData(MessageData.SUCCESS.getCode()));
+		result.put("id", resp.getData().get("paymentTransactionId").getAsString());
+		result.put("status", resp.getData().get("status").getAsString());
 		return result;
 
 	}

@@ -32,7 +32,7 @@ public class ChargeOperation extends ReadOperation {
 				CURRENCY.USD,
 				ammountNumber, 
 				order == null ? null : String.valueOf(order));
-		// save to DB - client do
+
 		return charge;
 	}
 }

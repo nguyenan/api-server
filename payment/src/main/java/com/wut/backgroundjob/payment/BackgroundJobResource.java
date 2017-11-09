@@ -12,39 +12,32 @@ import com.wut.model.Data;
 public class BackgroundJobResource {
 
 	private final static String JOB_ID = "squaretoken_";
-	private final static Integer DAYS_OF_EXPIRE = 20;
+	private final static Integer DAYS_OF_EXPIRE = 25;
 	private static BackgroundJobsStore bgJob = new BackgroundJobsStore();
 
 	public static void pushRenewTokenJob(String customerId, String accessToken) {
+		String jobId = getNextJobId(DAYS_OF_EXPIRE);
 		Map<String, String> mappedData = new HashMap<String, String>();
 		mappedData.put("customerId", customerId);
 		mappedData.put("id", accessToken);
-
-		pushRenewTokenJob(mappedData);
-	}
-
-	public static void pushRenewTokenJob(Map<String, String> mappedData) {
-		String jobId = getNextJobId(DAYS_OF_EXPIRE);
-		String accessToken = mappedData.get("id");
-
 		bgJob.add(jobId, accessToken, mappedData);
 	}
 
-	public static void removeRenewTokenJob(String accessToken) {
+	public static void removeJob(String accessToken) {
 		String jobId = getTodayJobId();
 		bgJob.delete(jobId, accessToken);
-	}
-
-	public static Data getTodayJob() {
-		String jobId = getNextJobId(6);//getTodayJobId();
-		Data listJobs = bgJob.list(jobId);
-		return listJobs;
 	}
 
 	public static Data getTodayJobWithToken(String token) {
 		String jobId = getTodayJobId();
 		Data job = bgJob.read(jobId, token);
 		return job;
+	}
+
+	public static Data getTodayJob() {
+		String jobId = getNextJobId(6);// getTodayJobId();
+		Data listJobs = bgJob.list(jobId);
+		return listJobs;
 	}
 
 	public static Data getNextJobWithToken(String token) {

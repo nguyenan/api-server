@@ -57,15 +57,17 @@ public class SquareProvider implements PaymentProvider {
 	private PaymentResponseData verifyTransaction(MappedData result) {
 		Integer code = ((IntegerData) result.get("code")).getInteger();
 		if (code.equals(MessageData.SUCCESS.getCode())) {
-			String transactionId = result.get("id").toString();
-			return PaymentResponseData.success(transactionId);
+			return PaymentResponseData.success(result);
 		} else
 			return new PaymentResponseData((MessageData) result);
 	}
 
 	@Override
-	public boolean refund(String paymentId, BigDecimal amount) {
-		return false;
+	public PaymentResponseData refund(String paymentId, BigDecimal amount, String tenderId) {
+		BigDecimal centsToDollars = new BigDecimal("100");
+		BigDecimal ammountInCents = amount.multiply(centsToDollars);
+		MappedData result = square.refund(accessToken, paymentId, tenderId, Integer.valueOf((ammountInCents.intValue())));
+		return verifyTransaction(result);
 	}
 
 	@Override
@@ -98,6 +100,12 @@ public class SquareProvider implements PaymentProvider {
 			StringData extendedAddress, StringData city, StringData state, StringData zipCode, CURRENCY currency) {
 
 		return null;
+	}
+
+	@Override
+	public boolean refund(String paymentId, BigDecimal amount) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }

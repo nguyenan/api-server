@@ -16,34 +16,38 @@ public class RenewTokenJob implements Runnable {
 
 	@Override
 	public void run() {
-		System.out.println("Start RenewTokenJob");
+		logger.info("Start RenewTokenJob");
 		Data listJobs = BackgroundJobResource.getTodayJob();
 		if (MessageData.NO_DATA_FOUND.equals(listJobs))
 			return;
+		
 		ListData jobs = (ListData) listJobs;
 		Iterator<? extends Data> it = jobs.iterator();
-		System.out.println("List jobs: " + jobs);
+		logger.info("List jobs: " + jobs);
 		while (it.hasNext()) {
 			MappedData job = (MappedData) it.next();
-			System.out.println("Processing: " + job);
+			logger.info("Processing: " + job);
+			
 			String oldToken = job.get("id").toString();
 			String customerId = job.get("customerId").toString();
- 
-//			SquareSource square = new SquareSource();
-//			MappedData result = square.renewAccessToken(customerId, oldToken);
-//			System.out.println("Result: " + result.toString());
-//			Integer code = ((IntegerData) result.get("code")).getInteger();
-//			if (code.equals(MessageData.SUCCESS.getCode())) {
-//				String newToken = result.get("access_token").toString();
-//				// save settings
-//				SettingsManager.setClientSettings(customerId, SquareSource.ACCESS_TOKEN_SETTING, newToken);
-//				// put to job table
-//				BackgroundJobResource.pushRenewTokenJob(customerId, newToken);
-//				BackgroundJobResource.removeRenewTokenJob(oldToken);
-//			} else
-//				logger.error(result.toString());
+
+			SquareSource square = new SquareSource();
+			MappedData result = square.renewAccessToken(customerId, oldToken);
+			logger.info("Result: " + result.toString());
+			Integer code = ((IntegerData) result.get("code")).getInteger();
+			if (code.equals(MessageData.SUCCESS.getCode())) {
+				String newToken = result.get("access_token").toString();
+				
+				// save new settings
+				SettingsManager.setClientSettings(customerId, SquareSource.ACCESS_TOKEN_SETTING, newToken);
+				
+				// put new job to queue
+				BackgroundJobResource.pushRenewTokenJob(customerId, newToken);
+				BackgroundJobResource.removeJob(oldToken);
+			} else
+				logger.error(result.toString());
 
 		}
-		System.out.println("End RenewTokenJob");
+		logger.info("End RenewTokenJob");
 	}
 }
