@@ -16,6 +16,7 @@ public class RenewTokenJob implements Runnable {
 
 	@Override
 	public void run() {
+		System.out.println(System.getenv("JAVA_HOME"));
 		logger.info("Start RenewTokenJob");
 		Data listJobs = BackgroundJobResource.getTodayJob();
 		if (MessageData.NO_DATA_FOUND.equals(listJobs))

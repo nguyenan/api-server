@@ -12,7 +12,7 @@ import com.wut.model.Data;
 public class BackgroundJobResource {
 
 	private final static String JOB_ID = "squaretoken_";
-	private final static Integer DAYS_OF_EXPIRE = 25;
+	public final static Integer DAYS_OF_EXPIRE = 20;
 	private static BackgroundJobsStore bgJob = new BackgroundJobsStore();
 
 	public static void pushRenewTokenJob(String customerId, String accessToken) {
@@ -25,6 +25,10 @@ public class BackgroundJobResource {
 
 	public static void removeJob(String accessToken) {
 		String jobId = getTodayJobId();
+		bgJob.delete(jobId, accessToken);
+	}
+	public static void removeJob(String accessToken, int numOfDays) {
+		String jobId = getNextJobId(numOfDays);
 		bgJob.delete(jobId, accessToken);
 	}
 
