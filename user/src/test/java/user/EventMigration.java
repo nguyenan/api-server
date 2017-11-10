@@ -17,28 +17,28 @@ public class EventMigration extends MigrationModel {
 	public static void main(String[] agrs) throws InterruptedException, SecurityException, IOException {
 		setLogFormat();
 		buildMapFields();
-		String customerId = "l1s114c74d3c3edd4c37abffe2a3ad42a2b5";// a-migrate.tendfarm.com
-		 
+		String fromCustomerId = "demo.tend.ag";
+		String toCustomerId = "demo.tend.ag";
 
 		// migrateToEvent(customerId);
 		// System.out.println(getListMigratedData(customerId, TABLE_EVENT));
-		// System.out.println(getListMigratedData(customerId, TABLE_CROP));
+		// System.out.println(getListMigratedData(customerId,
+		// TABLE_PRODUCE_PRODUCT));
 		// System.out.println(getListMigratedData(customerId, TABLE_SHARE));
-		// System.out.println(getListMigratedData(customerId, TABLE_MERCHANDISE));
+		// System.out.println(getListMigratedData(customerId,
+		// TABLE_MERCHANDISE));
 		// System.out.println(getListMigratedData(customerId, TABLE_SELLABLE));
-		// System.out.println(getListMigratedData(customerId, TABLE_SELLABLE_INVENTORY));
+		// System.out.println(getListProduct(customerId));
+		// System.out.println(getListMigratedData(customerId,
+		// TABLE_SELLABLE_INVENTORY));
 
-		 ListData listProduct = getListProduct(customerId);
-		 for (Object obj : listProduct) {
-		 MappedData productInfo = (MappedData) obj;
-		 System.out.println(productInfo);
-		 }
-		 
+		migrateToEvent(fromCustomerId, toCustomerId);
+
 		System.exit(0);
 	}
 
-	private static void migrateToEvent(String customerId) throws IOException {
-		ListData listProduct = getListProduct(customerId);
+	private static void migrateToEvent(String fromCustomerId, String toCustomerId) throws IOException {
+		ListData listProduct = getListProduct(fromCustomerId);
 		String productId = "";
 		StringData options = new StringData("");
 
@@ -52,9 +52,9 @@ public class EventMigration extends MigrationModel {
 			List<MappedData> productOptions = new ArrayList<MappedData>();
 			for (JsonElement option : productOptionIds) {
 				String productOptionId = option.toString().replaceAll("\\\"", "");
-				MappedData productOption = getProductOption(customerId, productOptionId);
+				MappedData productOption = getProductOption(fromCustomerId, productOptionId);
 
-				if (!isEvent(customerId, productOption))
+				if (!isEvent(productOption))
 					// if product isn't event => continue
 					continue loopProduct;
 				productOptions.add(productOption);
@@ -69,17 +69,17 @@ public class EventMigration extends MigrationModel {
 			for (MappedData productOption : productOptions) {
 				String oldId = productOption.get("id").toString();
 				String sellableId = oldId.substring(oldId.lastIndexOf(":") + 1, oldId.length());
-				sellableIds = createGroupSellable(customerId, productId, sellableId, sellableIds, productOption,
+				sellableIds = createGroupSellable(toCustomerId, productId, sellableId, sellableIds, productOption,
 						productInfo, TABLE_EVENT);
 			}
 
 			// 2. create Event
-			createNewProductType(customerId, productId, productInfo, sellableIds, TABLE_EVENT);
+			createNewProductType(toCustomerId, productId, productInfo, sellableIds, TABLE_EVENT);
 
 			// 3. create Merchandise
-			createMerchandise(TABLE_EVENT, customerId, productId, productInfo);
+			createMerchandise(TABLE_EVENT, toCustomerId, productId, productInfo);
 
-			logger.info(customerId + "\t Migrated " + productId);
+			logger.info(toCustomerId + "\t Migrated " + productId);
 			// Backup and Delete Product Data
 			// backupAndDeleteProduct(customerId, productInfo);
 		}
@@ -87,9 +87,7 @@ public class EventMigration extends MigrationModel {
 
 	private static void buildMapFields() {
 		productFromProduct.put("notTaxed", "notTaxed");
-		
-		metadataFromProductOpts.put("start", "start");
-		metadataFromProductOpts.put("end", "end");
+		productFromProduct.put("updated", "updated");
 
 		// merchandise
 		merchandiseFromProduct.put("update", "update");
@@ -107,13 +105,16 @@ public class EventMigration extends MigrationModel {
 
 		sellableFromProductOpts.put("update", "update");
 		sellableFromProductOpts.put("price", "price");
+		sellableFromProductOpts.put("choices", "choices");
 		sellableFromProductOpts.put("unit", "unit");
 		sellableFromProductOpts.put("weight", "weight");
 		sellableFromProductOpts.put("images", "images");
-		sellableFromProductOpts.put("choices", "choices");
 		sellableFromProductOpts.put("controlInventory", "controlInventory");
-		
+
+		metadataFromProductOpts.put("start", "start");
+		metadataFromProductOpts.put("end", "end");
 		// sellable Inventory
 		sellableInvenFromProductOpts.put("inventory", "quantity");
+
 	}
 }

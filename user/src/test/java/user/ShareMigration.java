@@ -14,20 +14,25 @@ public class ShareMigration extends MigrationModel {
 	public static void main(String[] agrs) throws InterruptedException, SecurityException, IOException {
 		setLogFormat();
 		buildMapFields();
-
-		String customerId = "l1s1a607957b13e64302ade0359264434cd2";// a-migrate.tendfarm.com
-//		migrateToShare(customerId);
-//		System.out.println(getListMigratedData(customerId, TABLE_EVENT));
-//		System.out.println(getListMigratedData(customerId, TABLE_CROP));
-//		System.out.println(getListMigratedData(customerId, TABLE_SHARE));
-//		System.out.println(getListMigratedData(customerId, TABLE_MERCHANDISE));
-//		System.out.println(getListMigratedData(customerId, TABLE_SELLABLE));
-//		System.out.println(getListMigratedData(customerId, TABLE_SELLABLE_INVENTORY));
+//		String fromCustomerId = "squashblossom.farm";
+//		String toCustomerId = "l1s14378352140f344c8a43f8ed2d9a4f30f"; // a-migrate.tendfarm.com
+		 String fromCustomerId = "demo.tend.ag";
+		 String toCustomerId = "demo.tend.ag"; 
+		// migrateToShare(customerId);
+		// System.out.println(getListMigratedData(customerId, TABLE_EVENT));
+		// System.out.println(getListMigratedData(customerId, TABLE_CROP));
+		// System.out.println(getListMigratedData(customerId, TABLE_SHARE));
+		// System.out.println(getListMigratedData(customerId,
+		// TABLE_MERCHANDISE));
+		// System.out.println(getListMigratedData(customerId, TABLE_SELLABLE));
+		// System.out.println(getListMigratedData(customerId,
+		// TABLE_SELLABLE_INVENTORY));
+		migrateToShare(fromCustomerId, toCustomerId);
 		System.exit(0);
 	}
 
-	private static void migrateToShare(String customerId) throws IOException {
-		ListData listProduct = getListProduct(customerId);
+	private static void migrateToShare(String fromCustomerId, String toCustomerId) throws IOException {
+		ListData listProduct = getListProduct(fromCustomerId);
 		String productId = "";
 
 		loopProduct: for (Object obj : listProduct) {
@@ -44,22 +49,22 @@ public class ShareMigration extends MigrationModel {
 			MappedData productOption = new MappedData();
 			List<String> sellableIds = new ArrayList<String>();
 			String sellableId = "";
-			sellableIds = createGroupSellable(customerId, productId, sellableId, sellableIds, productOption,
-					productInfo, TABLE_EVENT);
+			sellableIds = createGroupSellable(toCustomerId, productId, sellableId, sellableIds, productOption,
+					productInfo, TABLE_SHARE);
 
 			// 2. create Share
-			createNewProductType(customerId, productId, productInfo, sellableIds, TABLE_SHARE);
+			createNewProductType(toCustomerId, productId, productInfo, sellableIds, TABLE_SHARE);
 
 			// 3. create Merchandise
-			createMerchandise(TABLE_SHARE, customerId, productId, productInfo);
+			createMerchandise(TABLE_SHARE, toCustomerId, productId, productInfo);
 
-			logger.info(customerId + "\t Migrated " + productId);
+			logger.info(toCustomerId + "\t Migrated " + productId);
 		}
 	}
 
 	private static void buildMapFields() {
-		// share
-		metadataFromProduct.put("goalValue", "goalValue");
+		productFromProduct.put("notTaxed", "notTaxed");
+		productFromProduct.put("updated", "updated");
 
 		// merchandise
 		merchandiseFromProduct.put("update", "update");
@@ -74,17 +79,14 @@ public class ShareMigration extends MigrationModel {
 		merchandiseFromProduct.put("enabled", "enabled");
 
 		// sellable
-		sellableFromProduct.put("notTaxed", "taxable");
 		sellableFromProduct.put("price", "price");
 
-		sellableFromProductOpts.put("update", "update");
-		sellableFromProductOpts.put("price", "price");
-		sellableFromProductOpts.put("unit", "unit");
-		sellableFromProductOpts.put("weight", "weight");
-		sellableFromProductOpts.put("choices", "choices");
-		sellableFromProductOpts.put("controlInventory", "controlInventory");
+		metadataFromProduct.put("goalValue", "goalValue");
+
+		// sellableFromProductOpts.put("controlInventory", "controlInventory");
 
 		// sellable Inventory
 		sellableInvenFromProduct.put("inventory", "quantity");
+
 	}
 }

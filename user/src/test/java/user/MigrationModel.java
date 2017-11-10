@@ -48,16 +48,17 @@ public class MigrationModel {
 
 	// MAPPING FIELDS: old key => new key
 	public static Map<String, String> productFromProduct = new HashMap<String, String>();
+
 	public static Map<String, String> merchandiseFromProduct = new HashMap<String, String>();
 
-	public static Map<String, String> metadataFromProductOpts = new HashMap<String, String>();
 	public static Map<String, String> metadataFromProduct = new HashMap<String, String>();
+	public static Map<String, String> metadataFromProductOpts = new HashMap<String, String>();
 
 	public static Map<String, String> sellableFromProduct = new HashMap<String, String>();
 	public static Map<String, String> sellableFromProductOpts = new HashMap<String, String>();
 
-	public static Map<String, String> sellableInvenFromProductOpts = new HashMap<String, String>();
 	public static Map<String, String> sellableInvenFromProduct = new HashMap<String, String>();
+	public static Map<String, String> sellableInvenFromProductOpts = new HashMap<String, String>();
 
 	public static Map<String, String> unitMapped = new HashMap<String, String>();
 
@@ -213,6 +214,13 @@ public class MigrationModel {
 			}
 		}
 
+		if (productType.equals(TABLE_SHARE)) {
+			if (productInfo.get("inventory").equals(""))
+				data.put("controlInventory", "false");
+			else
+				data.put("controlInventory", "true");
+		}
+
 		// Create metadata
 		MappedData metadata = createMetadata(productInfo, productOptionInfo);
 		List<MappedData> metadatas = new ArrayList<MappedData>();
@@ -240,6 +248,7 @@ public class MigrationModel {
 			if (productInfo.get(entry.getKey()) != null)
 				data.put(entry.getValue(), productInfo.get(entry.getKey()));
 		}
+		
 		IdData sellableInventoryId = cassSource.insertRow(new IdData(customerId), application, tableId, data);
 		IdData newId = getRowIdData(table, sellableInventoryId.toString());
 		data.put("id", newId.toString());
@@ -253,7 +262,7 @@ public class MigrationModel {
 	}
 
 	// CHECK PRODUCT_TYPE
-	public static boolean isEvent(String customerId, MappedData productOption) {
+	public static boolean isEvent( MappedData productOption) {
 		if (productOption == null)
 			return false;
 		StringData start = (StringData) productOption.get("start");

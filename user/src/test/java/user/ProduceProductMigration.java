@@ -18,11 +18,12 @@ public class ProduceProductMigration extends MigrationModel {
 		setLogFormat();
 		buildMapFields();
 
-		String fromCustomerId = "www.trilliumfarmwa.com"; // a-migrate.tendfarm.com
-		String toCustomerId = "l1s14378352140f344c8a43f8ed2d9a4f30f"; // a-migrate.tendfarm.com
-		migrateToProduceProduct("www.trilliumfarmwa.com", toCustomerId);
-		migrateToProduceProduct("squashblossom.farm", toCustomerId);
-		migrateToProduceProduct("www.fortunatefarm.com", toCustomerId);
+		String fromCustomerId = "demo.tend.ag"; // a-migrate.tendfarm.com
+		String toCustomerId = "demo.tend.ag"; // a-migrate.tendfarm.com
+		migrateToProduceProduct(fromCustomerId, toCustomerId);
+//		migrateToProduceProduct("www.trilliumfarmwa.com", toCustomerId);
+//		migrateToProduceProduct("squashblossom.farm", toCustomerId);
+//		migrateToProduceProduct("www.fortunatefarm.com", toCustomerId);
 //		/System.out.println(getListMigratedData(toCustomerId, TABLE_SELLABLE));
 		System.exit(0);
 	}
@@ -50,7 +51,7 @@ public class ProduceProductMigration extends MigrationModel {
 				MappedData productOption = getProductOption(fromCustomerId, productOptionId);
 
 				productOptions.add(productOption);
-				if (!isEvent(toCustomerId, productOption)) {
+				if (!isEvent(productOption)) {
 					isEvent = false;
 				}
 			}

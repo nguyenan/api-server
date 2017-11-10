@@ -38,54 +38,37 @@ public class UserDevTools {
 		logger.addHandler(fh);
 		fh.setFormatter(new LogFormatter());
 		List<String> customerIds = new ArrayList<String>();
-		/*
-		 * for (String customerId: customerIds){ Map<String, String> users =
-		 * getListAdminUsersWithContact(customerId); String email = ""; String
-		 * contactId = ""; for (Map.Entry<String, String> entry :
-		 * users.entrySet()) { email = entry.getKey(); contactId =
-		 * entry.getValue(); if (contactId != "null")
-		 * logger.info(String.format("%s\t%s\t%s", email, customerId,
-		 * getContact(customerId, contactId))); } Thread.sleep(2000); }
-		 */
+		customerIds.add("www.everlasting-garden.com");
+		customerIds.add("www.groundswellfarmsantacruz.com");
+		customerIds.add("www.hawkshaven.farm");
+		customerIds.add("www.lincolnhillsfarm.com");
+		customerIds.add("www.oldhousefarm.net");
+		customerIds.add("www.redearthgardens.com");
+		customerIds.add("www.roosterridgefarmaptos.com");
+		customerIds.add("www.cluckandtrowel.com");
+		customerIds.add("www.escargrowfarms.com");
+		customerIds.add("www.jackiesroots.com");
+		customerIds.add("www.lockewoodacres.com");
+		customerIds.add("www.lolasonoma.com");
+		customerIds.add("www.mahoniagardens.com");
+		customerIds.add("www.strong.ag");
+		customerIds.add("www.tend.ag");
+		customerIds.add("www.thepeachjamboree.farm ");
+		customerIds.add("www.trilliumfarmwa.com");
+		customerIds.add("demo.tend.ag");
 
-		/*
-		 * getUserInfo(adminCustId,"BETENFARMS@GMAIL.COM");
-		 * getUserInfo(adminCustId,"Tlriedl@gmail.com");
-		 */
-		/*
-		 * getUserInfo(adminCustId,"Trietbeta_test@tend.com");
-		 * getUserInfo(adminCustId,"qavn16Dec2016@tendtest.com");
-		 */
+		for (String customerId : customerIds) {
+			MappedData userInfo = getUserInfo(customerId, "admin@" + customerId);
+			if (userInfo.equals(MessageData.NO_DATA_FOUND))
+				System.out.println(customerId + "\t" + "no-admin");
+			else
+				System.out.println(customerId + "\t" + userInfo.get("username"));
+			Map<String, String> listAdminUsers = getListAdminUsers(customerId);
+			for (Map.Entry<String, String> entry : listAdminUsers.entrySet()) {
+				System.out.println(customerId + "\t" + entry.getKey());
+			}
+		}
 
-//		List<String> users = new ArrayList<>();
-//		// users.add("BETENFARMS@GMAIL.COM");
-//		users.add("Tlriedl@gmail.com");
-//		users.add("Trietbeta_test@tend.com");
-//		users.add("qavn16Dec2016@tendtest.com");
-//
-//		for (String user : users) {
-//			getUserInfo(adminCustId, user);
-//		}
-
-		// System.out.println(getListAdminUsersWithContact("www.lincolnhillsfarm.com"));
-		/*
-		 * Thread.sleep(1000L); System.out.println("\ngetContact");
-		 * getContact(adminCustId, user1); System.out.println("\ngetContact");
-		 * getContact(adminCustId, user1.toLowerCase());
-		 */
-
-		// getAllUserAuthen(adminCustId);
-
-		/*
-		 * String adminUserId = Authenticator.getUserId(adminCustId,
-		 * "sundaytest@tendtest.com");
-		 * System.out.println(permissionStore.read(adminCustId, applicationStr,
-		 * adminUserId));
-		 */
-		//resetPassword("admin.tend.ag", "dungweb@tend.ag", "9fc84e6bbd72113e294d5b655f7060c7");
-//		getUserInfo("admin.tend.ag", "rubujo@ouvaton.org");
-//		getUserPermission("admin.tend.ag", "rubujo@ouvaton.org");
-		getAllUserAuthen("l1s1485ed7b74eb94883b63bb1fff3a35880");
 		System.exit(0);
 	}
 
@@ -229,7 +212,7 @@ public class UserDevTools {
 		String table = String.format("core:%s:public:%s", customerId, "permission");
 		filter.put("table", new IdData(table));
 		ListData rowsWithFilter = cassSource.getRowsWithFilter(customer, application, tableId, filter);
-		logger.info("\n" + customerId + "\t" + rowsWithFilter.size() + " users have permission");
+//		logger.info("\n" + customerId + "\t" + rowsWithFilter.size() + " users have permission");
 		String email = "";
 		for (Object obj : rowsWithFilter) {
 			MappedData row = (MappedData) obj;
@@ -255,11 +238,10 @@ public class UserDevTools {
 		logger.info(username + ": " + delete);
 	}
 
-	public static void getUserInfo(String customerId, String username) {
+	public static MappedData getUserInfo(String customerId, String username) {
 		String userId = Authenticator.getUserId(customerId, username);
 
-		MappedData userData = (MappedData) (userStore.readSecureInformation(customerId, applicationStr, userId));
-		logger.info(userData.toString());
+		return (MappedData) (userStore.readSecureInformation(customerId, applicationStr, userId));
 	}
 
 	public static void getUserPermission(String customerId, String username) {
