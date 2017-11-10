@@ -61,14 +61,14 @@ public class SquareSource {
 		renewTokenReq = addBillingHeader(renewTokenReq);
 
 		JsonObject postData = new JsonObject();
-		postData.addProperty("access_token", oldAccessToken);
+		postData.addProperty("accessToken", oldAccessToken);
 		renewTokenReq.setEntity(new StringEntity(postData.toString(), "UTF-8"));
 
 		BillingResponse resp = makeRequest(renewTokenReq);
 		if (!resp.isSuccess())
 			return MessageData.error(resp.getMeta().getMessage().replace("\"", "\\\""));
 
-		String accessToken = resp.getData().get("accessToken").toString();
+		String accessToken = resp.getData().get("accessToken").getAsString();
 		MessageData result = new MessageData(100, "success", "request successful");
 		result.put("access_token", accessToken);
 		return result;

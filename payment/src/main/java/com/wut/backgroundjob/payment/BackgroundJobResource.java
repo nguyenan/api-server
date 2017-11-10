@@ -39,7 +39,7 @@ public class BackgroundJobResource {
 	}
 
 	public static Data getTodayJob() {
-		String jobId = getNextJobId(6);// getTodayJobId();
+		String jobId =  getTodayJobId();
 		Data listJobs = bgJob.list(jobId);
 		return listJobs;
 	}

@@ -15,21 +15,26 @@ public class BackgroundJobManager implements ServletContextListener {
 
 	private ScheduledExecutorService scheduler;
 	private static WutLogger logger = WutLogger.create(BackgroundJobManager.class);
+	private static final String env = System.getenv("API_ENV");
 
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
-		scheduler = Executors.newSingleThreadScheduledExecutor();
-		scheduler.scheduleAtFixedRate(new RenewTokenJob(), 0, 1, TimeUnit.DAYS);
+		logger.info(String.format("API_ENV: '%s'", env));
+		if (env != null && env.equals("production")) {
+			scheduler = Executors.newSingleThreadScheduledExecutor();
+			scheduler.scheduleAtFixedRate(new RenewTokenJob(), 0, 1, TimeUnit.DAYS);
+		}
 	}
 
 	@Override
 	public void contextDestroyed(ServletContextEvent event) {
-		scheduler.shutdown();
-		try {
-			scheduler.awaitTermination(1, TimeUnit.DAYS);
-		} catch (InterruptedException ex) {
-			logger.error(ex.getMessage());
+		if (env != null && env.equals("production")) {
+			scheduler.shutdown();
+			try {
+				scheduler.awaitTermination(1, TimeUnit.DAYS);
+			} catch (InterruptedException ex) {
+				logger.error(ex.getMessage());
+			}
 		}
 	}
-
 }
