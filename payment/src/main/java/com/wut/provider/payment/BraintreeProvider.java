@@ -455,4 +455,10 @@ public class BraintreeProvider implements PaymentProvider {
 		
 	}
 
+	@Override
+	public PaymentResponseData refund(String paymentId, BigDecimal amount, String tenderId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

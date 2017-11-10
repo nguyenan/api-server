@@ -3,7 +3,7 @@ package com.wut.resources.payments;
 import java.math.BigDecimal;
 
 import com.wut.model.Data;
-import com.wut.model.map.MessageData;
+import com.wut.model.message.PaymentResponseData;
 import com.wut.model.scalar.ScalarModel;
 import com.wut.model.scalar.StringData;
 import com.wut.pipeline.WutRequest;
@@ -27,15 +27,19 @@ public class RefundPaymentOperation extends ParameteredOperation {
 	@Override
 	public Data perform(WutRequest ri) throws Exception {
 		
-		StringData paymentId = ri.getParameter("payment");
+
+		StringData paymentTransactionId = ri.getParameter("paymentTransactionId");
+		StringData tenderId = ri.getParameter("tenderId");
+
 		StringData amount = ri.getParameter("amount");
 		BigDecimal amountBigDec = new BigDecimal(amount.toRawString());
 		
 		String customer = ri.getCustomer();
 		PaymentProvider paymentProvider = paymentHelper.getPaymentProvider(customer);
-		boolean refundedSuccesfully = paymentProvider.refund(paymentId.toRawString(), amountBigDec);
 		
-		return MessageData.successOrFailure(refundedSuccesfully);
+		PaymentResponseData refund = paymentProvider.refund(paymentTransactionId.toRawString(), amountBigDec, tenderId.toRawString());
+		
+		return refund;
 	}
 
 }

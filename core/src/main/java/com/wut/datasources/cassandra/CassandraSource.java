@@ -472,7 +472,8 @@ The DESCRIBE and SHOW commands only work in cqlsh and cassandra-cli.
 
 			long updated = row.getLong("updated");
 			map.put("_updated", String.valueOf(updated));
-
+			
+			
 			System.out.format("%s %d \n", id, updated);
 
 			// row.getList("data", null);
