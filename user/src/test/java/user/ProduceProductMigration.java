@@ -17,18 +17,74 @@ public class ProduceProductMigration extends MigrationModel {
 	public static void main(String[] agrs) throws InterruptedException, SecurityException, IOException {
 		setLogFormat();
 		buildMapFields();
+		List<String> customerIds = new ArrayList<>();
 
-		String fromCustomerId = "demo.tend.ag"; // a-migrate.tendfarm.com
-		String toCustomerId = "demo.tend.ag"; // a-migrate.tendfarm.com
-		migrateToProduceProduct(fromCustomerId, toCustomerId);
-//		migrateToProduceProduct("www.trilliumfarmwa.com", toCustomerId);
-//		migrateToProduceProduct("squashblossom.farm", toCustomerId);
-//		migrateToProduceProduct("www.fortunatefarm.com", toCustomerId);
-//		/System.out.println(getListMigratedData(toCustomerId, TABLE_SELLABLE));
+//		customerIds.add("deeprootfarm.com");
+//		customerIds.add("www.anisetend.com");
+//		customerIds.add("www.fablefoods.com");
+//		customerIds.add("www.fourrootfarmbetasetupgmail.com");
+//		customerIds.add("www.freshfromstonecirclefarm.com");
+//		customerIds.add("www.freshfromstonecirclefarm.com");
+//		customerIds.add("www.fourrootfarmbetasetupgmail.com");
+//		customerIds.add("www.jccslo.com");
+//		customerIds.add("www.oya-organics.com");
+//		customerIds.add("casadicampagna.farm");
+//
+//		customerIds.add("goldcoast.tendfarm.com");
+//		customerIds.add("miesenbergerhof.tendfarm.com");
+//		customerIds.add("springhaven.farm");
+//		customerIds.add("squashblossom.farm");
+//		customerIds.add("www.arfreckledhenfarm.com");
+//		customerIds.add("www.cluckandtrowel.com");
+//		customerIds.add("www.ecolibriumfarms.com");
+//		customerIds.add("www.escargrowfarms.com");
+//		customerIds.add("www.everlasting-garden.com");
+//		customerIds.add("www.fortunatefarm.com");
+//		customerIds.add("www.groundswellfarmsantacruz.com");
+//		customerIds.add("www.hawkshaven.farm");
+//		customerIds.add("www.jackiesroots.com");
+//		customerIds.add("www.lincolnhillsfarm.com");
+//		customerIds.add("www.lockewoodacres.com");
+//		customerIds.add("www.lolasonoma.com");
+//		customerIds.add("www.lovefood.farm");
+//		customerIds.add("www.mahoniagardens.com");
+//		customerIds.add("www.pvfproduce.com");
+//		customerIds.add("www.redclayfarm.com");
+//		customerIds.add("www.redearthgardens.com");
+//		customerIds.add("www.robinsongfarms.com");
+//		customerIds.add("www.roosterridgefarmaptos.com");
+//		customerIds.add("www.seedsfarm.org");
+//		customerIds.add("www.seedsfarms.com");
+//		customerIds.add("www.strong.ag");
+//		customerIds.add("www.tend.ag");
+//		customerIds.add("www.thepeachjamboree.farm");
+//		customerIds.add("www.trilliumfarmwa.com");
+//		customerIds.add("vistalarga.tendfarm.com");
+//		customerIds.add("farmrockfarm.tendfarm.com");
+//		customerIds.add("rigby.tendfarm.com");
+//		customerIds.add("milkweedfarm.tendfarm.co");
+
+		customerIds.add("hakurei1.farmer.guide");
+		customerIds.add("nautic.theme.tend.ag ");
+		customerIds.add("lancelot.theme.tend.ag");
+		customerIds.add("bodark.theme.tend.ag");
+		customerIds.add("hakurei.theme.tend.ag");
+		customerIds.add("kennebec.theme.tend.ag");
+		customerIds.add("at-hakurei.tendfarm.com");
+		customerIds.add("at-lancelot.tendfarm.com");
+		customerIds.add("at-nautic.tendfarm.com");
+		customerIds.add("at-bodark.tendfarm.com");
+		customerIds.add("at-kennebec.tendfarm.com");
+		// customerIds.add("test.farmer.guide");
+
+		for (String farm : customerIds) {
+			migrateToProduceProduct(farm, farm);
+		}
 		System.exit(0);
 	}
 
 	public static void migrateToProduceProduct(String fromCustomerId, String toCustomerId) throws IOException {
+		logger.info(String.format("[%s] Processing %s ...", TABLE_PRODUCE_PRODUCT, fromCustomerId));
 		ListData listProduct = getListProduct(fromCustomerId);
 		String productId = "";
 		StringData options = new StringData("");
@@ -79,7 +135,7 @@ public class ProduceProductMigration extends MigrationModel {
 			// 3. create Merchandise
 			createMerchandise(TABLE_PRODUCE_PRODUCT, toCustomerId, productId, productInfo);
 
-			logger.info(toCustomerId + "\t Migrated " + productId);
+			logger.info("\t" + toCustomerId + "\t Migrated " + productId);
 			// Backup and Delete Product Data
 			// backupAndDeleteProduct(customerId, productInfo);
 		}

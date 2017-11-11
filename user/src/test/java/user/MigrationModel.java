@@ -5,7 +5,9 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -184,12 +186,14 @@ public class MigrationModel {
 			data.put("opHarvestStage", "any");
 			data.put("opVariety", "any");
 
-			String choices = ((StringData) productOptionInfo.get("choices")).toRawString();
-			if (choices.equals("[]"))
-				data.put("name", "Variety");
-			else {
-				String substring = choices.substring(choices.indexOf("\\\"value\\\":\\\"") + 12);
-				data.put("name", substring.substring(0, substring.indexOf("\"") - 1));
+			if (productOptionInfo.get("choices") != null) {
+				String choices = ((StringData) productOptionInfo.get("choices")).toRawString();
+				if (choices.equals("[]"))
+					data.put("name", "Variety");
+				else {
+					String substring = choices.substring(choices.indexOf("\\\"value\\\":\\\"") + 12);
+					data.put("name", substring.substring(0, substring.indexOf("\"") - 1));
+				}
 			}
 		}
 
@@ -197,7 +201,6 @@ public class MigrationModel {
 			if (productOptionInfo.get(entry.getKey()) != null) {
 				if (entry.getValue().equals("unit") || entry.getValue().equals("priceUnit")) {
 					String oldUnit = productOptionInfo.get(entry.getKey()).toString();
-					System.out.println(oldUnit);
 					data.put(entry.getValue(), unitMapped.get(oldUnit).toString());
 				} else
 					data.put(entry.getValue(), productOptionInfo.get(entry.getKey()));
@@ -248,7 +251,7 @@ public class MigrationModel {
 			if (productInfo.get(entry.getKey()) != null)
 				data.put(entry.getValue(), productInfo.get(entry.getKey()));
 		}
-		
+
 		IdData sellableInventoryId = cassSource.insertRow(new IdData(customerId), application, tableId, data);
 		IdData newId = getRowIdData(table, sellableInventoryId.toString());
 		data.put("id", newId.toString());
@@ -262,7 +265,7 @@ public class MigrationModel {
 	}
 
 	// CHECK PRODUCT_TYPE
-	public static boolean isEvent( MappedData productOption) {
+	public static boolean isEvent(MappedData productOption) {
 		if (productOption == null)
 			return false;
 		StringData start = (StringData) productOption.get("start");
@@ -310,8 +313,6 @@ public class MigrationModel {
 		mappedData.put("table", table);
 		mappedData.put("id", rowId.toString());
 
-		System.out.println(rowId);
-		System.out.println(mappedData);
 		cassSource.updateRow(new IdData(customerId), application, tableId, rowId, mappedData);
 		return new BooleanData(true);
 	}
@@ -385,8 +386,6 @@ public class MigrationModel {
 		productInfo.put("table", table);
 		productInfo.put("id", rowId.toString());
 
-		System.out.println(rowId);
-		System.out.println(productInfo);
 		cassSource.updateRow(new IdData(customerId), application, tableId, rowId, productInfo);
 		return new BooleanData(true);
 	}
@@ -400,8 +399,6 @@ public class MigrationModel {
 		productOptionInfo.put("table", table);
 		productOptionInfo.put("id", rowId.toString());
 
-		System.out.println(rowId);
-		System.out.println(productOptionInfo);
 		cassSource.updateRow(new IdData(customerId), application, tableId, rowId, productOptionInfo);
 		return new BooleanData(true);
 	}
@@ -426,7 +423,9 @@ public class MigrationModel {
 	}
 
 	public static void setLogFormat() throws SecurityException, IOException {
-		fh = new FileHandler("/data/scripts/devlog/product_" + System.currentTimeMillis());
+		Date myDate = new Date();
+		fh = new FileHandler(
+				"/data/scripts/migratelogs/migrate_" + new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(myDate));
 		logger.addHandler(fh);
 		fh.setFormatter(new LogFormatter());
 	}
