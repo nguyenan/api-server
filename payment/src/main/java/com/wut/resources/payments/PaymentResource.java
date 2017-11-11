@@ -12,7 +12,6 @@ import com.wut.resources.common.WutOperation;
 public class PaymentResource extends CrudResource {
 
 	private static final long serialVersionUID = 4975749783643071769L;
-	
 
 	public PaymentResource() {
 		super("payment", null);
@@ -22,7 +21,7 @@ public class PaymentResource extends CrudResource {
 	public List<String> getReadableSettings() {
 		return Arrays.asList(new String[] { 
 				"payment.payment-processor",
-				"payment.braintree-mechant-id", 
+				"payment.braintree-mechant-id",
 				"payment.braintree-public-key",
 				SquareSource.AUTHORIZE_CODE_SETTING,
 				SquareSource.ACCESS_TOKEN_SETTING });
@@ -31,11 +30,11 @@ public class PaymentResource extends CrudResource {
 	@Override
 	public List<String> getWriteableSettings() {
 		return Arrays.asList(new String[] { 
-				"payment.payment-processor",
-				"payment.braintree-mechant-id", 
-				"payment.braintree-public-key", 
+				"payment.payment-processor", 
+				"payment.braintree-mechant-id",
+				"payment.braintree-public-key",
 				"payment.braintree-private-key",
-				SquareSource.AUTHORIZE_CODE_SETTING, 
+				SquareSource.AUTHORIZE_CODE_SETTING,
 				SquareSource.ACCESS_TOKEN_SETTING });
 	}
 
@@ -87,19 +86,18 @@ public class PaymentResource extends CrudResource {
 
 	@Override
 	public Collection<WutOperation> getOperations() {
-		 Collection<WutOperation> operationList = super.getOperations();
-		 ArrayList<WutOperation> operationListCopy = new ArrayList<WutOperation>(operationList);
-		 
+		Collection<WutOperation> operationList = super.getOperations();
+		ArrayList<WutOperation> operationListCopy = new ArrayList<WutOperation>(operationList);
+
 		operationListCopy.add(getVoidOperation());
-		operationListCopy.add(getRefundOperation());
 		operationListCopy.add(getSettleOperation());
 		operationListCopy.add(getStoreOperation());
-		operationListCopy.add(ExchangeTokenOperation());
+
 		operationListCopy.add(new GetSettingOperation());
 		operationListCopy.add(new SetSettingOperation());
-		
-		 operationListCopy.add(new GetSettingOperation());
-		 operationListCopy.add(new SetSettingOperation());
+
+		/* Braintree + Square */
+		operationListCopy.add(getRefundOperation());
 
 		/* Square */
 		operationListCopy.add(ExchangeTokenOperation());
