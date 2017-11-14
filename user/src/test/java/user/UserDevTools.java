@@ -38,36 +38,41 @@ public class UserDevTools {
 		logger.addHandler(fh);
 		fh.setFormatter(new LogFormatter());
 		List<String> customerIds = new ArrayList<String>();
-		customerIds.add("www.everlasting-garden.com");
-		customerIds.add("www.groundswellfarmsantacruz.com");
-		customerIds.add("www.hawkshaven.farm");
-		customerIds.add("www.lincolnhillsfarm.com");
-		customerIds.add("www.oldhousefarm.net");
-		customerIds.add("www.redearthgardens.com");
-		customerIds.add("www.roosterridgefarmaptos.com");
-		customerIds.add("www.cluckandtrowel.com");
-		customerIds.add("www.escargrowfarms.com");
-		customerIds.add("www.jackiesroots.com");
-		customerIds.add("www.lockewoodacres.com");
-		customerIds.add("www.lolasonoma.com");
-		customerIds.add("www.mahoniagardens.com");
-		customerIds.add("www.strong.ag");
-		customerIds.add("www.tend.ag");
-		customerIds.add("www.thepeachjamboree.farm ");
-		customerIds.add("www.trilliumfarmwa.com");
-		customerIds.add("demo.tend.ag");
-
-		for (String customerId : customerIds) {
-			MappedData userInfo = getUserInfo(customerId, "admin@" + customerId);
-			if (userInfo.equals(MessageData.NO_DATA_FOUND))
-				System.out.println(customerId + "\t" + "no-admin");
-			else
-				System.out.println(customerId + "\t" + userInfo.get("username"));
-			Map<String, String> listAdminUsers = getListAdminUsers(customerId);
-			for (Map.Entry<String, String> entry : listAdminUsers.entrySet()) {
-				System.out.println(customerId + "\t" + entry.getKey());
-			}
-		}
+//		customerIds.add("www.everlasting-garden.com");
+//		customerIds.add("www.groundswellfarmsantacruz.com");
+//		customerIds.add("www.hawkshaven.farm");
+//		customerIds.add("www.lincolnhillsfarm.com");
+//		customerIds.add("www.oldhousefarm.net");
+//		customerIds.add("www.redearthgardens.com");
+//		customerIds.add("www.roosterridgefarmaptos.com");
+//		customerIds.add("www.cluckandtrowel.com");
+//		customerIds.add("www.escargrowfarms.com");
+//		customerIds.add("www.jackiesroots.com");
+//		customerIds.add("www.lockewoodacres.com");
+//		customerIds.add("www.lolasonoma.com");
+//		customerIds.add("www.mahoniagardens.com");
+//		customerIds.add("www.strong.ag");
+//		customerIds.add("www.tend.ag");
+//		customerIds.add("www.thepeachjamboree.farm ");
+//		customerIds.add("www.trilliumfarmwa.com");
+//		customerIds.add("demo.tend.ag");
+//
+//		for (String customerId : customerIds) {
+//			MappedData userInfo = getUserInfo(customerId, "admin@" + customerId);
+//			if (userInfo.equals(MessageData.NO_DATA_FOUND))
+//				System.out.println(customerId + "\t" + "no-admin");
+//			else
+//				System.out.println(customerId + "\t" + userInfo.get("username"));
+//			Map<String, String> listAdminUsers = getListAdminUsers(customerId);
+//			for (Map.Entry<String, String> entry : listAdminUsers.entrySet()) {
+//				System.out.println(customerId + "\t" + entry.getKey());
+//			}
+//		}
+		String username = "robert@tend.ag";
+//		permissionStore.delete(adminCustId, applicationStr, Authenticator.getUserId(adminCustId, username));
+//		getUserPermission(adminCustId, "robert@tend.ag");
+		updateTendPermission("www.tend.ag",  Authenticator.getUserId(adminCustId, username), "admin");
+		getUserPermission(adminCustId, "robert@tend.ag");
 
 		System.exit(0);
 	}

@@ -61,19 +61,33 @@ public class ShareMigration extends MigrationModel {
 //		customerIds.add("farmrockfarm.tendfarm.com");
 //		customerIds.add("rigby.tendfarm.com");
 //		customerIds.add("milkweedfarm.tendfarm.co");
-
-		customerIds.add("hakurei1.farmer.guide");
-		customerIds.add("nautic.theme.tend.ag ");
-		customerIds.add("lancelot.theme.tend.ag");
-		customerIds.add("bodark.theme.tend.ag");
-		customerIds.add("hakurei.theme.tend.ag");
-		customerIds.add("kennebec.theme.tend.ag");
-		customerIds.add("at-hakurei.tendfarm.com");
-		customerIds.add("at-lancelot.tendfarm.com");
-		customerIds.add("at-nautic.tendfarm.com");
-		customerIds.add("at-bodark.tendfarm.com");
-		customerIds.add("at-kennebec.tendfarm.com");
+//
+//		customerIds.add("hakurei1.farmer.guide");
+//		customerIds.add("nautic.theme.tend.ag ");
+//		customerIds.add("lancelot.theme.tend.ag");
+//		customerIds.add("bodark.theme.tend.ag");
+//		customerIds.add("hakurei.theme.tend.ag");
+//		customerIds.add("kennebec.theme.tend.ag");
+//		customerIds.add("at-hakurei.tendfarm.com");
+//		customerIds.add("at-lancelot.tendfarm.com");
+//		customerIds.add("at-nautic.tendfarm.com");
+//		customerIds.add("at-bodark.tendfarm.com");
+//		customerIds.add("at-kennebec.tendfarm.com");
 		// customerIds.add("test.farmer.guide");
+//		customerIds.add("l1s1165bf06f44e64c3b9b28a9ae9ce28556");// goldcoast.tendfarm.com
+//		customerIds.add("l1s164f300d1cd1a44449001d682e241a2af");// miesenbergerhof.tendfarm.com
+//		customerIds.add("l1s1eea46dbd40eb49d98d5f0c815fa5e261");// vistalarga.tendfarm.com
+//		customerIds.add("l1s1f3399d666a844e0ea961a9584c9bf0aa");// farmrockfarm.tendfarm.com
+//		customerIds.add("l1s1524228e787f64296a8d027bccce8efcb");// rigby.tendfarm.com
+//		customerIds.add("l1s1e2f9fb53d2604a29aac7eae3cdf92168");// milkweedfarm.tendfarm.co
+//		customerIds.add("l1s18aa52bc3ae804db3a5850bf6d66c4a5c");// at-hakurei.tendfarm.com
+//		customerIds.add("l1s1b1614cdb7aa6474d81b75d16294aec03");// at-lancelot.tendfarm.com
+//		customerIds.add("l1s18e2d597936404c44b592e2ff960495dd");// at-nautic.tendfarm.com
+//		customerIds.add("l1s1f97581abdbed4c56a91638998cd82b50");// at-bodark.tendfarm.com
+//		customerIds.add("l1s1e9c682062922494c8d1385855fe75b1a");// at-kennebec.tendfarm.com
+		customerIds.add("test.farmer.guide");
+//		customerIds.add("l1s14a419da09f404286a6397197aecb6f64");// hakurei1.farmer.guide
+
 
 		for (String farm : customerIds) {
 			migrateToShare(farm, farm);
