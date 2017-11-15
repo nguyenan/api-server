@@ -66,6 +66,13 @@ public class EventMigration extends MigrationModel {
 //		customerIds.add("farmrockfarm.tendfarm.com");
 //		customerIds.add("rigby.tendfarm.com");
 //		customerIds.add("milkweedfarm.tendfarm.co");
+//		customerIds.add("www.oldhousefarm.net");
+
+//		customerIds.add("l1s1d4f26fa7e56140b2bb1d7e55aff9c201");// sunnybrookfarms.tendfarm.com
+//		customerIds.add("l1s1e0ed15578c2941b8a6920d77461d0420");// eatmyfarm.tendfarm.com
+//		customerIds.add("l1s1ef3f8487f4fc4b05bfdb1e40f0dceb04");// martinsgarden.tendfarm.com
+//		customerIds.add("l1s17d9a1db8c36441f28440b3c1debf915a");// littlepigeonfarm.tendfarm.com
+//
 //
 //		customerIds.add("hakurei1.farmer.guide");
 //		customerIds.add("nautic.theme.tend.ag ");
@@ -91,8 +98,9 @@ public class EventMigration extends MigrationModel {
 //		customerIds.add("l1s18e2d597936404c44b592e2ff960495dd");// at-nautic.tendfarm.com
 //		customerIds.add("l1s1f97581abdbed4c56a91638998cd82b50");// at-bodark.tendfarm.com
 //		customerIds.add("l1s1e9c682062922494c8d1385855fe75b1a");// at-kennebec.tendfarm.com
+//		customerIds.add("www.oldhousefarm.net");
 //		customerIds.add("test.farmer.guide");
-		customerIds.add("l1s14a419da09f404286a6397197aecb6f64");// hakurei1.farmer.guide
+//		customerIds.add("l1s14a419da09f404286a6397197aecb6f64");// hakurei1.farmer.guide
 		
 //		System.out.println(getListProduct("test.farmer.guide"));
 		for (String farm : customerIds) {
