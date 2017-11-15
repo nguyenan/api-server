@@ -135,36 +135,38 @@ public class WutFile {
 	public static boolean deleteFiles(String directoryPathStr) {
 		try {
 			File directory = new File(directoryPathStr);
-			if (!directoryPathStr.startsWith(SystemSettings.getInstance().getSetting("code.dir"))){
-				//prevent delete unwanted files
-				ErrorHandler.systemError("Trying to delete: '" + directoryPathStr +"'. Rejected!");
+			if (!directory.exists())
+				return true;
+			if (!directoryPathStr.startsWith(SystemSettings.getInstance().getSetting("code.dir"))) {
+				// prevent delete unwanted files
+				ErrorHandler.systemError("Trying to delete: '" + directoryPathStr + "'. Rejected!");
 				return false;
-			}	
+			}
 			File[] fList = directory.listFiles();
-			
-	        for (File file : fList){
-	            if (file.isFile()) {
-	            	logger.info("deleting: " + file.getName());
-	                if (!file.delete()){
-	                	ErrorHandler.systemError("error deleting file: " + file.getPath());
-	                	return false;
-	                }
-	            } else if (file.isDirectory()) {
-	            	logger.info(file.getPath());
-	            	logger.info("nested directory: " + file.getName());
-	            	String directoryPath  = file.getAbsolutePath();
-	            	deleteFiles(directoryPath);
-	            	if (!file.delete()){
-	            		ErrorHandler.systemError("error deleting file: " + file.getPath());
-	                	return false;
-	                }
-	            }
-	        }
-	        if (!directory.delete()){
-	        	ErrorHandler.systemError("error deleting directory: " + directory.getPath());
-            	return false;
-            }
-	        return true;
+			if (fList != null && fList.length > 0) {
+				for (File file : fList) {
+					if (file.isFile()) {
+						logger.info("deleting: " + file.getName());
+						if (!file.delete()) {
+							ErrorHandler.systemError("error deleting file: " + file.getPath());
+							return false;
+						}
+					} else if (file.isDirectory()) {
+						logger.info(file.getPath());
+						logger.info("nested directory: " + file.getName());
+						String directoryPath = file.getAbsolutePath();
+						if (!deleteFiles(directoryPath)) {
+							ErrorHandler.systemError("error deleting directory: " + file.getPath());
+							return false;
+						}
+					}
+				}
+			}
+			if (!directory.delete()) {
+				ErrorHandler.systemError("error deleting directory: " + directory.getPath());
+				return false;
+			}
+			return true;
 		} catch (Exception e) {
 			ErrorHandler.systemError("error deleting directory: " + directoryPathStr, e);
 			return false;
