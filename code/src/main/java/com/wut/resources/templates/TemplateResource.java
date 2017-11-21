@@ -33,7 +33,7 @@ public class TemplateResource extends AbstractResource {
 		operations.add(new RenderTemplateOperation());
 		operations.add(new RefreshTemplateOperation());
 		operations.add(new InitializeTemplateOperation());
-		operations.add(new CopyTemplateOperation());
+//		operations.add(new CopyTemplateOperation());
 		operations.add(new KillTemplateOperation());
 		operations.add(new GetSettingOperation());
 		operations.add(new SetSettingOperation());

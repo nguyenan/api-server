@@ -27,20 +27,18 @@ public abstract class TemplateOperation extends AbstractOperation {
 		String clientCodeDirectory = getClientCodeDirectory(request);
 		File clientCodeDirectoryFile = new File(clientCodeDirectory);
 		return (!clientCodeDirectoryFile.exists());
-		//return clientCodeDirectoryFile.listFiles() != null && clientCodeDirectoryFile.listFiles().length <= 0;
 	}
-	
-	
+		
 	protected String getClientCodeDirectory(WutRequest request) {
 		String customerId = request.getCustomer();
-		String domain = SettingsManager.getClientSettings(customerId, "template.domain");
+		String domain = SettingsManager.getClientSettings(customerId, "template.git.branch");
 		return SettingsManager.getSystemSetting("code.dir") + domain;
 	}
 	
-	protected String getClientSiteDirectory(String customerId) {
-		String domain = SettingsManager.getClientSettings(customerId, "template.domain");
-		return SettingsManager.getSystemSetting("site.dir") + domain;
-	}
+//	protected String getClientSiteDirectory(String customerId) {
+//		String domain = SettingsManager.getClientSettings(customerId, "template.domain");
+//		return SettingsManager.getSystemSetting("site.dir") + domain;
+//	}
 	
 	// TODO rename pull out common code with getOutputDirectory()
 	private String getInputDirectory(WutRequest request) throws MissingParameterException {		
@@ -66,7 +64,6 @@ public abstract class TemplateOperation extends AbstractOperation {
 			}
 			inputFolder.append("/");
 			inputFolder.append(bucketString);
-			//WutFile.createFolderIfNeeded(inputFolder.toString());
 		}
 		
 		return inputFolder.toString();
@@ -108,41 +105,41 @@ public abstract class TemplateOperation extends AbstractOperation {
 //		SystemHelper.runCommand(clientCodeDirectory, gitPath, new String[] { "pull" }, null);
 //	}
 	
-	private String getOutputDirectory(WutRequest request) throws MissingParameterException {
-		StringBuilder outputFolder = new StringBuilder();
-		
-		String customerId = request.getCustomer();
-		String siteFolder = getClientSiteDirectory(customerId);
-		outputFolder.append(siteFolder);
-		outputFolder.append("/");
-		
-		String application = request.getApplication();
-		if (application.equals("wut") || application.equals("storefront")) {
-			application = ".";
-		}
-		outputFolder.append(application);
-		WutFile.createFolderIfNeeded(outputFolder.toString());
-
-		StringData outputBucket = request.getParameter("outputBucket", true);
-		if (outputBucket != null) {
-			String bucketString = outputBucket.toRawString();
-			if (bucketString.contains("/") || bucketString.contains(".")) {
-				throw new RuntimeException("invalid argument passed for outputBucket");
-			}
-			outputFolder.append("/");
-			outputFolder.append(bucketString);
-			WutFile.createFolderIfNeeded(outputFolder.toString());
-		}
-		
-		return outputFolder.toString();
-	}
-	
-	protected String getOutputFilePath(WutRequest request) throws MissingParameterException {
-		String outputFolder = getOutputDirectory(request);
-		String pageName = request.getStringParameter("output");
-		String pageLocation = outputFolder + "/" + pageName ;
-		return pageLocation;
-	}
+//	private String getOutputDirectory(WutRequest request) throws MissingParameterException {
+//		StringBuilder outputFolder = new StringBuilder();
+//		
+//		String customerId = request.getCustomer();
+//		String siteFolder = getClientSiteDirectory(customerId);
+//		outputFolder.append(siteFolder);
+//		outputFolder.append("/");
+//		
+//		String application = request.getApplication();
+//		if (application.equals("wut") || application.equals("storefront")) {
+//			application = ".";
+//		}
+//		outputFolder.append(application);
+//		WutFile.createFolderIfNeeded(outputFolder.toString());
+//
+//		StringData outputBucket = request.getParameter("outputBucket", true);
+//		if (outputBucket != null) {
+//			String bucketString = outputBucket.toRawString();
+//			if (bucketString.contains("/") || bucketString.contains(".")) {
+//				throw new RuntimeException("invalid argument passed for outputBucket");
+//			}
+//			outputFolder.append("/");
+//			outputFolder.append(bucketString);
+//			WutFile.createFolderIfNeeded(outputFolder.toString());
+//		}
+//		
+//		return outputFolder.toString();
+//	}
+//	
+//	protected String getOutputFilePath(WutRequest request) throws MissingParameterException {
+//		String outputFolder = getOutputDirectory(request);
+//		String pageName = request.getStringParameter("output");
+//		String pageLocation = outputFolder + "/" + pageName ;
+//		return pageLocation;
+//	}
 	
 	protected String getInputFilePath(WutRequest request) throws MissingParameterException {
 		String inputFolder = getInputDirectory(request);

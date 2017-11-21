@@ -9,12 +9,6 @@ import javax.script.ScriptException;
 
 import com.wut.resources.common.AbstractResource;
 import com.wut.resources.common.WutOperation;
-import com.wut.resources.templates.CopyTemplateOperation;
-import com.wut.resources.templates.InitializeTemplateOperation;
-import com.wut.resources.templates.KillTemplateOperation;
-import com.wut.resources.templates.ReadTemplateOperation;
-import com.wut.resources.templates.RefreshTemplateOperation;
-import com.wut.resources.templates.RenderTemplateOperation;
 
 public class JavaScriptResource extends AbstractResource {
 	public JavaScriptResource() {
