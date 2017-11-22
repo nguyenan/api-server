@@ -8,6 +8,8 @@ import com.wut.model.list.ListData;
 import com.wut.model.map.MappedData;
 import com.wut.model.scalar.BooleanData;
 import com.wut.model.scalar.IdData;
+import com.wut.support.settings.SettingsManager;
+
 import java.util.logging.FileHandler;
 import java.util.logging.Logger;
 
@@ -25,10 +27,15 @@ public class CustomerDevTools {
 		fh = new FileHandler("/data/scripts/devlog/customer_" + System.currentTimeMillis());
 		logger.addHandler(fh);
 		fh.setFormatter(new LogFormatter());
-		//System.out.println(getCustomerInfo("www.tend.ag", "l1s164482d418d494b9f92a0e789be905dd6"));
-		//getRowFrontendMapResourceTable("l1s164482d418d494b9f92a0e789be905dd6", logger);
-		System.out.println(getCustomerInfo("www.tend.ag", "l1s1485ed7b74eb94883b63bb1fff3a35880"));
-		
+		String parentCustomerId = "betaadmin.tend.ag";
+		List<String> allCustomers = getAllCustomers(parentCustomerId);
+		for (String customerId : allCustomers) {
+			if (customerId.isEmpty())
+				continue;
+			String template = SettingsManager.getClientSettings(customerId, "template.git.branch");
+			System.out.println(customerId + "\t" + template);
+			//updateTemplate(parentCustomerId, customerId, template);
+		}
 		System.exit(0);
 	}
 
@@ -49,6 +56,16 @@ public class CustomerDevTools {
 		String rowId = table + ":" + customerId;
 		MappedData row = cassSource.getRow(new IdData(parentCustomerId), application, tableId, new IdData(rowId));
 		return row;
+	}
+
+	public static BooleanData updateTemplate(String parentCustomerId, String customerId, String template) {
+
+		String table = String.format("core:%s:public:%s", parentCustomerId, "site");
+		String rowId = table + ":" + customerId;
+		MappedData data = new MappedData();
+		data.put("template", template);
+		return cassSource.updateRow(new IdData(parentCustomerId), application, tableId, new IdData(rowId), data);
+
 	}
 
 	public static ListData getAllCustomersDetails(String parentCustomerId) {
@@ -77,7 +94,6 @@ public class CustomerDevTools {
 			MappedData row = (MappedData) obj;
 			customerId = row.get("id").toString().replaceAll(table + ":", "");
 			customers.add(customerId);
-			break;
 		}
 		return customers;
 	}
