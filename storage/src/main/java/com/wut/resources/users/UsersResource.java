@@ -101,7 +101,8 @@ public class UsersResource extends CrudResource {
 		operationList.add(getUpdateOperation());
 		operationList.add(getDeleteOperation());
 		operationList.add(new ResetUserOperation(getSource()));
-		operationList.add(new UpdateListCustomerOperation(getSource()));
+		operationList.add(new UpdatePermissionOperation(getSource()));
+		operationList.add(new RemovePermissionOperation(getSource()));
 		operationList.add(getAuthenticateOperation());
 		operationList.add(getValidateTokenOperation());
 		operationList.add(new GetSettingOperation());

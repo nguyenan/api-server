@@ -80,6 +80,5 @@ public class PermissionStore implements CrudSource {
 	public Data delete(String customer, String application, String id) {
 		Data d = table.deleteRow(IdData.create(customer), IdData.create(application), permissionsTable, new IdData(id));
 		return d;
-	}
-
+	}	
 }
