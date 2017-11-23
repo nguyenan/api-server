@@ -13,6 +13,8 @@ public interface TableProvider {
 	
 	public MappedData getRow(IdData customer, IdData application, IdData table, IdData rowId);
 	
+	public BooleanData deleteRows(IdData customer, IdData application, IdData tableId, MappedData filter);
+	
 	public BooleanData deleteRow(IdData customer, IdData application, IdData tableId, IdData rowId);
 	
 	public BooleanData updateRow(IdData customer, IdData application, IdData tableId, IdData rowId, MappedData data);

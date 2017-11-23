@@ -69,6 +69,11 @@ public class UniqueRowProvider implements TableProvider {
 	}
 
 	@Override
+	public BooleanData deleteRows(IdData customer, IdData application, IdData tableId, MappedData filter) {
+		return provider.deleteRows(customer, application, tableId, filter);
+	}
+	
+	@Override
 	public BooleanData updateRow(IdData customer, IdData application, IdData tableId, IdData rowId, MappedData data) {
 		return provider.updateRow(customer, application, tableId, getNewRowId(tableId, rowId), data);
 	}

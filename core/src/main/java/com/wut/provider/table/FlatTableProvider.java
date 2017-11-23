@@ -50,7 +50,7 @@ public class FlatTableProvider implements TableProvider {
 	public BooleanData deleteRow(IdData customer, IdData application, IdData tableId, IdData rowId) {
 		return provider.deleteRow(customer, application, systemTable, rowId);
 	}
-
+	
 	@Override
 	public BooleanData updateRow(IdData customer, IdData application, IdData tableId, IdData rowId, MappedData data) {
 		data.put("table", tableId);
@@ -67,6 +67,12 @@ public class FlatTableProvider implements TableProvider {
 	public IdData insertRow(IdData customer, IdData application, IdData tableId, MappedData data) {
 		data.put("table", tableId);
 		return provider.insertRow(customer, application, systemTable, data);
+	}
+
+	@Override
+	public BooleanData deleteRows(IdData customer, IdData application, IdData tableId, MappedData filter) {
+		filter.put("table", tableId);
+		return provider.deleteRows(customer, application, systemTable, filter);
 	}
 
 //	private IdData getRowId(IdData userTable, IdData id) {

@@ -57,7 +57,9 @@ public class CreatedModifiedProvider implements TableProvider {
 		return provider.deleteRow(customer, application, tableId, rowId);
 	}
 
+	@Override
+	public BooleanData deleteRows(IdData customer, IdData application, IdData tableId, MappedData filter) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
-
-
-

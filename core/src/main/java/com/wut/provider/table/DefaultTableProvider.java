@@ -32,6 +32,11 @@ public class DefaultTableProvider implements TableProvider {
 	public BooleanData deleteRow(IdData customer, IdData application, IdData tableId, IdData rowId) {
 		return source.deleteRow(customer, application, tableId, rowId);
 	}
+
+	@Override
+	public BooleanData deleteRows(IdData customer, IdData application, IdData tableId, MappedData filter) {
+		return source.deleteRows(customer, application, tableId, filter);
+	}
 	
 	@Override
 	public BooleanData updateRow(IdData customer, IdData application, IdData tableId, IdData rowId, MappedData data) {
