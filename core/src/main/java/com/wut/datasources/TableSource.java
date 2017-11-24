@@ -18,6 +18,8 @@ public interface TableSource extends DataSource {
 	
 	public BooleanData deleteRow(IdData customer, IdData application, IdData tableId, IdData rowId);
 	
+	public BooleanData deleteRows(IdData customer, IdData application, IdData tableId, MappedData filter);
+	
 	public BooleanData updateRow(IdData customer, IdData application, IdData tableId, IdData rowId, MappedData data);
 
 	public BooleanData crupdateRow(IdData customer, IdData application, IdData tableId, IdData rowId, MappedData data);

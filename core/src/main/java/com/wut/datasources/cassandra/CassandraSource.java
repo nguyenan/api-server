@@ -81,7 +81,7 @@ The DESCRIBE and SHOW commands only work in cqlsh and cassandra-cli.
 		return tableNames;
 	}
 
-	public void createTable(String tableName) {
+	/*public void createTable(String tableName) {
 		StringBuilder createTableStatement = new StringBuilder();
 		createTableStatement.append("CREATE TABLE IF NOT EXISTS ");
 		createTableStatement.append(tableName);
@@ -129,12 +129,12 @@ The DESCRIBE and SHOW commands only work in cqlsh and cassandra-cli.
 
 		//session.execute("CREATE INDEX ON " + tableName + " (data);");
 		
-		/*
-		 * CREATE INDEX user_state
-   		   ON myschema.users (state);
-   		   CREATE INDEX ON myschema.users (zip);
-		 */
-	}
+		
+//		 CREATE INDEX user_state
+//   		   ON myschema.users (state);
+//   		   CREATE INDEX ON myschema.users (zip);
+		 
+	}*/
 
 	public void deleteTable(String tableName) {
 		StringBuilder dropTableStatement = new StringBuilder();
@@ -400,6 +400,19 @@ The DESCRIBE and SHOW commands only work in cqlsh and cassandra-cli.
 		
 		// TODO fix this
 		return BooleanData.create(results != null);
+	}
+
+
+	@Override
+	public BooleanData deleteRows(IdData customer, IdData application, IdData table, MappedData filter) {
+		ListData rowsWithFilter = getRowsWithFilter(customer, application, table, filter);
+		List<MappedData> list = rowsWithFilter.toList();
+		for (MappedData item : list) {
+			IdData rowId = new IdData(item.get("id").toString());
+			if (BooleanData.FALSE.equals(deleteRow(customer, application, table, rowId)))
+				return BooleanData.FALSE;
+		}
+		return BooleanData.TRUE;
 	}
 
 	// ///////////// HELPER METHODS ///////////////

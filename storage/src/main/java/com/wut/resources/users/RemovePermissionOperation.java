@@ -11,17 +11,17 @@ import com.wut.pipeline.PermissionStore;
 import com.wut.pipeline.WutRequest;
 import com.wut.support.settings.SystemSettings;
 
-public class UpdateListCustomerOperation extends UserOperation {
+public class RemovePermissionOperation extends UserOperation {
 	private static PermissionStore permissionStore = new PermissionStore();
 	private static String adminCustId = SystemSettings.getInstance().getSetting("admin.customerid");
 
-	public UpdateListCustomerOperation(CrudSource source) {
+	public RemovePermissionOperation(CrudSource source) {
 		super(source);
 	}
 
 	@Override
 	public String getName() {
-		return "updatelist";
+		return "remove-permission";
 	}
 
 	@Override
@@ -34,13 +34,13 @@ public class UpdateListCustomerOperation extends UserOperation {
 		// do update
 		MappedData permissionData = (MappedData) permissionStore.read(adminCustId, application, affectedUserId);
 		if (permissionData.equals(MessageData.NO_DATA_FOUND))
-			permissionData = new MappedData();
-		permissionData.put(customer, new StringData("admin"));
+			return MessageData.SUCCESS;
+		permissionData.remove(new StringData(customer));
 
+		permissionStore.delete(adminCustId, application, affectedUserId);
 		BooleanData update = (BooleanData) permissionStore.update(adminCustId, application, affectedUserId,
 				permissionData.getMapAsPojo());
 
 		return MessageData.successOrFailure(update);
 	}
-
 }

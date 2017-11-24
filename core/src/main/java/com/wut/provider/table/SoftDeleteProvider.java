@@ -81,4 +81,9 @@ public class SoftDeleteProvider implements TableProvider {
 		return provider.insertRow(customer, application, tableId, data);
 	}
 
+	@Override
+	public BooleanData deleteRows(IdData customer, IdData application, IdData tableId, MappedData filter) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

@@ -48,6 +48,12 @@ public class TableRowProviderToTableProviderAdapter implements TableProvider {
 	public IdData insertRow(IdData customer, IdData application, IdData tableId, MappedData data) {
 		return rowProvider.insert(customer, application, tableId, data);
 	}
+
+	@Override
+	public BooleanData deleteRows(IdData customer, IdData application, IdData tableId, MappedData filter) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 	
 }
 
