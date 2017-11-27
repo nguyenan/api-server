@@ -2,6 +2,8 @@ package com.wut.datasources;
 
 import java.io.InputStream;
 
+import com.wut.model.Data;
+
 public interface FileSource extends DataSource {
 	
 	public InputStream getFile(String bucket, String folder, String filename);
@@ -9,6 +11,10 @@ public interface FileSource extends DataSource {
 	public boolean updateFile(String bucket, String folder, String filename, InputStream fileData);
 	
 	public boolean deleteFile(String bucket, String folder, String filename);
+	
+	public Data listDirectory(String bucket, String prefix);
+	
+	public Data listFile(String bucket, String prefix);	
 	
 	public boolean deleteBucket(String bucket);
 	
