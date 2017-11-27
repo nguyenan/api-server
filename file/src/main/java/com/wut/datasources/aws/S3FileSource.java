@@ -2,7 +2,9 @@ package com.wut.datasources.aws;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
@@ -19,6 +21,7 @@ import com.amazonaws.services.s3.model.CreateBucketRequest;
 //import net.schmizz.sshj.common.Base64;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
@@ -28,6 +31,9 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.services.s3.model.SetBucketWebsiteConfigurationRequest;
 import com.wut.datasources.FileSource;
+import com.wut.model.Data;
+import com.wut.model.list.ListData;
+import com.wut.model.map.MessageData;
 import com.wut.support.ErrorHandler;
 import com.wut.support.binary.Base64;
 import com.wut.support.settings.SettingsManager;
@@ -102,15 +108,15 @@ public class S3FileSource implements FileSource {
 			metadata.setContentType("text/cache-manifest");
 		}
 
-		//InputStream base64decodedStream;
+		// InputStream base64decodedStream;
 
 		String streamAsString = StreamUtil.getStringFromInputStream(fileData);
 		byte[] base64encodedBytes = Base64.decodeBase64(streamAsString);
-		
+
 		metadata.setContentLength(base64encodedBytes.length);
 		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(base64encodedBytes);
-		
-		//base64decodedStream = new ByteArrayInputStream(base64encodedBytes);
+
+		// base64decodedStream = new ByteArrayInputStream(base64encodedBytes);
 
 		PutObjectRequest putRequest = new PutObjectRequest(bucket, getObjectKey(folder, filename), byteArrayInputStream,
 				metadata);
@@ -254,6 +260,40 @@ public class S3FileSource implements FileSource {
 			ErrorHandler.userError("Error when clonning " + source + " to " + destination + ": " + e.getErrorCode());
 			return false;
 		}
+	}
+
+	public Data listDirectory(String bucketName, String prefix) {
+		String delimiter = "/";
+		if (!prefix.endsWith(delimiter)) {
+			prefix += delimiter;
+		}
+
+		ListObjectsRequest listObjectsRequest = new ListObjectsRequest().withBucketName(bucketName).withPrefix(prefix)
+				.withDelimiter(delimiter);
+		ObjectListing objects = s3client.listObjects(listObjectsRequest);
+
+		List<String> directories = objects.getCommonPrefixes();
+		if (directories.isEmpty())
+			return MessageData.NO_DATA_FOUND;
+		return new ListData(directories);
+	}
+
+	public Data listFile(String bucketName, String prefix) {
+		String delimiter = "/";
+		if (!prefix.endsWith(delimiter)) {
+			prefix += delimiter;
+		}
+
+		ListObjectsRequest listObjectsRequest = new ListObjectsRequest().withBucketName(bucketName).withPrefix(prefix)
+				.withDelimiter(delimiter);
+		ObjectListing objects = s3client.listObjects(listObjectsRequest);
+		List<String> files = new ArrayList<String>();
+		for (S3ObjectSummary objectSummary : objects.getObjectSummaries()) {
+			files.add(objectSummary.getKey());
+		}
+		if (files.isEmpty())
+			return MessageData.NO_DATA_FOUND;
+		return new ListData(files);
 	}
 
 	private static String getBucketName(String path) {

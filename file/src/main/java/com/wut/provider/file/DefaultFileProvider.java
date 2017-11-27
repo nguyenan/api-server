@@ -3,6 +3,7 @@ package com.wut.provider.file;
 import java.io.InputStream;
 
 import com.wut.datasources.FileSource;
+import com.wut.model.Data;
 import com.wut.model.scalar.BooleanData;
 import com.wut.model.scalar.IdData;
 import com.wut.model.scalar.ScalarData;
@@ -45,5 +46,15 @@ public class DefaultFileProvider implements FileProvider {
 	public BooleanData copyBucket(IdData sourceBucket, IdData destination) {
 		boolean wasSuccessful = source.copyBucket(sourceBucket.toRawString(), destination.toRawString());
 		return BooleanData.create(wasSuccessful);
+	}
+
+	public Data listFile(IdData bucket, StringData prefix) {
+		Data listFile = source.listFile(bucket.toRawString(), prefix.toRawString());
+		return listFile;
+	}
+
+	public Data listDirectory(IdData bucket, StringData prefix) {
+		Data listDirectory = source.listDirectory(bucket.toRawString(), prefix.toRawString());
+		return listDirectory;
 	}
 }
