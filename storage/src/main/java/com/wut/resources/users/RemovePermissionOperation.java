@@ -31,16 +31,7 @@ public class RemovePermissionOperation extends UserOperation {
 		String application = ri.getApplication();
 		String affectedUserId = Authenticator.getUserId(adminCustId, username);
 
-		// do update
-		MappedData permissionData = (MappedData) permissionStore.read(adminCustId, application, affectedUserId);
-		if (permissionData.equals(MessageData.NO_DATA_FOUND))
-			return MessageData.SUCCESS;
-		permissionData.remove(new StringData(customer));
-
-		permissionStore.delete(adminCustId, application, affectedUserId);
-		BooleanData update = (BooleanData) permissionStore.update(adminCustId, application, affectedUserId,
-				permissionData.getMapAsPojo());
-
-		return MessageData.successOrFailure(update);
+		Data delete = permissionStore.delete(adminCustId, application, affectedUserId);
+		return delete;
 	}
 }
