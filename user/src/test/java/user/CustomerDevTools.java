@@ -2,7 +2,10 @@ package user;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import com.wut.datasources.cassandra.CassandraSource;
 import com.wut.model.list.ListData;
 import com.wut.model.map.MappedData;
@@ -124,10 +127,10 @@ public class CustomerDevTools {
 			String table = String.format("core:%s:public:%s", customerId, "frontendMapResourceTable");
 			filter.put("table", new IdData(table));
 			MappedData row = cassSource.getRow(customer, application, tableId, new IdData(table + ":settings"));
-			logger.info(row.toString());
-			logger.info(String.format("%s\t%s\t%s", customerId, row.get("customerDomain"), row.get("domain")));
+			//logger.info(row.toString());
+			//logger.info(String.format("%s\t%s\t%s", customerId, row.get("customerDomain"), row.get("domain")));
 
-			return null;
+			return row;
 		} catch (Exception e) {
 			logger.info(e.getMessage());
 			return null;
