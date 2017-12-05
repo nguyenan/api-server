@@ -1,12 +1,11 @@
-// This is the script used by the server when render-template calls are made
-// This file is just used as a reference.  It is not the actual file used (changing this doesn't affect the server)
+// This is the script used by the server when render-tempilate calls are made
 var page = require('webpage').create();
 var system = require('system');
 
 var url = system.args[1];
 var showConsole = system.args[2];
 
-var maxMillisecondsPhantomCanBeOpen = 3 * 60 * 1000; // 3 minutes * 60 seconds in a minute * 1000 ms in a second
+var maxMillisecondsPhantomCanBeOpen = 1 * 60 * 1000; // 1 minutes * 60 seconds in a minute * 1000 ms in a second
 
 // phantom.outputEncoding = "utf8";
 
@@ -14,6 +13,7 @@ var maxMillisecondsPhantomCanBeOpen = 3 * 60 * 1000; // 3 minutes * 60 seconds i
 page.onError = function() { };
 
 function closePage() {
+    console.log('PhantomJsTimeout');
     page.close();
     phantom.exit();
 }
