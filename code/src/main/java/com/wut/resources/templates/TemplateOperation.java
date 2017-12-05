@@ -12,10 +12,10 @@ import com.wut.pipeline.WutRequest;
 import com.wut.resources.common.AbstractOperation;
 import com.wut.resources.common.MissingParameterException;
 import com.wut.support.Defaults;
-import com.wut.support.ErrorHandler;
 import com.wut.support.StringHelper;
 import com.wut.support.SystemHelper;
 import com.wut.support.fileio.WutFile;
+import com.wut.support.logging.StackTraceData;
 import com.wut.support.settings.SettingNotFoundException;
 import com.wut.support.settings.SettingsManager;
 
@@ -44,10 +44,11 @@ public abstract class TemplateOperation extends AbstractOperation {
 			return String.format("%s%s%s", SettingsManager.getSystemSetting("code.dir"), "theme/", branch);
 	}
 
-//     protected String getClientSiteDirectory(String customerId) {
-//             String domain = SettingsManager.getClientSettings(customerId, "template.domain");
-//             return SettingsManager.getSystemSetting("site.dir") + domain;
-//     }
+	// protected String getClientSiteDirectory(String customerId) {
+	// String domain = SettingsManager.getClientSettings(customerId,
+	// "template.domain");
+	// return SettingsManager.getSystemSetting("site.dir") + domain;
+	// }
 
 	// TODO rename pull out common code with getOutputDirectory()
 	private String getInputDirectory(WutRequest request) throws MissingParameterException {
@@ -78,7 +79,7 @@ public abstract class TemplateOperation extends AbstractOperation {
 		return inputFolder.toString();
 	}
 
-	protected boolean gitClone(WutRequest request) {
+	protected StackTraceData gitClone(WutRequest request) {
 		try {
 			String customer = request.getCustomer();
 			String clientCodeDirectory = getClientCodeDirectory(request);
@@ -92,17 +93,13 @@ public abstract class TemplateOperation extends AbstractOperation {
 				String gitBranch = SettingsManager.getClientSettings(customer, "template.git.branch");
 				SystemHelper.runCommand(clientCodeDirectory, gitPath,
 						new String[] { "clone", "-b", gitBranch, gitUrl, "." }, null);
-				return true;
-			}else 
-				ErrorHandler.userError("Git directory already has files");
+				return StackTraceData.success();
+			} else
+				return StackTraceData.errorMsg("Template has already been initialized");
 
 		} catch (Exception e) {
-			ErrorHandler.userError("Git clone exception occured");
+			return StackTraceData.error(null, null, "Git clone exception occured", request, e);
 		}
-
-		
-		return false;
-
 	}
 
 	private String getGitPath() {
