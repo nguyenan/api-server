@@ -10,13 +10,16 @@ import com.wut.model.scalar.IdData;
 import com.wut.model.scalar.ScalarData;
 import com.wut.model.scalar.StringData;
 import com.wut.pipeline.WutRequest;
+import com.wut.support.settings.SystemSettings;
 
 public class StackTraceData extends MappedData {
+	private static final String adminCustId = SystemSettings.getInstance().getSetting("admin.customerid");
 	private static final String _SUCCESS = String.valueOf(MessageData.SUCCESS.getCode());
 	private static final String _FAILURE = String.valueOf(MessageData.FAILURE.getCode());
 
 	private static final String ERROR_ID = "errorId";
 	private static final String DATE = "date";
+	private static final String UPDATED = "updated";
 
 	private static final String CODE = "code";
 	private static final String NAME = "name";
@@ -63,15 +66,20 @@ public class StackTraceData extends MappedData {
 	}
 
 	public void save() {
-		put(REQUEST, WUT_REQUEST.toString().replace("\"", "\\\""));
-		put(DATE, String.valueOf(System.currentTimeMillis()));
 		if (get(STACKTRACE) != null) {
+			put(REQUEST, WUT_REQUEST.toString().replace("\"", "\\\""));
+			put(DATE, String.valueOf(System.currentTimeMillis()));
+			put(UPDATED, String.valueOf(System.currentTimeMillis()));
+
 			StackTraceStore stackTraceStore = new StackTraceStore();
-			IdData logId = stackTraceStore.create("www.mapiii.com", "core", this.getMapAsPojo());
+			IdData logId = stackTraceStore.create(adminCustId, "core", this.getMapAsPojo());
 			put(ERROR_ID, logId.toRawString());
+
+			remove(new StringData(STACKTRACE));
+			remove(new StringData(REQUEST));
+			remove(new StringData(DATE));
+			remove(new StringData(UPDATED));
 		}
-		remove(new StringData(STACKTRACE));
-		remove(new StringData(REQUEST));
 	}
 
 	public void setWutRequest(WutRequest req) {
@@ -81,7 +89,6 @@ public class StackTraceData extends MappedData {
 		parameters.put("customerId", req.getCustomer());
 		parameters.put("userId", req.getUserId());
 		parameters.put("operation", req.getAction());
-		// parameters.put("visibility", req.getOptionalParameterAsString("visibility"));
 		parameters.put("application", req.getApplication());
 		parameters.put("noCache", req.getSetting("noCache"));
 		parameters.put("format", req.getFormat());
