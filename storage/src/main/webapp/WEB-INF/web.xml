@@ -54,4 +54,12 @@
     <servlet-name>user</servlet-name>
     <url-pattern>/user</url-pattern>
   </servlet-mapping>
+    <servlet>
+    <servlet-name>errors</servlet-name>
+    <servlet-class>com.wut.resources.errors.ErrorsResource</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>errors</servlet-name>
+    <url-pattern>/errors</url-pattern>
+  </servlet-mapping>
 </web-app>
