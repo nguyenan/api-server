@@ -30,7 +30,6 @@ public class SystemHelper {
             String argumentsString = StringHelper.combine(arguments, " ");
             
             String fullCommand = command + " " + argumentsString;
-            System.out.println("In directory:" + workingDirectoryStr);
             System.out.println("Running command:" + fullCommand);
             Process pr = rt.exec(fullCommand, null, workingDirectory);
 
@@ -86,7 +85,6 @@ public class SystemHelper {
             String argumentsString = StringHelper.combine(arguments, " ");
             
             String fullCommand = command + " " + argumentsString;
-            System.out.println("In directory:" + workingDirectoryStr);
             System.out.println("Running command:" + fullCommand);
             Process pr = rt.exec(fullCommand, null, workingDirectory);
 
