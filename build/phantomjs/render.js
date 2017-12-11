@@ -13,7 +13,7 @@ var maxMillisecondsPhantomCanBeOpen = 1 * 60 * 1000; // 1 minutes * 60 seconds i
 page.onError = function() { };
 
 function closePage() {
-    console.log('PhantomJsTimeout');
+//    console.log('PhantomJsTimeout');
     page.close();
     phantom.exit();
 }
