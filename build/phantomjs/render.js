@@ -11,9 +11,13 @@ var maxMillisecondsPhantomCanBeOpen = 1 * 60 * 1000; // 1 minutes * 60 seconds i
 
 
 page.onError = function() { };
-
+page.onResourceRequested = function(req, net) {
+	var match = req.url.match(/fbexternal-a\.akamaihd\.net\/safe_image|\.pdf|\.mp4|\.png|\.gif|\.avi|\.bmp|\.jpg|\.jpeg|\.swf|\.fla|\.xsd|\.xls|\.doc|\.ppt|\.zip|\.rar|\.7zip|\.gz|\.csv/gim);
+	if (match !== null) {
+		net.abort();
+	}
+};
 function closePage() {
-//    console.log('PhantomJsTimeout');
     page.close();
     phantom.exit();
 }

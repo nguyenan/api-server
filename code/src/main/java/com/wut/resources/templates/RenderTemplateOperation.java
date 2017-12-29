@@ -46,7 +46,7 @@ public class RenderTemplateOperation extends TemplateOperation {
 
 				final String ignoreSSLArgument = "--ignore-ssl-errors=yes";
 
-				final String noImages = "--load-images=false";
+				final String noImages = "--load-images=true";
 
 				final String sslType = "--ssl-protocol=tlsv1";
 
