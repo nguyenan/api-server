@@ -3,6 +3,7 @@ package com.wut.datasources.aws;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -14,7 +15,9 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.Bucket;
+import com.amazonaws.services.s3.model.BucketCrossOriginConfiguration;
 import com.amazonaws.services.s3.model.BucketWebsiteConfiguration;
+import com.amazonaws.services.s3.model.CORSRule;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.CreateBucketRequest;
@@ -188,7 +191,14 @@ public class S3FileSource implements FileSource {
 			// CannedAccessControlList.PublicRead);
 
 			// add CORS to bucket
+			CORSRule rule1 = new CORSRule().withId("admin CORS")
+					.withAllowedMethods(Arrays.asList(new CORSRule.AllowedMethods[] { CORSRule.AllowedMethods.GET }))
+					.withAllowedOrigins(
+							Arrays.asList(new String[] { "www.tend.ag", "betaadmin.tend.ag" }));
 
+			BucketCrossOriginConfiguration corsConfig = new BucketCrossOriginConfiguration();
+			corsConfig.setRules(Arrays.asList(new CORSRule[] { rule1 }));
+			s3client.setBucketCrossOriginConfiguration(bucket, corsConfig);
 			return true;
 		} catch (Exception e) {
 			return false;
