@@ -1,4 +1,4 @@
-FROM tomcat:8.0.23-jre8
+FROM tomcat:8.5.24-jre8
 MAINTAINER "Russell Palmiter" <russell@webutilitykit.com> 
 
 ## GENERAL STUFF TO MAKE APT PACKAGES WORK BETTER ##
