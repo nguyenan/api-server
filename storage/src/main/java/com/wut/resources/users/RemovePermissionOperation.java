@@ -21,7 +21,7 @@ public class RemovePermissionOperation extends UserOperation {
 
 	@Override
 	public String getName() {
-		return "remove-permission";
+		return "removelist";
 	}
 
 	@Override
@@ -30,8 +30,17 @@ public class RemovePermissionOperation extends UserOperation {
 		String username = ri.getStringParameter("username");
 		String application = ri.getApplication();
 		String affectedUserId = Authenticator.getUserId(adminCustId, username);
+		Data permissionData = permissionStore.read(adminCustId, application, affectedUserId);
+		if (permissionData.equals(MessageData.NO_DATA_FOUND))
+			return BooleanData.TRUE;
 
-		Data delete = permissionStore.delete(adminCustId, application, affectedUserId);
-		return delete;
+		MappedData data = (MappedData) permissionData;
+		if (data.get(customer) == null)
+			return BooleanData.TRUE;
+
+		data.remove(new StringData(customer));
+		permissionStore.delete(adminCustId, application, affectedUserId);
+		Data updated = permissionStore.update(adminCustId, application, affectedUserId, data.getMapAsPojo());
+		return updated;
 	}
 }
