@@ -9,6 +9,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.wut.model.list.ListData;
 import com.wut.model.map.MappedData;
+import com.wut.model.map.MessageData;
 import com.wut.model.scalar.StringData;
 
 public class ProduceProductMigration extends MigrationModel {
@@ -98,9 +99,15 @@ public class ProduceProductMigration extends MigrationModel {
 //		customerIds.add("l1s1e9c682062922494c8d1385855fe75b1a");// at-kennebec.tendfarm.com
 //		customerIds.add("www.oldhousefarm.net");
 //		customerIds.add("test.farmer.guide");
-		customerIds.add("l1s14a419da09f404286a6397197aecb6f64");// hakurei1.farmer.guide
+//		customerIds.add("l1s14a419da09f404286a6397197aecb6f64");// hakurei1.farmer.guide
 		for (String farm : customerIds) {
-			migrateToProduceProduct(farm, farm);
+			ListData listData = getListData(farm, TABLE_PRODUCE_PRODUCT);
+			if (!listData.equals(MessageData.NO_DATA_FOUND)){
+				List<MappedData> list = listData.toList();
+				for (MappedData data : list){
+					System.out.println(String.format("%s\t%s",  data.get("id").toString(),data.get("sellable")));
+				}
+			}
 		}
 
 		System.exit(0);
