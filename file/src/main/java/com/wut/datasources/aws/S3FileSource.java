@@ -194,7 +194,7 @@ public class S3FileSource implements FileSource {
 			CORSRule rule1 = new CORSRule().withId("admin CORS")
 					.withAllowedMethods(Arrays.asList(new CORSRule.AllowedMethods[] { CORSRule.AllowedMethods.GET }))
 					.withAllowedOrigins(
-							Arrays.asList(new String[] { "www.tend.ag", "betaadmin.tend.ag" }));
+							Arrays.asList(new String[] { "https://www.tend.ag", "https://betaadmin.tend.ag" }));
 
 			BucketCrossOriginConfiguration corsConfig = new BucketCrossOriginConfiguration();
 			corsConfig.setRules(Arrays.asList(new CORSRule[] { rule1 }));
