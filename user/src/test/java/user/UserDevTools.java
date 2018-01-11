@@ -40,42 +40,50 @@ public class UserDevTools {
 		logger.addHandler(fh);
 		fh.setFormatter(new LogFormatter());
 		String parentCustomerId = "www.tend.ag";
+//		System.out.println(getUserInfo(adminCustId, "seann@saltandharrow.com"));
+		getUserPermission(adminCustId, "brittany.strauss.7219@mail.linnbenton.edu");
+		
+		System.out.println(getListAdminUsers("l1s10881f1f25ab548f88b2751783e031e33"));
+		
+		System.exit(0);
+	}
+
+	public static void f_getCustomerHaveMultipleContact() {
 		List<String> customerIds = new ArrayList<>();
 
-		Map<String, String> mapOwners = new HashMap<>(); 
+		for (String customerId : customerIds) {
+			updateOwnerUser(customerId, "annguyen.qh@gmail.com");
+			System.out.println(getListOwnerUsers(customerId));
+			if (customerId.equals("dev.retailkit.com") || customerId.equals("test.farmer.guide"))
+				continue;
+			Map<String, String> listAdminUsersWithContact = getListAdminUsersWithContact(customerId);
+			if (listAdminUsersWithContact.size() < 2)
+				System.out.println(listAdminUsersWithContact);
+			else {
+				String contacts = "";
+				for (Map.Entry<String, String> entry : listAdminUsersWithContact.entrySet()) {
+					contacts += entry.getKey() + "-" + getContact(customerId, entry.getValue()) + "\t";
+				}
+				System.out.println(contacts);
+			}
+		}
+
+	}
+
+	public static void f_getOwners() {
+		Map<String, String> mapOwners = new HashMap<>();
 		mapOwners.put("www.seedsfarm.org", "katherine@tend.ag");
 
 		for (Map.Entry<String, String> entry : mapOwners.entrySet()) {
 			try {
-//				updateOwnerUser(entry.getKey(), entry.getValue());
+				// updateOwnerUser(entry.getKey(), entry.getValue());
 				System.out.println(getListOwnerUsers(entry.getKey()));
 				System.out.println(getListAdminUsers(entry.getKey()));
 			} catch (Exception e) {
 				// TODO: handle exception
 			}
-			
+
 		}
-		for (String customerId : customerIds) {
-			// updateOwnerUser(customerId, "annguyen.qh@gmail.com");
-			// System.out.println(getListOwnerUsers(customerId));
-			// if (customerId.equals("dev.retailkit.com") ||
-			// customerId.equals("test.farmer.guide"))
-			// continue;
-			// Map<String, String> listAdminUsersWithContact =
-			// getListAdminUsersWithContact(customerId);
-			// if (listAdminUsersWithContact.size() < 2)
-			// System.out.println(listAdminUsersWithContact);
-			// else {
-			// String contacts = "";
-			// for (Map.Entry<String, String> entry :
-			// listAdminUsersWithContact.entrySet()) {
-			// contacts += entry.getKey() + "-" + getContact(customerId,
-			// entry.getValue()) + "\t";
-			// }
-			// System.out.println(contacts);
-			// }
-		}
-		System.exit(0);
 	}
 
 	public static void getAllUserAuthen(String customerId) {
@@ -247,7 +255,9 @@ public class UserDevTools {
 			Data role = row.get("role");
 			email = row.get("id").toString().replaceAll(table + ":", "");
 
-			if (role != null){// && role.toString().equals(PermissionRole.OWNER.getValue())) {
+			if (role != null) {// &&
+								// role.toString().equals(PermissionRole.OWNER.getValue()))
+								// {
 				admins.put(email, role.toString());
 			}
 

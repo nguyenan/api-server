@@ -30,15 +30,16 @@ public class CustomerDevTools {
 		fh = new FileHandler("/data/scripts/devlog/customer_" + System.currentTimeMillis());
 		logger.addHandler(fh);
 		fh.setFormatter(new LogFormatter());
-		String parentCustomerId = "betaadmin.tend.ag";
-		List<String> allCustomers = getAllCustomers(parentCustomerId);
-		for (String customerId : allCustomers) {
+		String parentCustomerId = "www.tend.ag";
+		System.out.println(getCustomerInfo(parentCustomerId, "l1s16f3d01306fdd457789800bba03321376"));
+//		List<String> allCustomers = getAllCustomers(parentCustomerId);
+		/*for (String customerId : allCustomers) {
 			if (customerId.isEmpty())
 				continue;
 			String template = SettingsManager.getClientSettings(customerId, "template.git.branch");
 			System.out.println(customerId + "\t" + template);
 			//updateTemplate(parentCustomerId, customerId, template);
-		}
+		}*/
 		System.exit(0);
 	}
 
