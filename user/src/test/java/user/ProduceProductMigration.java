@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.wut.model.Data;
 import com.wut.model.list.ListData;
 import com.wut.model.map.MappedData;
 import com.wut.model.map.MessageData;
@@ -19,98 +20,74 @@ public class ProduceProductMigration extends MigrationModel {
 		setLogFormat();
 		buildMapFields();
 		List<String> customerIds = new ArrayList<>();
+		// System.out.println(CustomerDevTools.getRowFrontendMapResourceTable(
+		// "l1s1a607957b13e64302ade0359264434cd2", logger));
 
-		// customerIds.add("deeprootfarm.com");
-		// customerIds.add("www.anisetend.com");
-		// customerIds.add("www.fablefoods.com");
-		// customerIds.add("www.fourrootfarmbetasetupgmail.com");
-		// customerIds.add("www.freshfromstonecirclefarm.com");
-		// customerIds.add("www.freshfromstonecirclefarm.com");
-		// customerIds.add("www.fourrootfarmbetasetupgmail.com");
-		// customerIds.add("www.jccslo.com");
-		// customerIds.add("www.oya-organics.com");
-		// customerIds.add("casadicampagna.farm");
-		//
-		// customerIds.add("goldcoast.tendfarm.com");
-		// customerIds.add("miesenbergerhof.tendfarm.com");
-		// customerIds.add("springhaven.farm");
-		// customerIds.add("squashblossom.farm");
-		// customerIds.add("www.arfreckledhenfarm.com");
-		// customerIds.add("www.cluckandtrowel.com");
-		// customerIds.add("www.ecolibriumfarms.com");
-		// customerIds.add("www.escargrowfarms.com");
-		// customerIds.add("www.everlasting-garden.com");
-		// customerIds.add("www.fortunatefarm.com");
-		// customerIds.add("www.groundswellfarmsantacruz.com");
-		// customerIds.add("www.hawkshaven.farm");
-		// customerIds.add("www.jackiesroots.com");
-		// customerIds.add("www.lincolnhillsfarm.com");
-		// customerIds.add("www.lockewoodacres.com");
-		// customerIds.add("www.lolasonoma.com");
-		// customerIds.add("www.lovefood.farm");
-		// customerIds.add("www.mahoniagardens.com");
-		// customerIds.add("www.pvfproduce.com");
-		// customerIds.add("www.redclayfarm.com");
-		// customerIds.add("www.redearthgardens.com");
-		// customerIds.add("www.robinsongfarms.com");
-		// customerIds.add("www.roosterridgefarmaptos.com");
-		// customerIds.add("www.seedsfarm.org");
-		// customerIds.add("www.seedsfarms.com");
-		// customerIds.add("www.strong.ag");
-		// customerIds.add("www.tend.ag");
-		// customerIds.add("www.thepeachjamboree.farm");
-		// customerIds.add("www.trilliumfarmwa.com");
-		// customerIds.add("vistalarga.tendfarm.com");
-		// customerIds.add("farmrockfarm.tendfarm.com");
-		// customerIds.add("rigby.tendfarm.com");
-		// customerIds.add("milkweedfarm.tendfarm.co");
-		//
-//		customerIds.add("www.oldhousefarm.net");
+		// List<String> allCustomers =
+		// CustomerDevTools.getAllCustomers("www.tend.ag");
+		// System.out.println(CustomerDevTools.getRowFrontendMapResourceTable("dev1.tend.ag",logger).get("companyShortName"));
+		List<String> allCustomers = new ArrayList<>();
 
-//		customerIds.add("l1s1d4f26fa7e56140b2bb1d7e55aff9c201");// sunnybrookfarms.tendfarm.com
-//		customerIds.add("l1s1e0ed15578c2941b8a6920d77461d0420");// eatmyfarm.tendfarm.com
-//		customerIds.add("l1s1ef3f8487f4fc4b05bfdb1e40f0dceb04");// martinsgarden.tendfarm.com
-//		customerIds.add("l1s17d9a1db8c36441f28440b3c1debf915a");// littlepigeonfarm.tendfarm.com
-//
-		
-		// customerIds.add("hakurei1.farmer.guide");
-		// customerIds.add("nautic.theme.tend.ag ");
-		// customerIds.add("lancelot.theme.tend.ag");
-		// customerIds.add("bodark.theme.tend.ag");
-		// customerIds.add("hakurei.theme.tend.ag");
-		// customerIds.add("kennebec.theme.tend.ag");
-		// customerIds.add("at-hakurei.tendfarm.com");
-		// customerIds.add("at-lancelot.tendfarm.com");
-		// customerIds.add("at-nautic.tendfarm.com");
-		// customerIds.add("at-bodark.tendfarm.com");
-		// customerIds.add("at-kennebec.tendfarm.com");
-		// customerIds.add("test.farmer.guide");
-
-//		customerIds.add("l1s1165bf06f44e64c3b9b28a9ae9ce28556");// goldcoast.tendfarm.com
-//		customerIds.add("l1s164f300d1cd1a44449001d682e241a2af");// miesenbergerhof.tendfarm.com
-//		customerIds.add("l1s1eea46dbd40eb49d98d5f0c815fa5e261");// vistalarga.tendfarm.com
-//		customerIds.add("l1s1f3399d666a844e0ea961a9584c9bf0aa");// farmrockfarm.tendfarm.com
-//		customerIds.add("l1s1524228e787f64296a8d027bccce8efcb");// rigby.tendfarm.com
-//		customerIds.add("l1s1e2f9fb53d2604a29aac7eae3cdf92168");// milkweedfarm.tendfarm.co
-//		customerIds.add("l1s18aa52bc3ae804db3a5850bf6d66c4a5c");// at-hakurei.tendfarm.com
-//		customerIds.add("l1s1b1614cdb7aa6474d81b75d16294aec03");// at-lancelot.tendfarm.com
-//		customerIds.add("l1s18e2d597936404c44b592e2ff960495dd");// at-nautic.tendfarm.com
-//		customerIds.add("l1s1f97581abdbed4c56a91638998cd82b50");// at-bodark.tendfarm.com
-//		customerIds.add("l1s1e9c682062922494c8d1385855fe75b1a");// at-kennebec.tendfarm.com
-//		customerIds.add("www.oldhousefarm.net");
-//		customerIds.add("test.farmer.guide");
-//		customerIds.add("l1s14a419da09f404286a6397197aecb6f64");// hakurei1.farmer.guide
-		for (String farm : customerIds) {
+		allCustomers.add("demo.tend.ag");
+		allCustomers.add("dev1.tend.ag");
+		allCustomers.add("l1s114c74d3c3edd4c37abffe2a3ad42a2b5");
+		allCustomers.add("l1s14378352140f344c8a43f8ed2d9a4f30f");
+		allCustomers.add("l1s168ebc2463a8b4da9b4af81590a6755dc");
+		allCustomers.add("l1s18aa52bc3ae804db3a5850bf6d66c4a5c");
+		allCustomers.add("l1s19a1ef763da544aa7bae77f07302f9072");
+		allCustomers.add("l1s1a607957b13e64302ade0359264434cd2");// anhbodarkfarm.tendfarm.com
+		allCustomers.add("l1s1b1614cdb7aa6474d81b75d16294aec03");
+		allCustomers.add("l1s1dd9d4d38539849b5bcfb9fe72a6958e3");
+		allCustomers.add("l1s1f97581abdbed4c56a91638998cd82b50");
+		allCustomers.add("www.lockewoodacres.com");
+		allCustomers.add("www.strong.ag");
+		allCustomers.add("www.trilliumfarmwa.com");
+		for (String farm : allCustomers) {
+			if (farm.equals("www.tend.ag") || farm.equals("dev.retailkit.com") || farm.equals("test.farmer.guide"))
+				continue;
+			logger.info(farm);
 			ListData listData = getListData(farm, TABLE_PRODUCE_PRODUCT);
-			if (!listData.equals(MessageData.NO_DATA_FOUND)){
-				List<MappedData> list = listData.toList();
-				for (MappedData data : list){
-					System.out.println(String.format("%s\t%s",  data.get("id").toString(),data.get("sellable")));
-				}
+			if (listData.equals(MessageData.NO_DATA_FOUND) || listData.size() <= 0) {
+				continue;
+			}
+			List<MappedData> list = listData.toList();
+			for (MappedData data : list) {
+				Data sellable = data.get("sellable");
+				if (sellable == null)
+					continue;
+				String sellableStr = sellable.toString();
+				if (!sellableStr.contains(","))
+					continue;
+				sellableStr = sellableStr.replace("\\\"", "").replace("[", "").replace("]", "");
+				String[] sellableIds = sellableStr.split(",");
+				String productName = data.get("id").toString().replace(data.get("table").toString() + ":", "");
+				logger.info(printSellableDetails(farm, productName, sellableIds));
 			}
 		}
 
 		System.exit(0);
+	}
+
+	public static String printSellableDetails(String customerId, String productName, String[] sellableIds) {
+		Data farmName = CustomerDevTools.getRowFrontendMapResourceTable(customerId, logger).get("companyShortName");
+		Data customerDomain = CustomerDevTools.getRowFrontendMapResourceTable(customerId, logger).get("customerDomain");
+
+		String result = String.format("%s\t%s\t%s\t%s", customerId, customerDomain, farmName.toString(), productName);
+		List<String> units = new ArrayList<>();
+		boolean needReview = false;
+		for (String sellableId : sellableIds) {
+			MappedData sellable = getSellable(customerId, sellableId);
+			String unit = sellable.get("priceUnit").toString();
+			if (units.contains(unit))
+				needReview = true;
+			units.add(unit);
+			result += "\t" + (String.format("%s:%s", unit,
+					sellable.get("id").toString().replace(sellable.get("table").toString() + ":", ""))
+
+			);
+		}
+		result = needReview + "\t" + result;
+		return result;
 	}
 
 	public static void migrateToProduceProduct(String fromCustomerId, String toCustomerId) throws IOException {

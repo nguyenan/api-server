@@ -324,6 +324,13 @@ public class MigrationModel {
 		return cassSource.getRow(customer, application, tableId, rowId);
 	}
 
+	public static MappedData getSellable(String customerId, String sellableId) {
+		IdData customer = new IdData(customerId);
+		String table = getTableName(customerId, TABLE_SELLABLE);
+		IdData rowId = getRowIdData(table, sellableId);
+		return cassSource.getRow(customer, application, tableId, rowId);
+	}
+	
 	public static MappedData getProductOption(String customerId, String productOptionId) {
 		IdData customer = new IdData(customerId);
 		String table = getTableName(customerId, TABLE_PRODUCT_OPTIONS);
