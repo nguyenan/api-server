@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -32,6 +31,7 @@ import com.wut.resources.ResourceFactory;
 import com.wut.support.ErrorHandler;
 import com.wut.support.Language;
 import com.wut.support.StreamWriter;
+import com.wut.support.logging.StackTraceData;
 import com.wut.support.settings.SettingsManager;
 
 // TODO name this AbstractHttpResource
@@ -184,14 +184,8 @@ public abstract class AbstractResource extends HttpServlet implements WutResourc
 			executeRequest(response, requestInfo);
 
 			// addHeaders(response);
-		} catch (Exception e) {
-			MessageData error = MessageData.error(e);
-			error.setCode(MessageData.SERVER_ERROR.getCode());
-			StringWriter sw = new StringWriter();
-			PrintWriter pw = new PrintWriter(sw);
-			e.printStackTrace(pw);
-			String stackTraceStr = sw.toString();
-			error.put("stacktrace", stackTraceStr.replaceAll("\n", "").replaceAll("\t", "    "));
+		} catch (Exception e) { 			
+			StackTraceData error = StackTraceData.error(String.valueOf(MessageData.SERVER_ERROR.getCode()),"exception", e.getMessage(), null,e);
 			PrintWriter out = response.getWriter();
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			FormatFactory.getDefaultFormatter().format(error, new StreamWriter(baos));

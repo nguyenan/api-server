@@ -11,17 +11,17 @@ import com.wut.pipeline.PermissionStore;
 import com.wut.pipeline.WutRequest;
 import com.wut.support.settings.SystemSettings;
 
-public class UpdateListCustomerOperation extends UserOperation {
+public class RemovePermissionOperation extends UserOperation {
 	private static PermissionStore permissionStore = new PermissionStore();
 	private static String adminCustId = SystemSettings.getInstance().getSetting("admin.customerid");
 
-	public UpdateListCustomerOperation(CrudSource source) {
+	public RemovePermissionOperation(CrudSource source) {
 		super(source);
 	}
 
 	@Override
 	public String getName() {
-		return "updatelist";
+		return "removelist";
 	}
 
 	@Override
@@ -30,17 +30,17 @@ public class UpdateListCustomerOperation extends UserOperation {
 		String username = ri.getStringParameter("username");
 		String application = ri.getApplication();
 		String affectedUserId = Authenticator.getUserId(adminCustId, username);
-
-		// do update
-		MappedData permissionData = (MappedData) permissionStore.read(adminCustId, application, affectedUserId);
+		Data permissionData = permissionStore.read(adminCustId, application, affectedUserId);
 		if (permissionData.equals(MessageData.NO_DATA_FOUND))
-			permissionData = new MappedData();
-		permissionData.put(customer, new StringData("admin"));
+			return BooleanData.TRUE;
 
-		BooleanData update = (BooleanData) permissionStore.update(adminCustId, application, affectedUserId,
-				permissionData.getMapAsPojo());
+		MappedData data = (MappedData) permissionData;
+		if (data.get(customer) == null)
+			return BooleanData.TRUE;
 
-		return MessageData.successOrFailure(update);
+		data.remove(new StringData(customer));
+		permissionStore.delete(adminCustId, application, affectedUserId);
+		Data updated = permissionStore.update(adminCustId, application, affectedUserId, data.getMapAsPojo());
+		return updated;
 	}
-
 }

@@ -56,9 +56,15 @@ public class TableResourceProvider implements Provider {
 
 	public Data delete(IdData application, IdData customer, IdData username, IdData tableId, IdData rowId) {
 		IdData newTableId = getFullyQualifiedTableId(application, customer, username, tableId);
-
-		BooleanData result = provider.deleteRow(customer, application, newTableId, rowId);
-		return MessageData.successOrFailure(result);
+		if (rowId == null) {
+			MappedData filter = new MappedData();
+			filter.put("table", newTableId);
+			BooleanData result = provider.deleteRows(customer, application, newTableId, filter);
+			return MessageData.successOrFailure(result);
+		} else {
+			BooleanData result = provider.deleteRow(customer, application, newTableId, rowId);
+			return MessageData.successOrFailure(result);
+		}
 	}
 	
 	

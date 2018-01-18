@@ -670,4 +670,10 @@ public class DynamoDb extends MultiSource {
 
 	}
 
+	@Override
+	public BooleanData deleteRows(IdData customer, IdData application, IdData tableId, MappedData filter) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

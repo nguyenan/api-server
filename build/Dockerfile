@@ -1,4 +1,4 @@
-FROM tomcat:8.0.23-jre8
+FROM tomcat:8.5.24-jre8
 MAINTAINER "Russell Palmiter" <russell@webutilitykit.com> 
 
 ## GENERAL STUFF TO MAKE APT PACKAGES WORK BETTER ##
@@ -54,7 +54,7 @@ ADD tend.ag.keystore ${CATALINA_HOME}/tend.ag.keystore
 ADD AppServerAgent-4.2.14.0.zip ./
 RUN mkdir -p /opt/appdynamics/appagent
 RUN unzip AppServerAgent-4.2.14.0.zip -d /opt/appdynamics/appagent
-ENV CATALINA_OPTS="-javaagent:/opt/appdynamics/appagent/javaagent.jar"
+ENV CATALINA_OPTS="-javaagent:/opt/appdynamics/appagent/javaagent.jar -XX:CompileCommand=exclude,com/sun/crypto/provider/*.*"
 
 EXPOSE 8080
 EXPOSE 8443

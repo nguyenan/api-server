@@ -209,4 +209,10 @@ public class AmazonSimpleDatabaseSource extends MultiSource {
 		return tableId.toRawString() + ":" + rowId.toRawString();
 	}
 
+	@Override
+	public BooleanData deleteRows(IdData customer, IdData application, IdData tableId, MappedData filter) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

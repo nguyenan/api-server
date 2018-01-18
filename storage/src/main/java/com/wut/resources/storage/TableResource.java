@@ -68,7 +68,7 @@ public class TableResource extends CrudResource {
 		IdData user = new IdData(request.getUser().getId());
 		
 		IdData tableId = getTableScope(request);
-		IdData rowId = getRowIdParam(request);
+		IdData rowId = getRowIdParam(request, true);
 		
 		Data result = provider.delete(application, customer, user, tableId, rowId);
 		return result;

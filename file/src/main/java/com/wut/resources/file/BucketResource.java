@@ -25,6 +25,8 @@ public class BucketResource extends AbstractResource {
 		operations.add(new DeleteBucketOperation());
 		operations.add(new BackupBucketOperation());
 		operations.add(new RestoreBucketOperation());
+		operations.add(new ListDirectoryOperation());
+		operations.add(new ListFileOperation());
 		return operations;
 	}
 }

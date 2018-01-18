@@ -13,6 +13,7 @@ import com.wut.model.matrix.MatrixData;
 import com.wut.model.scalar.ScalarData;
 import com.wut.model.scalar.ScalarModel;
 import com.wut.support.StreamWriter;
+import com.wut.support.logging.StackTraceData;
 
 public class ModelHelper {
 	private TokenSet tokens;
@@ -115,6 +116,11 @@ public class ModelHelper {
 			ListData list = (ListData) data;
 			Model<ListData> model = list.getModel();
 			model.format(tokens, stream, list, context);
+		} else if (data instanceof StackTraceData) {
+			((StackTraceData) data).save();
+			MappedData map = (MappedData) data;
+			Model<MappedData> model = map.getModel();
+			model.format(tokens, stream, map, context);
 		} else if (data instanceof MappedData) {
 			MappedData map = (MappedData) data;
 			Model<MappedData> model = map.getModel();

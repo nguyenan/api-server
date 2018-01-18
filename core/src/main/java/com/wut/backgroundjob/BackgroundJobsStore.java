@@ -38,18 +38,6 @@ public class BackgroundJobsStore {
 		return tableResourceProvider;
 	}
 
-	// public Data read(String customer, String application, String id) {
-	// Data data = provider.read(IdData.create(application),
-	// IdData.create(customer), USER, backgroundJobsTable,
-	// new IdData(id), null);
-	// if (data == null || data.equals(MessageData.NO_DATA_FOUND)) {
-	// return MessageData.NO_DATA_FOUND;
-	// } else {
-	// MappedData mappedData = (MappedData) data;
-	// return mappedData.get("value");
-	// }
-	// }
-
 	public Data read(String jobTableId, String token) {
 		Data data = provider.read(APPLICATION, CUSTOMER, USER, new IdData(jobTableId), new IdData(token), null);
 		if (data == null || data.equals(MessageData.NO_DATA_FOUND)) {
