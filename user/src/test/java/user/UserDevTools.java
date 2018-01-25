@@ -41,8 +41,8 @@ public class UserDevTools {
 		fh.setFormatter(new LogFormatter());
 		String parentCustomerId = "www.tend.ag";
 //		System.out.println(getUserInfo(adminCustId, "seann@saltandharrow.com"));
-		getUserPermission(adminCustId, "sally_hole@hotmail.com");
-		System.out.println(getListAdminUsers("l1s1dbfdd87831034ba5a910dab5ef030605"));
+		getUserPermission(adminCustId, "alazagamble28@yahoo.com");
+//		System.out.println(getListAdminUsers("l1s1dbfdd87831034ba5a910dab5ef030605"));
 //		System.out.println(getUserInfo(adminCustId, "sally_hole@hotmail.com"));
 		 
 		

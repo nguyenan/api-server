@@ -12,6 +12,7 @@ import com.wut.model.map.MappedData;
 import com.wut.model.scalar.BooleanData;
 import com.wut.model.scalar.IdData;
 import com.wut.support.settings.SettingsManager;
+import com.wut.support.settings.SettingsStore;
 
 import java.util.logging.FileHandler;
 import java.util.logging.Logger;
@@ -31,15 +32,21 @@ public class CustomerDevTools {
 		logger.addHandler(fh);
 		fh.setFormatter(new LogFormatter());
 		String parentCustomerId = "www.tend.ag";
-		System.out.println(getCustomerInfo(parentCustomerId, "l1s16f3d01306fdd457789800bba03321376"));
-//		List<String> allCustomers = getAllCustomers(parentCustomerId);
-		/*for (String customerId : allCustomers) {
-			if (customerId.isEmpty())
-				continue;
-			String template = SettingsManager.getClientSettings(customerId, "template.git.branch");
-			System.out.println(customerId + "\t" + template);
-			//updateTemplate(parentCustomerId, customerId, template);
-		}*/
+//		System.out.println(getCustomerInfo(parentCustomerId, "l1s16f3d01306fdd457789800bba03321376"));
+//		System.out.println( getSettings("dev1.tend.ag"));
+		System.out.println( getSettings("dev2.tend.ag"));
+//		System.out.println( getSettings("dev3.tend.ag"));
+//		System.out.println( getSettings("www.mapiii.com"));
+		// List<String> allCustomers = getAllCustomers(parentCustomerId);
+		/*
+		 * for (String customerId : allCustomers) { if (customerId.isEmpty())
+		 * continue; String template =
+		 * SettingsManager.getClientSettings(customerId, "template.git.branch");
+		 * System.out.println(customerId + "\t" + template);
+		 * //updateTemplate(parentCustomerId, customerId, template); }
+		 */
+//		SettingsManager Settingsmanager = new SettingsManager();
+//		Settingsmanager.initClientSettings("dev3.tend.ag");
 		System.exit(0);
 	}
 
@@ -121,6 +128,23 @@ public class CustomerDevTools {
 		return addNewCustomers(parentCustomerId, parentCustomerId, String.valueOf(System.currentTimeMillis()));
 	}
 
+	public static ListData getSettings(String customerId) {
+		try {
+			IdData customer = new IdData(customerId);
+			MappedData filter = new MappedData();
+			String table = String.format("core:%s:public:%s", customerId, "settings");
+			filter.put("table", new IdData(table));
+
+			ListData rowsWithFilter = cassSource.getRowsWithFilter(customer, application, tableId, filter);
+
+			return rowsWithFilter;
+		} catch (Exception e) {
+			logger.info(e.getMessage());
+			return null;
+		}
+
+	}
+
 	public static MappedData getRowFrontendMapResourceTable(String customerId, Logger logger) {
 		try {
 			IdData customer = new IdData(customerId);
@@ -128,8 +152,9 @@ public class CustomerDevTools {
 			String table = String.format("core:%s:public:%s", customerId, "frontendMapResourceTable");
 			filter.put("table", new IdData(table));
 			MappedData row = cassSource.getRow(customer, application, tableId, new IdData(table + ":settings"));
-			//logger.info(row.toString());
-			//logger.info(String.format("%s\t%s\t%s", customerId, row.get("customerDomain"), row.get("domain")));
+			// logger.info(row.toString());
+			// logger.info(String.format("%s\t%s\t%s", customerId,
+			// row.get("customerDomain"), row.get("domain")));
 
 			return row;
 		} catch (Exception e) {
