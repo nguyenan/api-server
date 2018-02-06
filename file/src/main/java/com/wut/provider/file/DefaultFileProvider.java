@@ -53,7 +53,7 @@ public class DefaultFileProvider implements FileProvider {
 	public BooleanData update(IdData bucket, IdData folder, StringData filename, StreamData data) {
 		String folderStr = folder != null ? folder.toRawString() : null;
 		boolean wasSuccessful = source.updateFile(bucket.toRawString(), folderStr, filename.toRawString(),
-				data.getRawStream());
+				data.getRawStream(), null);
 		return BooleanData.create(wasSuccessful);
 	}
 

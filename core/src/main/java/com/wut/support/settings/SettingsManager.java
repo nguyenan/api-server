@@ -15,6 +15,7 @@ public class SettingsManager {
 	private static final String APPLICATION = "core";
 	private static SystemSettings sysSettings = new SystemSettings();
 	private static SettingsStore settingsStore = new SettingsStore();
+	private static final String adminCustId = sysSettings.getSetting("admin.customerid");
 	private static Map<String, MappedData> clientSettingsMap = new HashMap<String, MappedData>();
 	private static final List<String> ADMIN_DOMAIN = Arrays
 			.asList(new String[] { "betaadmin.tend.ag", "admin.tend.ag", "polymer.tend.ag" });
@@ -38,7 +39,7 @@ public class SettingsManager {
 			}
 			
 			// payment
-			setClientSettings(customerId, "payment.payment-processor", "braintree");
+			setClientSettings(customerId, "payment.payment-processor", "square");
 
 			// email
 			setClientSettings(customerId, "email.email-smtp-host", getSystemSetting("default.email-smtp-host"));
@@ -65,6 +66,29 @@ public class SettingsManager {
 			return false;
 		}
 		return true;
+	}
+	
+	public static String getAdminSettings(String settingName) {
+		try {	
+			MappedData clientSettings = clientSettingsMap.get(adminCustId);
+			if ((clientSettings != null) && (clientSettings.get(settingName)!=null) ) {
+					return ((StringData) clientSettings.get(settingName)).toString();
+			}
+	
+			Data settingsData = settingsStore.read(adminCustId, APPLICATION, settingName);
+			if (settingsData.equals(MessageData.NO_DATA_FOUND))
+				return "";
+	
+			// Update Map
+			if (clientSettings == null)
+				clientSettings = new MappedData();
+			clientSettings.put(settingName, settingsData);
+			clientSettingsMap.put(adminCustId, clientSettings);
+			return ((StringData) settingsData).toString();			
+		} catch (Exception e) {
+			ErrorHandler.userError("get AdminSettings fail", e);
+			return "";
+		}
 	}
 
 	/**

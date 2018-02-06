@@ -43,12 +43,15 @@ import com.wut.support.settings.SettingsManager;
 import com.wut.support.stream.StreamUtil;
 
 public class S3FileSource implements FileSource {
-	private static final String AMAZON_USERNAME = SettingsManager.getSystemSetting("amazon.username");
-	private static final String AMAZON_PASSWORD = SettingsManager.getSystemSetting("amazon.password");
+	private static final String AMAZON_USERNAME = "amazon.s3.%s.username";
+	private static final String AMAZON_PASSWORD = "amazon.s3.%s.password";
 	private AmazonS3 s3client;
 
-	public S3FileSource() {
-		AWSCredentials myCredentials = new BasicAWSCredentials(AMAZON_USERNAME, AMAZON_PASSWORD);
+	public S3FileSource(String S3Account) {
+		String username = String.format(AMAZON_USERNAME, S3Account);
+		String password = String.format(AMAZON_PASSWORD, S3Account);
+		AWSCredentials myCredentials = new BasicAWSCredentials(SettingsManager.getSystemSetting(username),
+				SettingsManager.getSystemSetting(password));
 		s3client = new AmazonS3Client(myCredentials);
 	}
 
@@ -77,7 +80,7 @@ public class S3FileSource implements FileSource {
 		}
 	}
 
-	public boolean updateFile(String bucket, String folder, String filename, InputStream fileData) {
+	public boolean updateFile(String bucket, String folder, String filename, InputStream fileData, String customer) {
 		System.out.println("Uploading a new object to S3 from a file\n");
 
 		ObjectMetadata metadata = new ObjectMetadata();
@@ -142,14 +145,17 @@ public class S3FileSource implements FileSource {
 			// if bucket doesnt exist, create bucket and try again
 			if (ase.getErrorCode().equals("NoSuchBucket")) {
 				try {
-					// wait
 					Thread.sleep(1000);
 
 					// create bucket/folder
 					boolean wasBucketCreated = createBucket(bucket);
-
-					// try request again
-					s3client.putObject(putRequest);
+					if (wasBucketCreated) {
+						// try request again
+						String defaultS3Account = SettingsManager.getAdminSettings("file.default-s3-account");
+						if (customer != null && !customer.isEmpty())
+							SettingsManager.setClientSettings(customer, "file.s3-account", defaultS3Account);
+						s3client.putObject(putRequest);
+					}
 					return true;
 				} catch (Exception e) {
 					return false;

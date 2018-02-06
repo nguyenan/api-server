@@ -8,7 +8,7 @@ public interface FileSource extends DataSource {
 	
 	public InputStream getFile(String bucket, String folder, String filename);
 
-	public boolean updateFile(String bucket, String folder, String filename, InputStream fileData);
+	public boolean updateFile(String bucket, String folder, String filename, InputStream fileData, String customer);
 	
 	public boolean deleteFile(String bucket, String folder, String filename);
 	

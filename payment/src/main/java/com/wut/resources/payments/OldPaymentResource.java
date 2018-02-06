@@ -34,46 +34,16 @@ public class OldPaymentResource extends ObsoleteCrudResource {
 		}
 		public String getCardNumber() {
 			return cardNumber;
-		}
-//		public RESPONSE getResponse() {
-//			return response;
-//		}
+		} 
 	}
 
 	@Override
 	public String getName() {
 		return "payment";
-	}
-
-//	private boolean isTestCard(String cardNumber) {
-//		for (FAKECARD fakeCard : FAKECARD.values()) {
-//			if (fakeCard.getCardNumber().equals(cardNumber)) {
-//				return true;
-//			}
-//		}
-//		return false;
-//	}
-
+	} 
 	@Override
 	public Data read(WutRequest request) throws Exception {
-		throw new RuntimeException("read not implemented any more");
-		
-//		String customer = request.getCustomer();
-//		
-//		PaymentProvider paymentProvider = getPaymentProvider(customer);
-//		
-//		List<Map<String, String>> search = paymentProvider.search(null, null);
-//		
-//		ListData transactionList = new ListData();
-//		
-//		if (search != null) {
-//			for (Map<String, String> tansaction : search) {
-//				MappedData transactionMap = MappedData.convert(tansaction);
-//				transactionList.add(transactionMap);
-//			}
-//		}
-//		
-//		return transactionList;
+		throw new RuntimeException("read not implemented any more"); 
 	}
 
 	@Override
@@ -116,17 +86,6 @@ public class OldPaymentResource extends ObsoleteCrudResource {
 		PaymentProvider paymentProvider = paymentManager.getPaymentProcessor(
 				paymentProviderStr, customer);
 		return paymentProvider;
-	}
-
-//	private Set<FAKECARD> getTestCardNumbers() {
-//		Set<String> testCards = new HashSet<String>();
-//		testCards.add("4242424242424242");
-//		testCards.add("4012888888881881");
-//		testCards.add("5555555555554444");
-//		testCards.add("5105105105105100");
-//		testCards.add("378282246310005");
-//		testCards.add("371449635398431");
-//		return testCards;
-//	}
+	} 
 
 }

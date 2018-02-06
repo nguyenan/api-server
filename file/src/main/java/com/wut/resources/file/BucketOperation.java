@@ -17,4 +17,11 @@ public abstract class BucketOperation extends AbstractOperation {
 		String customerDomain = SettingsManager.getClientSettings(request.getCustomer(), "file.domain");
 		return new IdData(customerDomain);
 	}
+	protected String getS3Account(String customer){ 
+		String s3Account = SettingsManager.getClientSettings(customer, "file.s3-account");
+		if (s3Account.isEmpty())
+			s3Account = SettingsManager.getAdminSettings("file.default-s3-account");
+		
+		return s3Account;
+	}
 }
