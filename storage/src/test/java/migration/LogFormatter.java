@@ -1,4 +1,4 @@
-package user;
+package migration;
 
 import java.util.logging.Formatter;
 import java.util.logging.LogRecord;

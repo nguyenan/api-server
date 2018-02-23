@@ -1,4 +1,4 @@
-package user;
+package migration;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,45 +25,10 @@ public class ListProducts extends MigrationModel {
 		setLogFormat();
 
 		List<String> listCustomer = new ArrayList<>();
-		listCustomer.add("casadicampagna.farm");
-		listCustomer.add("greenheartsfamilyfarm.com");
-		listCustomer.add("goldcoast.tendfarm.com");
-		listCustomer.add("miesenbergerhof.tendfarm.com");
-		listCustomer.add("springhaven.farm");
-		listCustomer.add("squashblossom.farm");
-		listCustomer.add("www.arfreckledhenfarm.com");
-		listCustomer.add("www.ecolibriumfarms.com");
-		listCustomer.add("www.everlasting-garden.com");
-		listCustomer.add("www.fortunatefarm.com");
-		listCustomer.add("www.hawkshaven.farm");
-		listCustomer.add("www.jackiesroots.com");
-		listCustomer.add("www.lincolnhillsfarm.com");
-		listCustomer.add("www.lovefood.farm");
-		listCustomer.add("www.pvfproduce.com");
-		listCustomer.add("www.redclayfarm.com");
-		listCustomer.add("www.redearthgardens.com");
-		listCustomer.add("www.robinsongfarms.com");
-		listCustomer.add("www.roosterridgefarmaptos.com");
-		listCustomer.add("www.seedsfarm.org");
-		listCustomer.add("www.seedsfarms.com");
-		listCustomer.add("www.strong.ag");
-		listCustomer.add("www.sunnybrookveggies.com");
-		listCustomer.add("www.thepeachjamboree.farm");
-		listCustomer.add("www.trilliumfarmwa.com");
-		listCustomer.add("www.escargrowfarms.com");
-		listCustomer.add("www.mahoniagardens.com");
-		listCustomer.add("www.lolasonoma.com");
-		listCustomer.add("www.groundswellfarmsantacruz.com");
-		listCustomer.add("www.cluckandtrowel.com");
-		listCustomer.add("www.lockewoodacres.com");
+		listCustomer.add("casadicampagna.farm"); 
 		for (String farm : listCustomer) {
 			listProducts(farm);
-		}
-		// System.out.println(SettingsManager.getClientSettings("www.mahoniagardens.com",
-		// "payment.braintree-mechant-id"));
-		// migrateToEvent("test.farmer.guide");
-		// migrateToEvent("dev1.tend.ag");
-
+		} 
 		System.exit(0);
 	}
 

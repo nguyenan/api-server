@@ -1,4 +1,4 @@
-package user;
+package migration;
 
 import java.io.IOException;
 import java.util.logging.Logger;
