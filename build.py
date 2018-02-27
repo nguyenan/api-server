@@ -13,13 +13,12 @@ parser.add_argument("-s", "--server", help="specify only a specific server")
 parser.add_argument("-cl", "--clean", help="clean all projects", action="store_true")
 parser.add_argument("-c", "--compile", help="compile all projects", action="store_true")
 parser.add_argument("-i", "--install", help="locally install all projects", action="store_true")
-parser.add_argument("-b", "--build", help="build a docker image of the server", action="store_true")
-parser.add_argument("-d", "--deploy", help="deploy the docker image to docker hub", action="store_true")
+parser.add_argument("-b", "--build", type=str, help="build a docker image of the server")
+parser.add_argument("-d", "--deploy", type=str, help="deploy the docker image to docker hub")
 parser.add_argument("-a", "--all", help="clean, compile, install, build, and deploy all projects", action="store_true")
 args = parser.parse_args()
 
 servers = ["ad.webutilitykit.com"]
-
 if (args.all is True):
 	args.clean = True
 	args.compile = True
@@ -35,7 +34,7 @@ if (args.server is not None and args.server != ""):
 
 # NOTE: core must come first
 
-projects = ["core","email","storage","file","image","misc","help","payment","code","services","dns","cdn","user"]
+projects = ["core","email","storage","file","payment","code","dns","cdn","user"]
 
 if (args.project is not None and args.project != ""):
 	projects = [args.project]
@@ -101,47 +100,15 @@ for project in projects:
 
 if (args.build):
 	print "dockerizing..."
-	#for project in projects:
-	#	if (project != "core"): 				
-	#		print "project %s:" % (project)
-	#		warLocation = project+"/target/"+project+".war"
-
 	# docker build
-	call(["docker", "build", "-t", "tendsell/api7", "build"])	
+	call(["docker", "build", "-t", args.build, "build"])	
        	
 	print "removing war files..." 
 	call(["rm", "-rf", "build/webapps/*"])
 
-	# sudo docker ps -l -q
-	# docker commit `dl` helloworld
-	# docker commit `docker ps -l -q` rpalmite/webutilitykit
-
 if (args.deploy):
-	print "deploying docker container to dockerhub..."
-	containerId = subprocess.Popen(["docker", "images", "-q", "tendsell/api7"], stdout=subprocess.PIPE).communicate()[0].rstrip()
-	#//containerId = subprocess.Popen(["docker", "ps", "-l", "-q"], stdout=subprocess.PIPE).communicate()[0]
-	call(["echo", "running " + containerId + "..."])
-        call(["docker", "run", "-d", "-p", "80:8080", "-p", "443:8443", "--name", "api", containerId])
-	call(["docker", "commit", "api", "tendsell/api7"])		
-        call(["docker", "push", "tendsell/api7"])		
-	
-	# clean up # todo -- this can go after commit before push
-	call(["docker", "kill", "api"])
-	call(["docker", "rm", "api"])
-
-#	for server in servers:
-#		serverAddr = "root@"+server;
-		#serverWebappsLocation = serverAddr+":/var/lib/tomcat7/webapps"
-		#print "deploying to server %s:" % (server)
-
-		#for project in projects:
-		#	if (project != "core"):				
-		#		print "project %s:" % (project)
-		#		warLocation = project+"/target/"+project+".war"
-		#		call(["scp", warLocation, serverWebappsLocation])	
-
-		#call(["bash", "setup.sh", server])
-
+	print "deploying docker container to dockerhub..."	
+	call(["docker", "push", args.deploy])			 
 
 print "finished."
 
