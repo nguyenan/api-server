@@ -1,7 +1,5 @@
 package com.wut.datasources.email;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
@@ -19,16 +17,13 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
+import org.apache.commons.lang3.StringEscapeUtils;
+
 import com.wut.support.ErrorHandler;
 import com.wut.support.Language;
 import com.wut.support.domain.DomainUtils;
 import com.wut.support.settings.SettingsManager;
-
-//import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
-
-// TODO no longer just SendGridEmailers
-// TODO make create() function and use instead of contructor
+ 
 public class SendGridEmailer implements Emailer {
 
 	private class SMTPAuthenticator extends javax.mail.Authenticator {
@@ -40,9 +35,7 @@ public class SendGridEmailer implements Emailer {
 			this.password = password;
 		}
 		
-		public PasswordAuthentication getPasswordAuthentication() {
-			//String username = SMTP_AUTH_USER;
-			//String password = SMTP_AUTH_PWD;
+		public PasswordAuthentication getPasswordAuthentication() { 
 			return new PasswordAuthentication(this.username, this.password);
 		}
 	}
@@ -109,29 +102,7 @@ public class SendGridEmailer implements Emailer {
 					"text/html");
 
 			multipart.addBodyPart(part1);
-			multipart.addBodyPart(part2);
-			
-			// TODO add the ability to have attachments 
-			// if has attachment
-			if (false) {
-				// create the second message part
-			    MimeBodyPart part3 = new MimeBodyPart();
-
-			    try {
-				    String str = "SomeMoreTextIsHere"; // attachment
-		            File newTextFile = new File("C:/thetextfile.txt");
-		            FileWriter fw = new FileWriter(newTextFile);
-		            fw.write(str);
-		            fw.close();
-		            
-				    // attach the file to the message
-				    part3.attachFile(newTextFile);
-				    
-					multipart.addBodyPart(part3);
-			    } catch (Exception e) {
-			    	throw new MailException(e);
-			    }
-			}
+			multipart.addBodyPart(part2); 
 
 			message.setContent(multipart);
 			if (Language.isNotBlank(fromEmail)) {
